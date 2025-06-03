@@ -1,89 +1,32 @@
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useAppStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, FileText, TrendingUp, DollarSign, Edit, Trash2 } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
-
-interface SaleFormData {
-  clientId: number;
-  total: string;
-  notes?: string;
-}
+import EnhancedSaleForm from '@/components/forms/EnhancedSaleForm';
+import Calculator from '@/components/Calculator';
 
 export default function Sales() {
   const { setCurrentPage } = useAppStore();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState<SaleFormData>({
-    clientId: 0,
-    total: '',
-    notes: ''
-  });
 
   useEffect(() => {
     setCurrentPage('إدارة المبيعات');
   }, [setCurrentPage]);
 
   // Fetch sales data
-  const { data: sales, isLoading } = useQuery({
+  const { data: sales = [], isLoading } = useQuery({
     queryKey: ['/api/sales'],
   });
 
   // Fetch clients
-  const { data: clients } = useQuery({
+  const { data: clients = [] } = useQuery({
     queryKey: ['/api/clients'],
   });
 
-  // Create sale mutation
-  const createSaleMutation = useMutation({
-    mutationFn: async (data: SaleFormData) => {
-      const response = await apiRequest('/api/sales', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
-      return response;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/sales'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/stats'] });
-      toast({
-        title: "تم إنشاء فاتورة المبيعات بنجاح",
-        description: "تم حفظ الفاتورة الجديدة",
-      });
-      setShowForm(false);
-      setFormData({ clientId: 0, total: '', notes: '' });
-    },
-    onError: () => {
-      toast({
-        title: "خطأ في إنشاء الفاتورة",
-        description: "حدث خطأ أثناء حفظ الفاتورة",
-        variant: "destructive",
-      });
-    }
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (formData.clientId && formData.total) {
-      createSaleMutation.mutate(formData);
-    } else {
-      toast({
-        title: "بيانات ناقصة",
-        description: "يرجى ملء جميع الحقول المطلوبة",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const totalSales = sales?.reduce((sum: number, sale: any) => sum + parseFloat(sale.total), 0) || 0;
+  const totalSales = sales.reduce((sum: number, sale: any) => sum + parseFloat(sale.total), 0);
 
   return (
     <div className="space-y-6">
@@ -123,7 +66,7 @@ export default function Sales() {
             </div>
             <div className="mr-4">
               <p className="text-sm font-medium text-gray-600">عدد الفواتير</p>
-              <p className="text-2xl font-bold text-gray-900">{sales?.length || 0}</p>
+              <p className="text-2xl font-bold text-gray-900">{sales.length}</p>
             </div>
           </div>
         </div>
@@ -136,7 +79,7 @@ export default function Sales() {
             <div className="mr-4">
               <p className="text-sm font-medium text-gray-600">متوسط الفاتورة</p>
               <p className="text-2xl font-bold text-gray-900">
-                {sales?.length ? (totalSales / sales.length).toFixed(2) : '0.00'} ر.س
+                {sales.length ? (totalSales / sales.length).toFixed(2) : '0.00'} ر.س
               </p>
             </div>
           </div>
@@ -149,71 +92,17 @@ export default function Sales() {
             </div>
             <div className="mr-4">
               <p className="text-sm font-medium text-gray-600">عدد العملاء</p>
-              <p className="text-2xl font-bold text-gray-900">{clients?.length || 0}</p>
+              <p className="text-2xl font-bold text-gray-900">{clients.length}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Sales Form Modal */}
-      {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md">
-            <CardHeader>
-              <CardTitle>فاتورة مبيعات جديدة</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="clientId">العميل</Label>
-                  <Select onValueChange={(value) => setFormData({...formData, clientId: parseInt(value)})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="اختر العميل" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {clients?.map((client: any) => (
-                        <SelectItem key={client.id} value={client.id.toString()}>
-                          {client.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+      {/* Enhanced Sales Form Modal */}
+      {showForm && <EnhancedSaleForm onClose={() => setShowForm(false)} />}
 
-                <div>
-                  <Label htmlFor="total">إجمالي المبلغ (ر.س)</Label>
-                  <Input 
-                    type="number" 
-                    step="0.01"
-                    value={formData.total}
-                    onChange={(e) => setFormData({...formData, total: e.target.value})}
-                    placeholder="0.00"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="notes">ملاحظات</Label>
-                  <Input 
-                    value={formData.notes}
-                    onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                    placeholder="ملاحظات إضافية"
-                  />
-                </div>
-
-                <div className="flex justify-end gap-4">
-                  <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
-                    إلغاء
-                  </Button>
-                  <Button type="submit" disabled={createSaleMutation.isPending}>
-                    {createSaleMutation.isPending ? 'جاري الحفظ...' : 'حفظ الفاتورة'}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      {/* Calculator Component */}
+      <Calculator />
 
       {/* Sales Table */}
       <Card>
@@ -223,7 +112,7 @@ export default function Sales() {
         <CardContent>
           {isLoading ? (
             <div className="text-center py-8">جاري تحميل البيانات...</div>
-          ) : sales?.length === 0 ? (
+          ) : sales.length === 0 ? (
             <div className="text-center py-8">
               <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">لا توجد فواتير مبيعات</h3>
@@ -246,8 +135,8 @@ export default function Sales() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sales?.map((sale: any) => {
-                  const client = clients?.find((c: any) => c.id === sale.clientId);
+                {sales.map((sale: any) => {
+                  const client = clients.find((c: any) => c.id === sale.clientId);
                   return (
                     <TableRow key={sale.id}>
                       <TableCell className="font-medium">#{sale.id}</TableCell>
