@@ -22,6 +22,9 @@ import Accounts from "@/pages/Accounts";
 import Reports from "@/pages/Reports";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/not-found";
+import Employees from "@/pages/Employees";
+import Deductions from "@/pages/Deductions";
+import Salaries from "@/pages/Salaries";
 
 function Router() {
   return (
@@ -61,6 +64,11 @@ function Router() {
         <Route path="/journal-entries" component={Accounts} />
         <Route path="/accounts-payable" component={Accounts} />
         <Route path="/accounts-receivable" component={Accounts} />
+        
+        {/* الموظفين */}
+        <Route path="/employees" component={Employees} />
+        <Route path="/deductions" component={Deductions} />
+        <Route path="/salaries" component={Salaries} />
         
         {/* التقارير */}
         <Route path="/reports" component={Reports} />
