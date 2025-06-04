@@ -9,6 +9,7 @@ import Users from "@/pages/Users";
 import Suppliers from "@/pages/Suppliers";
 import Clients from "@/pages/Clients";
 import Products from "@/pages/Products";
+import ProductBarcodes from "@/pages/ProductBarcodes";
 import Sales from "@/pages/Sales";
 import Purchases from "@/pages/Purchases";
 import Inventory from "@/pages/Inventory";
@@ -29,7 +30,7 @@ function Router() {
         <Route path="/client-groups" component={Clients} />
         <Route path="/products" component={Products} />
         <Route path="/products/add" component={Products} />
-        <Route path="/product-discounts" component={Products} />
+        <Route path="/products/barcodes" component={ProductBarcodes} />
         <Route path="/product-categories" component={Products} />
         <Route path="/purchases" component={Purchases} />
         <Route path="/sales" component={Sales} />
