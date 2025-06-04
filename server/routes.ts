@@ -10,6 +10,7 @@ import {
   insertPurchaseSchema
 } from "@shared/schema";
 import { uploadMiddleware, transcribeAudio } from "./voice";
+import { handleAIChat } from "./ai-chat";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard
@@ -218,6 +219,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Voice Assistant - Audio transcription and analysis
   app.post("/api/voice/transcribe", uploadMiddleware, transcribeAudio);
+
+  // AI Chat
+  app.post("/api/ai/chat", handleAIChat);
 
   const httpServer = createServer(app);
   return httpServer;
