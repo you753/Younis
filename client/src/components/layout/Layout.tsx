@@ -3,6 +3,7 @@ import Header from './Header';
 import NotificationBar from '../NotificationBar';
 import AIChat from '../AIChat';
 import Calculator from '../Calculator';
+import FinancialVoiceAssistant from '../FinancialVoiceAssistant';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -30,6 +31,9 @@ export default function Layout({ children }: LayoutProps) {
       </div>
       <div className="fixed left-6 bottom-6 z-50">
         <AIChat />
+      </div>
+      <div className="fixed left-6 bottom-20 z-50">
+        <FinancialVoiceAssistant />
       </div>
     </div>
   );
