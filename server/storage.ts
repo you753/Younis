@@ -1,5 +1,5 @@
 import { 
-  users, suppliers, clients, products, sales, purchases, employees, deductions, salaries,
+  users, suppliers, clients, products, sales, purchases, employees, deductions, salaries, productCategories,
   type User, type InsertUser,
   type Supplier, type InsertSupplier,
   type Client, type InsertClient,
@@ -8,7 +8,8 @@ import {
   type Purchase, type InsertPurchase,
   type Employee, type InsertEmployee,
   type Deduction, type InsertDeduction,
-  type Salary, type InsertSalary
+  type Salary, type InsertSalary,
+  type ProductCategory, type InsertProductCategory
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql } from "drizzle-orm";
@@ -73,6 +74,13 @@ export interface IStorage {
   createSalary(salary: InsertSalary): Promise<Salary>;
   updateSalary(id: number, salary: Partial<InsertSalary>): Promise<Salary | undefined>;
   deleteSalary(id: number): Promise<boolean>;
+
+  // Product Categories
+  getProductCategory(id: number): Promise<ProductCategory | undefined>;
+  getAllProductCategories(): Promise<ProductCategory[]>;
+  createProductCategory(category: InsertProductCategory): Promise<ProductCategory>;
+  updateProductCategory(id: number, category: Partial<InsertProductCategory>): Promise<ProductCategory | undefined>;
+  deleteProductCategory(id: number): Promise<boolean>;
 
   // Dashboard stats
   getDashboardStats(): Promise<{
