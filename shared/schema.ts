@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, decimal, timestamp, date } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, decimal, timestamp, date, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -53,6 +53,14 @@ export const sales = pgTable("sales", {
   total: decimal("total", { precision: 10, scale: 2 }).notNull(),
   date: timestamp("date").defaultNow().notNull(),
   notes: text("notes"),
+  items: json("items").$type<Array<{
+    id: string;
+    productId: number;
+    productName: string;
+    quantity: number;
+    unitPrice: number;
+    total: number;
+  }>>(),
 });
 
 export const purchases = pgTable("purchases", {
