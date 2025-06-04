@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Minus, Edit, Trash2, Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,11 +7,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Deduction, Employee } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import DeductionFormComponent from "@/components/forms/DeductionForm";
 
 export default function Deductions() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [showForm, setShowForm] = useState(false);
+  const [editingDeduction, setEditingDeduction] = useState<any>(null);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: deductions = [], isLoading } = useQuery<Deduction[]>({
     queryKey: ["/api/deductions"],
@@ -20,6 +26,43 @@ export default function Deductions() {
   const { data: employees = [] } = useQuery<Employee[]>({
     queryKey: ["/api/employees"],
   });
+
+  const deleteDeductionMutation = useMutation({
+    mutationFn: (id: number) => apiRequest({
+      url: `/api/deductions/${id}`,
+      method: 'DELETE',
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/deductions'] });
+      toast({
+        title: "نجح",
+        description: "تم حذف الخصم بنجاح",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "خطأ",
+        description: "فشل في حذف الخصم",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEdit = (deduction: any) => {
+    setEditingDeduction(deduction);
+    setShowForm(true);
+  };
+
+  const handleDelete = (id: number) => {
+    if (confirm('هل أنت متأكد من حذف هذا الخصم؟')) {
+      deleteDeductionMutation.mutate(id);
+    }
+  };
+
+  const handleFormSuccess = () => {
+    setEditingDeduction(null);
+    setShowForm(false);
+  };
 
   const filteredDeductions = deductions.filter((deduction: Deduction) => {
     const employee = employees.find((emp: Employee) => emp.id === deduction.employeeId);
@@ -256,10 +299,19 @@ export default function Deductions() {
                         </td>
                         <td className="p-4">
                           <div className="flex gap-2">
-                            <Button size="sm" variant="outline">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleEdit(deduction)}
+                            >
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="text-red-600 hover:text-red-700"
+                              onClick={() => handleDelete(deduction.id)}
+                            >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
@@ -273,6 +325,14 @@ export default function Deductions() {
           )}
         </CardContent>
       </Card>
+
+      {/* Deduction Form */}
+      <DeductionFormComponent
+        open={showForm}
+        onOpenChange={setShowForm}
+        editingDeduction={editingDeduction}
+        onSuccess={handleFormSuccess}
+      />
     </div>
   );
 }
