@@ -94,63 +94,52 @@ export default function Sidebar() {
     const isItemActive = isActive(item.href);
     const hasActiveChildItem = hasActiveChild(item.children);
 
-    console.log(`العنصر: ${item.title}, العناصر الفرعية: ${hasChildren}, موسع: ${isExpanded}, الأطفال: ${item.children?.length || 0}`);
-
     if (hasChildren) {
       return (
-        <div key={item.title}>
-          <div className="flex">
-            {/* Main link */}
-            {item.href && (
-              <Link href={item.href} className="flex-1">
-                <Button
-                  variant="ghost"
-                  className={cn(
-                    "w-full justify-start text-right p-3 h-auto font-medium text-white hover:bg-white/10",
-                    level > 0 && "mr-4",
-                    isItemActive && "bg-white/20 text-white"
-                  )}
-                  onClick={() => {
-                    if (window.innerWidth < 1024) {
-                      toggleSidebar();
-                    }
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <item.icon className="h-5 w-5" />
-                    <span>{item.title}</span>
-                  </div>
-                </Button>
-              </Link>
+        <div key={item.title} className="mb-1">
+          {/* عنصر قابل للتوسيع */}
+          <Button
+            variant="ghost"
+            className={cn(
+              "w-full justify-between text-right p-3 h-auto font-medium text-white hover:bg-white/10",
+              (isExpanded || hasActiveChildItem) && "bg-white/10"
             )}
-            
-            {/* Expand button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className={cn(
-                "p-2 text-white hover:bg-white/10 flex-shrink-0",
-                !item.href && "flex-1 justify-between",
-                (isExpanded || hasActiveChildItem) && "bg-white/10"
-              )}
-              onClick={() => toggleExpanded(item.title)}
-            >
-              {!item.href && (
-                <div className="flex items-center gap-3">
-                  <item.icon className="h-5 w-5" />
-                  <span>{item.title}</span>
-                </div>
-              )}
-              <ChevronDown className={cn(
-                "h-4 w-4 transition-transform",
-                isExpanded && "rotate-180"
-              )} />
-            </Button>
-          </div>
+            onClick={() => toggleExpanded(item.title)}
+          >
+            <div className="flex items-center gap-3">
+              <item.icon className="h-5 w-5" />
+              <span>{item.title}</span>
+            </div>
+            <ChevronDown className={cn(
+              "h-4 w-4 transition-transform",
+              isExpanded && "rotate-180"
+            )} />
+          </Button>
           
-          {isExpanded && (
-            <div className="mt-1 space-y-1 mr-4 bg-white/5 rounded-lg p-2">
-              {item.children?.map(child => renderNavItem(child, level + 1))}
+          {/* العناصر الفرعية */}
+          {isExpanded && item.children && (
+            <div className="mt-2 mr-4 space-y-1 bg-white/5 rounded-lg p-2">
+              {item.children.map((child, index) => (
+                <Link key={`${child.title}-${index}`} href={child.href || '#'}>
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      "w-full justify-start text-right p-2 h-auto text-sm text-white/90 hover:bg-white/10 hover:text-white",
+                      isActive(child.href) && "bg-white/20 text-white"
+                    )}
+                    onClick={() => {
+                      if (window.innerWidth < 1024) {
+                        toggleSidebar();
+                      }
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <child.icon className="h-4 w-4" />
+                      <span>{child.title}</span>
+                    </div>
+                  </Button>
+                </Link>
+              ))}
             </div>
           )}
         </div>
