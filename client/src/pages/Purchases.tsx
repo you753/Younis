@@ -10,22 +10,12 @@ import { Plus, ShoppingCart, TrendingDown, DollarSign, Edit, Trash2 } from 'luci
 import PurchaseFormComponent from '@/components/forms/PurchaseForm';
 import { format } from 'date-fns';
 
-interface PurchaseFormData {
-  supplierId: number;
-  total: string;
-  notes?: string;
-}
-
 export default function Purchases() {
   const { setCurrentPage } = useAppStore();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState<PurchaseFormData>({
-    supplierId: 0,
-    total: '',
-    notes: ''
-  });
+  const [editingPurchase, setEditingPurchase] = useState<any>(null);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   useEffect(() => {
     setCurrentPage('إدارة المشتريات');
@@ -172,7 +162,7 @@ export default function Purchases() {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <Label htmlFor="supplierId">المورد</Label>
+                  <label htmlFor="supplierId" className="text-sm font-medium">المورد</label>
                   <Select onValueChange={(value) => setFormData({...formData, supplierId: parseInt(value)})}>
                     <SelectTrigger>
                       <SelectValue placeholder="اختر المورد" />
