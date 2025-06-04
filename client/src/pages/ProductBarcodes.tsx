@@ -37,19 +37,36 @@ export default function ProductBarcodes() {
   };
 
   const generateBarcodeImage = (barcode: string) => {
-    // Create a proper barcode representation
-    const width = 200;
+    // Create a Code 128-like barcode pattern
+    const width = 250;
     const height = 60;
-    const barWidth = 2;
-    const bars = barcode.split('').map((_, i) => i % 2 === 0 ? 'black' : 'white');
+    const patterns = [];
+    
+    // Generate alternating black/white bars based on barcode digits
+    for (let i = 0; i < barcode.length; i++) {
+      const digit = parseInt(barcode[i]) || 0;
+      // Each digit creates 3-4 bars of varying widths
+      const barPattern = [
+        { width: digit % 3 + 1, color: 'black' },
+        { width: digit % 2 + 1, color: 'white' },
+        { width: (digit + 1) % 3 + 1, color: 'black' },
+        { width: digit % 2 + 1, color: 'white' }
+      ];
+      patterns.push(...barPattern);
+    }
+    
+    let xPos = 10;
+    const bars = patterns.map(bar => {
+      const rect = `<rect x="${xPos}" y="10" width="${bar.width * 2}" height="${height - 20}" fill="${bar.color}"/>`;
+      xPos += bar.width * 2;
+      return rect;
+    }).join('');
     
     const svgContent = `
-      <svg width="${width}" height="${height + 20}" xmlns="http://www.w3.org/2000/svg">
-        <rect width="${width}" height="${height + 20}" fill="white"/>
-        ${bars.map((color, i) => 
-          `<rect x="${i * barWidth}" y="5" width="${barWidth}" height="${height - 10}" fill="${color}"/>`
-        ).join('')}
-        <text x="${width/2}" y="${height + 15}" text-anchor="middle" font-family="Arial" font-size="12" fill="black">${barcode}</text>
+      <svg width="${width}" height="${height + 30}" xmlns="http://www.w3.org/2000/svg">
+        <rect width="${width}" height="${height + 30}" fill="white" stroke="#ddd" stroke-width="1"/>
+        ${bars}
+        <text x="${width/2}" y="${height + 20}" text-anchor="middle" font-family="monospace" font-size="14" fill="black">${barcode}</text>
       </svg>
     `;
     return `data:image/svg+xml;base64,${btoa(svgContent)}`;

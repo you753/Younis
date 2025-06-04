@@ -101,6 +101,67 @@ export class MemStorage implements IStorage {
       password: "admin123",
       role: "admin"
     });
+
+    // Add sample products with barcodes for testing
+    this.createProduct({
+      name: "لابتوب ديل XPS 13",
+      code: "LAP001",
+      barcode: "1234567890123",
+      category: "إلكترونيات",
+      description: "لابتوب محمول عالي الأداء",
+      purchasePrice: "3500.00",
+      salePrice: "4200.00",
+      quantity: 15,
+      minQuantity: 5
+    });
+
+    this.createProduct({
+      name: "ماوس لاسلكي لوجيتك",
+      code: "MOU001", 
+      barcode: "9876543210987",
+      category: "ملحقات",
+      description: "ماوس لاسلكي بتقنية البلوتوث",
+      purchasePrice: "75.00",
+      salePrice: "120.00",
+      quantity: 50,
+      minQuantity: 10
+    });
+
+    this.createProduct({
+      name: "كيبورد ميكانيكي",
+      code: "KEY001",
+      barcode: "5555666677778",
+      category: "ملحقات",
+      description: "كيبورد ميكانيكي للألعاب",
+      purchasePrice: "250.00",
+      salePrice: "380.00",
+      quantity: 25,
+      minQuantity: 5
+    });
+
+    this.createProduct({
+      name: "شاشة سامسونج 27 بوصة",
+      code: "MON001",
+      barcode: "4444333322221",
+      category: "إلكترونيات",
+      description: "شاشة LED عالية الدقة",
+      purchasePrice: "800.00",
+      salePrice: "1150.00",
+      quantity: 8,
+      minQuantity: 3
+    });
+
+    this.createProduct({
+      name: "سماعات بلوتوث",
+      code: "AUD001",
+      barcode: "7777888899990",
+      category: "صوتيات",
+      description: "سماعات لاسلكية عالية الجودة",
+      purchasePrice: "150.00",
+      salePrice: "220.00",
+      quantity: 30,
+      minQuantity: 8
+    });
   }
 
   private nextId(): number {
