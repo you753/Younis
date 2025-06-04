@@ -5,7 +5,7 @@ import { useAppStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, FileText, TrendingUp, DollarSign, Edit, Trash2, Printer, Download, Eye, ArrowLeft, Percent } from 'lucide-react';
+import { Plus, FileText, TrendingUp, DollarSign, Edit, Trash2, Printer, Download, Eye, ArrowLeft, Percent, Calculator as CalcIcon } from 'lucide-react';
 import EnhancedSaleForm from '@/components/forms/EnhancedSaleForm';
 import Calculator from '@/components/Calculator';
 import InvoiceActions from '@/components/InvoiceActions';
