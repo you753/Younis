@@ -72,6 +72,49 @@ export const purchases = pgTable("purchases", {
   notes: text("notes"),
 });
 
+export const employees = pgTable("employees", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  employeeId: text("employee_id").unique(),
+  position: text("position"),
+  department: text("department"),
+  hireDate: timestamp("hire_date").notNull(),
+  salary: decimal("salary", { precision: 10, scale: 2 }).notNull(),
+  phone: text("phone"),
+  email: text("email"),
+  address: text("address"),
+  emergencyContact: text("emergency_contact"),
+  status: text("status").notNull().default("active"), // active, inactive, terminated
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const deductions = pgTable("deductions", {
+  id: serial("id").primaryKey(),
+  employeeId: integer("employee_id").notNull().references(() => employees.id),
+  type: text("type").notNull(), // insurance, tax, loan, advance, other
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  description: text("description"),
+  date: timestamp("date").notNull(),
+  recurring: boolean("recurring").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const salaries = pgTable("salaries", {
+  id: serial("id").primaryKey(),
+  employeeId: integer("employee_id").notNull().references(() => employees.id),
+  month: integer("month").notNull(), // 1-12
+  year: integer("year").notNull(),
+  baseSalary: decimal("base_salary", { precision: 10, scale: 2 }).notNull(),
+  overtime: decimal("overtime", { precision: 10, scale: 2 }).default("0"),
+  bonuses: decimal("bonuses", { precision: 10, scale: 2 }).default("0"),
+  totalDeductions: decimal("total_deductions", { precision: 10, scale: 2 }).default("0"),
+  netSalary: decimal("net_salary", { precision: 10, scale: 2 }).notNull(),
+  status: text("status").notNull().default("pending"), // pending, paid, cancelled
+  paidDate: timestamp("paid_date"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -104,6 +147,21 @@ export const insertPurchaseSchema = createInsertSchema(purchases).omit({
   date: true,
 });
 
+export const insertEmployeeSchema = createInsertSchema(employees).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertDeductionSchema = createInsertSchema(deductions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSalarySchema = createInsertSchema(salaries).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -122,3 +180,12 @@ export type InsertSale = z.infer<typeof insertSaleSchema>;
 
 export type Purchase = typeof purchases.$inferSelect;
 export type InsertPurchase = z.infer<typeof insertPurchaseSchema>;
+
+export type Employee = typeof employees.$inferSelect;
+export type InsertEmployee = z.infer<typeof insertEmployeeSchema>;
+
+export type Deduction = typeof deductions.$inferSelect;
+export type InsertDeduction = z.infer<typeof insertDeductionSchema>;
+
+export type Salary = typeof salaries.$inferSelect;
+export type InsertSalary = z.infer<typeof insertSalarySchema>;
