@@ -1,23 +1,61 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { useAppStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, FileText, TrendingUp, DollarSign, Edit, Trash2, Printer, Download, Eye } from 'lucide-react';
+import { Plus, FileText, TrendingUp, DollarSign, Edit, Trash2, Printer, Download, Eye, ArrowLeft, Percent } from 'lucide-react';
 import EnhancedSaleForm from '@/components/forms/EnhancedSaleForm';
 import Calculator from '@/components/Calculator';
 import InvoiceActions from '@/components/InvoiceActions';
 
 export default function Sales() {
   const { setCurrentPage } = useAppStore();
+  const [location] = useLocation();
   const [showForm, setShowForm] = useState(false);
   const [selectedSale, setSelectedSale] = useState<any>(null);
   const [showInvoicePreview, setShowInvoicePreview] = useState(false);
 
+  // تحديد نوع الصفحة حسب المسار
+  const getPageInfo = () => {
+    switch (location) {
+      case '/sales-returns':
+        return { 
+          title: 'مرتجعات المبيعات', 
+          description: 'إدارة مرتجعات المبيعات والاسترداد',
+          icon: ArrowLeft,
+          buttonText: 'إضافة مرتجع'
+        };
+      case '/quotes':
+        return { 
+          title: 'عروض الأسعار', 
+          description: 'إنشاء وإدارة عروض الأسعار للعملاء',
+          icon: FileText,
+          buttonText: 'إضافة عرض سعر'
+        };
+      case '/sales-reports':
+        return { 
+          title: 'تقارير المبيعات', 
+          description: 'تقارير مفصلة عن أداء المبيعات',
+          icon: TrendingUp,
+          buttonText: 'إنشاء تقرير'
+        };
+      default:
+        return { 
+          title: 'فواتير المبيعات', 
+          description: 'إدارة فواتير المبيعات والعمليات التجارية',
+          icon: FileText,
+          buttonText: 'إضافة فاتورة'
+        };
+    }
+  };
+
+  const pageInfo = getPageInfo();
+
   useEffect(() => {
-    setCurrentPage('إدارة المبيعات');
-  }, [setCurrentPage]);
+    setCurrentPage(pageInfo.title);
+  }, [setCurrentPage, pageInfo.title]);
 
   // Fetch sales data
   const { data: sales = [], isLoading } = useQuery({

@@ -32,12 +32,44 @@ function Router() {
         <Route path="/products/add" component={Products} />
         <Route path="/products/barcodes" component={ProductBarcodes} />
         <Route path="/product-categories" component={Products} />
+        
+        {/* المشتريات */}
         <Route path="/purchases" component={Purchases} />
+        <Route path="/purchase-returns" component={Purchases} />
+        <Route path="/purchase-orders" component={Purchases} />
+        <Route path="/purchase-reports" component={Reports} />
+        
+        {/* المبيعات */}
         <Route path="/sales" component={Sales} />
+        <Route path="/sales-returns" component={Sales} />
+        <Route path="/quotes" component={Sales} />
+        <Route path="/sales-reports" component={Reports} />
+        
+        {/* إدارة المخزون */}
         <Route path="/inventory" component={Inventory} />
+        <Route path="/inventory/count" component={Inventory} />
+        <Route path="/inventory/movement" component={Inventory} />
+        <Route path="/inventory/transfer" component={Inventory} />
+        
+        {/* الحسابات */}
         <Route path="/accounts" component={Accounts} />
+        <Route path="/journal-entries" component={Accounts} />
+        <Route path="/accounts-payable" component={Accounts} />
+        <Route path="/accounts-receivable" component={Accounts} />
+        
+        {/* التقارير */}
         <Route path="/reports" component={Reports} />
+        <Route path="/reports/sales" component={Reports} />
+        <Route path="/reports/purchases" component={Reports} />
+        <Route path="/reports/financial" component={Reports} />
+        <Route path="/reports/inventory" component={Reports} />
+        
+        {/* الإعدادات */}
         <Route path="/settings" component={Settings} />
+        <Route path="/settings/system" component={Settings} />
+        <Route path="/settings/printing" component={Settings} />
+        <Route path="/settings/taxes" component={Settings} />
+        <Route path="/settings/backup" component={Settings} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
