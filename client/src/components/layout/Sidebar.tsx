@@ -4,7 +4,7 @@ import {
   Home, Users, UserCheck, Package, ShoppingCart, 
   ScanBarcode, Warehouse, FileText, BarChart3, 
   Settings, ChevronDown, X, Truck, UsersRound,
-  DollarSign, Tags, List, Plus, Percent
+  DollarSign, Tags, List, Plus, Percent, Volume2
 } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,7 @@ interface NavItem {
 
 const navigationItems: NavItem[] = [
   { title: 'لوحة التحكم', icon: Home, href: '/' },
+  { title: 'المساعد الصوتي', icon: Volume2, href: '/voice-notes' },
   { title: 'إدارة المستخدمين', icon: Users, href: '/users' },
   {
     title: 'العملاء والموردين',

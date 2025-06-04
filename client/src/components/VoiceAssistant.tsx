@@ -100,16 +100,22 @@ export default function VoiceAssistant({ onNoteAdded }: VoiceAssistantProps) {
   const processAudio = useCallback(async (audioBlob: Blob) => {
     setIsProcessing(true);
     try {
-      // Convert audio to base64 for API request
+      // Create FormData for file upload
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recording.wav');
       
-      const response = await apiRequest('/api/voice/transcribe', {
+      // Use fetch directly for file upload instead of apiRequest
+      const response = await fetch('/api/voice/transcribe', {
         method: 'POST',
         body: formData,
       });
 
-      const { transcript, analysis } = response;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const { transcript, analysis } = data;
 
       const newNote: VoiceNote = {
         id: Date.now().toString(),
