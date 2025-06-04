@@ -1,14 +1,43 @@
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/lib/store';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, FileText, Eye, Edit, Trash2, Send } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Plus, FileText, Eye, Edit, Trash2, Send, Save, Calendar } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { format } from 'date-fns';
+
+// Schema for form validation
+const quoteFormSchema = z.object({
+  clientId: z.number().optional(),
+  quoteNumber: z.string().min(1, 'رقم العرض مطلوب'),
+  total: z.string().min(1, 'المبلغ الإجمالي مطلوب'),
+  tax: z.string().optional(),
+  discount: z.string().optional(),
+  status: z.string().default('pending'),
+  validUntil: z.string().min(1, 'تاريخ انتهاء الصلاحية مطلوب'),
+  notes: z.string().optional(),
+});
+
+type QuoteForm = z.infer<typeof quoteFormSchema>;
 
 export default function Quotes() {
   const { setCurrentPage } = useAppStore();
   const [showForm, setShowForm] = useState(false);
+  const [editingQuote, setEditingQuote] = useState<any>(null);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   useEffect(() => {
     setCurrentPage('عروض الأسعار');
@@ -18,6 +47,134 @@ export default function Quotes() {
   const { data: quotes = [], isLoading } = useQuery({
     queryKey: ['/api/quotes'],
   });
+
+  const { data: clients = [] } = useQuery({
+    queryKey: ['/api/clients'],
+  });
+
+  const form = useForm<QuoteForm>({
+    resolver: zodResolver(quoteFormSchema),
+    defaultValues: {
+      quoteNumber: '',
+      total: '',
+      tax: '0',
+      discount: '0',
+      status: 'pending',
+      validUntil: '',
+      notes: '',
+    },
+  });
+
+  const createQuoteMutation = useMutation({
+    mutationFn: (data: QuoteForm) => apiRequest({
+      url: '/api/quotes',
+      method: 'POST',
+      body: data,
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/quotes'] });
+      setShowForm(false);
+      form.reset();
+      toast({
+        title: "نجح",
+        description: "تم إضافة عرض السعر بنجاح",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "خطأ",
+        description: "فشل في إضافة عرض السعر",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateQuoteMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<QuoteForm> }) => 
+      apiRequest({
+        url: `/api/quotes/${id}`,
+        method: 'PUT',
+        body: data,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/quotes'] });
+      setEditingQuote(null);
+      setShowForm(false);
+      form.reset();
+      toast({
+        title: "نجح",
+        description: "تم تحديث عرض السعر بنجاح",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "خطأ",
+        description: "فشل في تحديث عرض السعر",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteQuoteMutation = useMutation({
+    mutationFn: (id: number) => apiRequest({
+      url: `/api/quotes/${id}`,
+      method: 'DELETE',
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/quotes'] });
+      toast({
+        title: "نجح",
+        description: "تم حذف عرض السعر بنجاح",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "خطأ",
+        description: "فشل في حذف عرض السعر",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: QuoteForm) => {
+    if (editingQuote) {
+      updateQuoteMutation.mutate({ id: editingQuote.id, data });
+    } else {
+      createQuoteMutation.mutate(data);
+    }
+  };
+
+  const handleEdit = (quote: any) => {
+    setEditingQuote(quote);
+    form.reset({
+      clientId: quote.clientId,
+      quoteNumber: quote.quoteNumber,
+      total: quote.total,
+      tax: quote.tax || '0',
+      discount: quote.discount || '0',
+      status: quote.status,
+      validUntil: quote.validUntil ? format(new Date(quote.validUntil), 'yyyy-MM-dd') : '',
+      notes: quote.notes || '',
+    });
+    setShowForm(true);
+  };
+
+  const handleDelete = (id: number) => {
+    if (confirm('هل أنت متأكد من حذف عرض السعر؟')) {
+      deleteQuoteMutation.mutate(id);
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusMap = {
+      pending: { label: 'في الانتظار', variant: 'secondary' as const },
+      accepted: { label: 'مقبول', variant: 'default' as const },
+      rejected: { label: 'مرفوض', variant: 'destructive' as const },
+      expired: { label: 'منتهي الصلاحية', variant: 'outline' as const },
+    };
+    
+    return statusMap[status as keyof typeof statusMap] || { label: status, variant: 'secondary' as const };
+  };
 
   if (isLoading) {
     return <div className="p-6">جاري تحميل البيانات...</div>;

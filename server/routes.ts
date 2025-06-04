@@ -420,6 +420,149 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Quotes routes
+  app.get('/api/quotes', async (req, res) => {
+    try {
+      const quotes = await storage.getAllQuotes();
+      res.json(quotes);
+    } catch (error) {
+      console.error('Error fetching quotes:', error);
+      res.status(500).json({ error: 'Failed to fetch quotes' });
+    }
+  });
+
+  app.post('/api/quotes', async (req, res) => {
+    try {
+      const insertQuoteSchema = z.object({
+        clientId: z.number().optional(),
+        quoteNumber: z.string(),
+        total: z.string(),
+        tax: z.string().optional(),
+        discount: z.string().optional(),
+        status: z.string().optional(),
+        validUntil: z.string(),
+        notes: z.string().optional(),
+        items: z.any().optional(),
+      });
+      
+      const validatedData = insertQuoteSchema.parse(req.body);
+      const quote = await storage.createQuote({
+        ...validatedData,
+        validUntil: new Date(validatedData.validUntil),
+      });
+      
+      res.status(201).json(quote);
+    } catch (error) {
+      console.error('Error creating quote:', error);
+      res.status(500).json({ error: 'Failed to create quote' });
+    }
+  });
+
+  app.put('/api/quotes/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updateData = req.body;
+      
+      if (updateData.validUntil) {
+        updateData.validUntil = new Date(updateData.validUntil);
+      }
+      
+      const quote = await storage.updateQuote(id, updateData);
+      
+      if (!quote) {
+        return res.status(404).json({ error: 'Quote not found' });
+      }
+      
+      res.json(quote);
+    } catch (error) {
+      console.error('Error updating quote:', error);
+      res.status(500).json({ error: 'Failed to update quote' });
+    }
+  });
+
+  app.delete('/api/quotes/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteQuote(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: 'Quote not found' });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting quote:', error);
+      res.status(500).json({ error: 'Failed to delete quote' });
+    }
+  });
+
+  // Sales Returns routes
+  app.get('/api/sales-returns', async (req, res) => {
+    try {
+      const salesReturns = await storage.getAllSalesReturns();
+      res.json(salesReturns);
+    } catch (error) {
+      console.error('Error fetching sales returns:', error);
+      res.status(500).json({ error: 'Failed to fetch sales returns' });
+    }
+  });
+
+  app.post('/api/sales-returns', async (req, res) => {
+    try {
+      const insertSalesReturnSchema = z.object({
+        saleId: z.number().optional(),
+        returnNumber: z.string(),
+        total: z.string(),
+        reason: z.string(),
+        status: z.string().optional(),
+        notes: z.string().optional(),
+        items: z.any().optional(),
+      });
+      
+      const validatedData = insertSalesReturnSchema.parse(req.body);
+      const salesReturn = await storage.createSalesReturn(validatedData);
+      
+      res.status(201).json(salesReturn);
+    } catch (error) {
+      console.error('Error creating sales return:', error);
+      res.status(500).json({ error: 'Failed to create sales return' });
+    }
+  });
+
+  app.put('/api/sales-returns/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updateData = req.body;
+      
+      const salesReturn = await storage.updateSalesReturn(id, updateData);
+      
+      if (!salesReturn) {
+        return res.status(404).json({ error: 'Sales return not found' });
+      }
+      
+      res.json(salesReturn);
+    } catch (error) {
+      console.error('Error updating sales return:', error);
+      res.status(500).json({ error: 'Failed to update sales return' });
+    }
+  });
+
+  app.delete('/api/sales-returns/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteSalesReturn(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: 'Sales return not found' });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting sales return:', error);
+      res.status(500).json({ error: 'Failed to delete sales return' });
+    }
+  });
+
   // Voice Assistant - Audio transcription and analysis
   app.post("/api/voice/transcribe", uploadMiddleware, transcribeAudio);
 

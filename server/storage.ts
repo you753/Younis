@@ -1,5 +1,5 @@
 import { 
-  users, suppliers, clients, products, sales, purchases, employees, deductions, salaries, productCategories,
+  users, suppliers, clients, products, sales, purchases, employees, deductions, salaries, productCategories, quotes, salesReturns,
   type User, type InsertUser,
   type Supplier, type InsertSupplier,
   type Client, type InsertClient,
@@ -9,7 +9,9 @@ import {
   type Employee, type InsertEmployee,
   type Deduction, type InsertDeduction,
   type Salary, type InsertSalary,
-  type ProductCategory, type InsertProductCategory
+  type ProductCategory, type InsertProductCategory,
+  type Quote, type InsertQuote,
+  type SalesReturn, type InsertSalesReturn
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql } from "drizzle-orm";
@@ -423,6 +425,74 @@ export class DatabaseStorage implements IStorage {
       totalPurchases: purchasesSum.sum || "0.00",
       inventoryValue: inventoryValue.value || "0.00"
     };
+  }
+
+  // Quotes methods
+  async getQuote(id: number): Promise<Quote | undefined> {
+    const [quote] = await db.select().from(quotes).where(eq(quotes.id, id));
+    return quote || undefined;
+  }
+
+  async getAllQuotes(): Promise<Quote[]> {
+    return await db.select().from(quotes).orderBy(quotes.createdAt);
+  }
+
+  async createQuote(insertQuote: InsertQuote): Promise<Quote> {
+    const [quote] = await db
+      .insert(quotes)
+      .values(insertQuote)
+      .returning();
+    return quote;
+  }
+
+  async updateQuote(id: number, updateData: Partial<InsertQuote>): Promise<Quote | undefined> {
+    const [quote] = await db
+      .update(quotes)
+      .set(updateData)
+      .where(eq(quotes.id, id))
+      .returning();
+    return quote || undefined;
+  }
+
+  async deleteQuote(id: number): Promise<boolean> {
+    const result = await db
+      .delete(quotes)
+      .where(eq(quotes.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Sales Returns methods
+  async getSalesReturn(id: number): Promise<SalesReturn | undefined> {
+    const [salesReturn] = await db.select().from(salesReturns).where(eq(salesReturns.id, id));
+    return salesReturn || undefined;
+  }
+
+  async getAllSalesReturns(): Promise<SalesReturn[]> {
+    return await db.select().from(salesReturns).orderBy(salesReturns.createdAt);
+  }
+
+  async createSalesReturn(insertSalesReturn: InsertSalesReturn): Promise<SalesReturn> {
+    const [salesReturn] = await db
+      .insert(salesReturns)
+      .values(insertSalesReturn)
+      .returning();
+    return salesReturn;
+  }
+
+  async updateSalesReturn(id: number, updateData: Partial<InsertSalesReturn>): Promise<SalesReturn | undefined> {
+    const [salesReturn] = await db
+      .update(salesReturns)
+      .set(updateData)
+      .where(eq(salesReturns.id, id))
+      .returning();
+    return salesReturn || undefined;
+  }
+
+  async deleteSalesReturn(id: number): Promise<boolean> {
+    const result = await db
+      .delete(salesReturns)
+      .where(eq(salesReturns.id, id));
+    return (result.rowCount ?? 0) > 0;
   }
 }
 
