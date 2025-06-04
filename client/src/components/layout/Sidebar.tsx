@@ -20,95 +20,17 @@ interface NavItem {
 const navigationItems: NavItem[] = [
   { title: 'لوحة التحكم', icon: Home, href: '/' },
   { title: 'إدارة المستخدمين', icon: Users, href: '/users' },
-  {
-    title: 'العملاء والموردين',
-    icon: UsersRound,
-    children: [
-      { title: 'الموردين', icon: Truck, href: '/suppliers' },
-      { title: 'العملاء', icon: UserCheck, href: '/clients' },
-      { title: 'عملاء نقديين', icon: DollarSign, href: '/cash-clients' },
-      { title: 'مجموعات العملاء', icon: Tags, href: '/client-groups' }
-    ]
-  },
-  {
-    title: 'الأصناف',
-    icon: Package,
-    children: [
-      { title: 'قائمة الأصناف', icon: List, href: '/products' },
-      { title: 'إضافة صنف', icon: Plus, href: '/products/add' },
-      { title: 'باركود الأصناف', icon: ScanBarcode, href: '/products/barcodes' },
-      { title: 'تصنيفات الأصناف', icon: Tags, href: '/product-categories' }
-    ]
-  },
-  {
-    title: 'المشتريات',
-    icon: ShoppingCart,
-    children: [
-      { title: 'فواتير المشتريات', icon: FileText, href: '/purchases' },
-      { title: 'مرتجعات المشتريات', icon: Percent, href: '/purchase-returns' },
-      { title: 'أوامر الشراء', icon: Plus, href: '/purchase-orders' },
-      { title: 'تقارير المشتريات', icon: BarChart3, href: '/purchase-reports' }
-    ]
-  },
-  {
-    title: 'المبيعات',
-    icon: ScanBarcode,
-    children: [
-      { title: 'فواتير المبيعات', icon: FileText, href: '/sales' },
-      { title: 'مرتجعات المبيعات', icon: Percent, href: '/sales-returns' },
-      { title: 'عروض الأسعار', icon: Tags, href: '/quotes' },
-      { title: 'تقارير المبيعات', icon: BarChart3, href: '/sales-reports' }
-    ]
-  },
-  {
-    title: 'إدارة المخزون',
-    icon: Warehouse,
-    children: [
-      { title: 'حالة المخزون', icon: List, href: '/inventory' },
-      { title: 'جرد المخزون', icon: Plus, href: '/inventory/count' },
-      { title: 'حركة المخزون', icon: BarChart3, href: '/inventory/movement' },
-      { title: 'تحويل المخزون', icon: Truck, href: '/inventory/transfer' }
-    ]
-  },
-  {
-    title: 'الموظفين',
-    icon: Users,
-    children: [
-      { title: 'قائمة الموظفين', icon: Users, href: '/employees' },
-      { title: 'الخصومات', icon: Minus, href: '/deductions' },
-      { title: 'الرواتب', icon: DollarSign, href: '/salaries' }
-    ]
-  },
-  {
-    title: 'الحسابات',
-    icon: FileText,
-    children: [
-      { title: 'دليل الحسابات', icon: List, href: '/accounts' },
-      { title: 'القيود اليومية', icon: FileText, href: '/journal-entries' },
-      { title: 'الحسابات الدائنة', icon: DollarSign, href: '/accounts-payable' },
-      { title: 'الحسابات المدينة', icon: UserCheck, href: '/accounts-receivable' }
-    ]
-  },
-  {
-    title: 'التقارير',
-    icon: BarChart3,
-    children: [
-      { title: 'تقارير المبيعات', icon: ScanBarcode, href: '/reports/sales' },
-      { title: 'تقارير المشتريات', icon: ShoppingCart, href: '/reports/purchases' },
-      { title: 'التقارير المالية', icon: FileText, href: '/reports/financial' },
-      { title: 'تقارير المخزون', icon: Warehouse, href: '/reports/inventory' }
-    ]
-  },
-  {
-    title: 'الإعدادات',
-    icon: Settings,
-    children: [
-      { title: 'إعدادات النظام', icon: Settings, href: '/settings/system' },
-      { title: 'إعدادات الطباعة', icon: FileText, href: '/settings/printing' },
-      { title: 'إعدادات الضرائب', icon: Percent, href: '/settings/taxes' },
-      { title: 'النسخ الاحتياطي', icon: Package, href: '/settings/backup' }
-    ]
-  }
+  { title: 'الموردين', icon: Truck, href: '/suppliers' },
+  { title: 'العملاء', icon: UserCheck, href: '/clients' },
+  { title: 'الأصناف', icon: Package, href: '/products' },
+  { title: 'المشتريات', icon: ShoppingCart, href: '/purchases' },
+  { title: 'المبيعات', icon: ScanBarcode, href: '/sales' },
+  { title: 'المخزون', icon: Warehouse, href: '/inventory' },
+  { title: 'الموظفين', icon: Users, href: '/employees' },
+  { title: 'الخصومات', icon: Minus, href: '/deductions' },
+  { title: 'الرواتب', icon: DollarSign, href: '/salaries' },
+  { title: 'التقارير', icon: BarChart3, href: '/reports' },
+  { title: 'الإعدادات', icon: Settings, href: '/settings' }
 ];
 
 export default function Sidebar() {
