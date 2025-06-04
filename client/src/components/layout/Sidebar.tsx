@@ -94,6 +94,8 @@ export default function Sidebar() {
     const isItemActive = isActive(item.href);
     const hasActiveChildItem = hasActiveChild(item.children);
 
+    console.log(`العنصر: ${item.title}, العناصر الفرعية: ${hasChildren}, موسع: ${isExpanded}, الأطفال: ${item.children?.length || 0}`);
+
     if (hasChildren) {
       return (
         <div key={item.title}>
@@ -148,11 +150,7 @@ export default function Sidebar() {
           
           {isExpanded && (
             <div className="mt-1 space-y-1 mr-4 bg-white/5 rounded-lg p-2">
-              {item.children?.map(child => (
-                <div key={child.title} className="border-r-2 border-white/20 pr-3">
-                  {renderNavItem(child, level + 1)}
-                </div>
-              ))}
+              {item.children?.map(child => renderNavItem(child, level + 1))}
             </div>
           )}
         </div>
