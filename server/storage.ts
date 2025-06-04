@@ -356,6 +356,40 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount ?? 0) > 0;
   }
 
+  // Product Categories
+  async getProductCategory(id: number): Promise<ProductCategory | undefined> {
+    const [category] = await db.select().from(productCategories).where(eq(productCategories.id, id));
+    return category || undefined;
+  }
+
+  async getAllProductCategories(): Promise<ProductCategory[]> {
+    return await db.select().from(productCategories);
+  }
+
+  async createProductCategory(insertCategory: InsertProductCategory): Promise<ProductCategory> {
+    const [category] = await db
+      .insert(productCategories)
+      .values(insertCategory)
+      .returning();
+    return category;
+  }
+
+  async updateProductCategory(id: number, updateData: Partial<InsertProductCategory>): Promise<ProductCategory | undefined> {
+    const [category] = await db
+      .update(productCategories)
+      .set(updateData)
+      .where(eq(productCategories.id, id))
+      .returning();
+    return category || undefined;
+  }
+
+  async deleteProductCategory(id: number): Promise<boolean> {
+    const result = await db
+      .delete(productCategories)
+      .where(eq(productCategories.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
   async getDashboardStats(): Promise<{
     totalClients: number;
     totalSales: string;
