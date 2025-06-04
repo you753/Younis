@@ -18,258 +18,211 @@ export default function Purchases() {
   const { toast } = useToast();
 
   useEffect(() => {
-    setCurrentPage('إدارة المشتريات');
+    setCurrentPage('المشتريات');
   }, [setCurrentPage]);
 
-  // Fetch purchases data
-  const { data: purchases, isLoading } = useQuery({
+  // Fetch data
+  const { data: purchases = [], isLoading } = useQuery({
     queryKey: ['/api/purchases'],
   });
 
-  // Fetch suppliers
-  const { data: suppliers } = useQuery({
+  const { data: suppliers = [] } = useQuery({
     queryKey: ['/api/suppliers'],
   });
 
-  // Create purchase mutation
-  const createPurchaseMutation = useMutation({
-    mutationFn: async (data: PurchaseFormData) => {
-      const response = await fetch('/api/purchases', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to create purchase');
-      }
-      
-      return response.json();
-    },
+  const deletePurchaseMutation = useMutation({
+    mutationFn: (id: number) => apiRequest({
+      url: `/api/purchases/${id}`,
+      method: 'DELETE',
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/purchases'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/stats'] });
       toast({
-        title: "تم إنشاء فاتورة المشتريات بنجاح",
-        description: "تم حفظ الفاتورة الجديدة",
+        title: "نجح",
+        description: "تم حذف المشتريات بنجاح",
       });
-      setShowForm(false);
-      setFormData({ supplierId: 0, total: '', notes: '' });
     },
     onError: () => {
       toast({
-        title: "خطأ في إنشاء الفاتورة",
-        description: "حدث خطأ أثناء حفظ الفاتورة",
+        title: "خطأ",
+        description: "فشل في حذف المشتريات",
         variant: "destructive",
       });
-    }
+    },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (formData.supplierId && formData.total) {
-      createPurchaseMutation.mutate(formData);
-    } else {
-      toast({
-        title: "بيانات ناقصة",
-        description: "يرجى ملء جميع الحقول المطلوبة",
-        variant: "destructive",
-      });
+  const handleEdit = (purchase: any) => {
+    setEditingPurchase(purchase);
+    setShowForm(true);
+  };
+
+  const handleDelete = (id: number) => {
+    if (confirm('هل أنت متأكد من حذف فاتورة المشتريات؟')) {
+      deletePurchaseMutation.mutate(id);
     }
   };
 
-  const totalPurchases = purchases?.reduce((sum: number, purchase: any) => sum + parseFloat(purchase.total), 0) || 0;
+  const handleFormSuccess = () => {
+    setEditingPurchase(null);
+    setShowForm(false);
+  };
+
+  if (isLoading) return <div className="p-6">جاري تحميل البيانات...</div>;
+
+  // Calculate stats
+  const totalPurchases = Array.isArray(purchases) ? purchases.reduce((sum: number, purchase: any) => sum + parseFloat(purchase.total || 0), 0) : 0;
+  const monthlyPurchases = Array.isArray(purchases) ? purchases.filter((purchase: any) => {
+    const purchaseDate = new Date(purchase.createdAt);
+    const currentDate = new Date();
+    return purchaseDate.getMonth() === currentDate.getMonth() && 
+           purchaseDate.getFullYear() === currentDate.getFullYear();
+  }) : [];
+
+  const averageOrderValue = Array.isArray(purchases) && purchases.length > 0 ? totalPurchases / purchases.length : 0;
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6">
       {/* Page Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">إدارة المشتريات</h2>
-            <p className="text-gray-600">تسجيل المشتريات من الموردين وإدارة المخزون</p>
-          </div>
-          
-          <Button onClick={() => setShowForm(true)} className="btn-accounting-primary">
-            <Plus className="ml-2 h-4 w-4" />
-            فاتورة مشتريات جديدة
-          </Button>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">المشتريات</h1>
+          <p className="text-muted-foreground">إدارة فواتير المشتريات والموردين</p>
         </div>
+        <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
+          <Plus className="h-4 w-4" />
+          إضافة فاتورة مشتريات
+        </Button>
       </div>
 
-      {/* Quick Stats */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="stats-card">
-          <div className="flex items-center">
-            <div className="stats-card-icon bg-purple-100 text-purple-600">
-              <DollarSign className="h-6 w-6" />
+        <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-blue-600 text-sm font-medium">إجمالي المشتريات</p>
+                <p className="text-2xl font-bold text-blue-700">{totalPurchases.toFixed(2)} ر.س</p>
+              </div>
+              <div className="bg-blue-200 p-3 rounded-full">
+                <DollarSign className="h-6 w-6 text-blue-700" />
+              </div>
             </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">إجمالي المشتريات</p>
-              <p className="text-2xl font-bold text-gray-900">{totalPurchases.toFixed(2)} ر.س</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-green-600 text-sm font-medium">عدد الفواتير</p>
+                <p className="text-2xl font-bold text-green-700">{Array.isArray(purchases) ? purchases.length : 0}</p>
+              </div>
+              <div className="bg-green-200 p-3 rounded-full">
+                <ShoppingCart className="h-6 w-6 text-green-700" />
+              </div>
             </div>
-          </div>
-        </div>
-        
-        <div className="stats-card">
-          <div className="flex items-center">
-            <div className="stats-card-icon bg-blue-100 text-blue-600">
-              <ShoppingCart className="h-6 w-6" />
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-r from-purple-50 to-purple-100 border-purple-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-purple-600 text-sm font-medium">مشتريات هذا الشهر</p>
+                <p className="text-2xl font-bold text-purple-700">{monthlyPurchases.length}</p>
+              </div>
+              <div className="bg-purple-200 p-3 rounded-full">
+                <TrendingDown className="h-6 w-6 text-purple-700" />
+              </div>
             </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">عدد الفواتير</p>
-              <p className="text-2xl font-bold text-gray-900">{purchases?.length || 0}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-orange-600 text-sm font-medium">متوسط قيمة الفاتورة</p>
+                <p className="text-2xl font-bold text-orange-700">{averageOrderValue.toFixed(2)} ر.س</p>
+              </div>
+              <div className="bg-orange-200 p-3 rounded-full">
+                <DollarSign className="h-6 w-6 text-orange-700" />
+              </div>
             </div>
-          </div>
-        </div>
-        
-        <div className="stats-card">
-          <div className="flex items-center">
-            <div className="stats-card-icon bg-orange-100 text-orange-600">
-              <TrendingDown className="h-6 w-6" />
-            </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">متوسط الفاتورة</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {purchases?.length ? (totalPurchases / purchases.length).toFixed(2) : '0.00'} ر.س
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="stats-card">
-          <div className="flex items-center">
-            <div className="stats-card-icon bg-green-100 text-green-600">
-              <DollarSign className="h-6 w-6" />
-            </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">عدد الموردين</p>
-              <p className="text-2xl font-bold text-gray-900">{suppliers?.length || 0}</p>
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
-
-      {/* Purchase Form Modal */}
-      {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md">
-            <CardHeader>
-              <CardTitle>فاتورة مشتريات جديدة</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label htmlFor="supplierId" className="text-sm font-medium">المورد</label>
-                  <Select onValueChange={(value) => setFormData({...formData, supplierId: parseInt(value)})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="اختر المورد" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {suppliers?.map((supplier: any) => (
-                        <SelectItem key={supplier.id} value={supplier.id.toString()}>
-                          {supplier.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="total">إجمالي المبلغ (ر.س)</Label>
-                  <Input 
-                    type="number" 
-                    step="0.01"
-                    value={formData.total}
-                    onChange={(e) => setFormData({...formData, total: e.target.value})}
-                    placeholder="0.00"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="notes">ملاحظات</Label>
-                  <Input 
-                    value={formData.notes}
-                    onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                    placeholder="ملاحظات إضافية"
-                  />
-                </div>
-
-                <div className="flex justify-end gap-4">
-                  <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
-                    إلغاء
-                  </Button>
-                  <Button type="submit" disabled={createPurchaseMutation.isPending}>
-                    {createPurchaseMutation.isPending ? 'جاري الحفظ...' : 'حفظ الفاتورة'}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-      )}
 
       {/* Purchases Table */}
       <Card>
         <CardHeader>
-          <CardTitle>فواتير المشتريات</CardTitle>
+          <CardTitle>قائمة فواتير المشتريات</CardTitle>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="text-center py-8">جاري تحميل البيانات...</div>
-          ) : purchases?.length === 0 ? (
-            <div className="text-center py-8">
-              <ShoppingCart className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">لا توجد فواتير مشتريات</h3>
-              <p className="text-gray-600 mb-4">ابدأ بإضافة أول فاتورة مشتريات</p>
-              <Button onClick={() => setShowForm(true)}>
-                <Plus className="ml-2 h-4 w-4" />
-                إضافة فاتورة جديدة
-              </Button>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-right">رقم الفاتورة</TableHead>
-                  <TableHead className="text-right">المورد</TableHead>
-                  <TableHead className="text-right">المبلغ</TableHead>
-                  <TableHead className="text-right">التاريخ</TableHead>
-                  <TableHead className="text-right">ملاحظات</TableHead>
-                  <TableHead className="text-right">الإجراءات</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {purchases?.map((purchase: any) => {
-                  const supplier = suppliers?.find((s: any) => s.id === purchase.supplierId);
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>رقم الفاتورة</TableHead>
+                <TableHead>المورد</TableHead>
+                <TableHead>المبلغ الإجمالي</TableHead>
+                <TableHead>التاريخ</TableHead>
+                <TableHead>ملاحظات</TableHead>
+                <TableHead>الإجراءات</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array.isArray(purchases) && purchases.length > 0 ? (
+                purchases.map((purchase: any) => {
+                  const supplier = Array.isArray(suppliers) ? suppliers.find((s: any) => s.id === purchase.supplierId) : null;
                   return (
                     <TableRow key={purchase.id}>
                       <TableCell className="font-medium">#{purchase.id}</TableCell>
                       <TableCell>{supplier?.name || 'غير محدد'}</TableCell>
-                      <TableCell>{parseFloat(purchase.total).toFixed(2)} ر.س</TableCell>
-                      <TableCell>{new Date(purchase.date).toLocaleDateString('ar-SA')}</TableCell>
+                      <TableCell>{purchase.total} ر.س</TableCell>
+                      <TableCell>
+                        {purchase.createdAt ? format(new Date(purchase.createdAt), 'yyyy-MM-dd') : '-'}
+                      </TableCell>
                       <TableCell>{purchase.notes || '-'}</TableCell>
                       <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEdit(purchase)}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="outline" size="sm" className="text-red-600">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDelete(purchase.id)}
+                          >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
                     </TableRow>
                   );
-                })}
-              </TableBody>
-            </Table>
-          )}
+                })
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    لا توجد فواتير مشتريات حتى الآن
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
+
+      {/* Purchase Form */}
+      <PurchaseFormComponent
+        open={showForm}
+        onOpenChange={setShowForm}
+        editingPurchase={editingPurchase}
+        onSuccess={handleFormSuccess}
+      />
     </div>
   );
 }
