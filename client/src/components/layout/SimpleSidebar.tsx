@@ -33,7 +33,7 @@ const navigationItems: NavItem[] = [
     icon: Package,
     children: [
       { title: 'قائمة الأصناف', icon: List, href: '/products' },
-      { title: 'باركود الأصناف', icon: ScanBarcode, href: '/product-barcodes' },
+      { title: 'باركود الأصناف', icon: ScanBarcode, href: '/inventory/barcodes' },
       { title: 'تصنيفات الأصناف', icon: Tags, href: '/product-categories' }
     ]
   },
