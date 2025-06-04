@@ -10,9 +10,14 @@ import Suppliers from "@/pages/Suppliers";
 import Clients from "@/pages/Clients";
 import Products from "@/pages/Products";
 import ProductBarcodes from "@/pages/ProductBarcodes";
+import ProductCategories from "@/pages/ProductCategories";
 import Sales from "@/pages/Sales";
+import SalesReturns from "@/pages/SalesReturns";
+import Quotes from "@/pages/Quotes";
 import Purchases from "@/pages/Purchases";
+import PurchaseReturns from "@/pages/PurchaseReturns";
 import Inventory from "@/pages/Inventory";
+import InventoryCount from "@/pages/InventoryCount";
 import Accounts from "@/pages/Accounts";
 import Reports from "@/pages/Reports";
 import Settings from "@/pages/Settings";
@@ -31,23 +36,23 @@ function Router() {
         <Route path="/products" component={Products} />
         <Route path="/products/add" component={Products} />
         <Route path="/products/barcodes" component={ProductBarcodes} />
-        <Route path="/product-categories" component={Products} />
+        <Route path="/product-categories" component={ProductCategories} />
         
         {/* المشتريات */}
         <Route path="/purchases" component={Purchases} />
-        <Route path="/purchase-returns" component={Purchases} />
+        <Route path="/purchase-returns" component={PurchaseReturns} />
         <Route path="/purchase-orders" component={Purchases} />
         <Route path="/purchase-reports" component={Reports} />
         
         {/* المبيعات */}
         <Route path="/sales" component={Sales} />
-        <Route path="/sales-returns" component={Sales} />
-        <Route path="/quotes" component={Sales} />
+        <Route path="/sales-returns" component={SalesReturns} />
+        <Route path="/quotes" component={Quotes} />
         <Route path="/sales-reports" component={Reports} />
         
         {/* إدارة المخزون */}
         <Route path="/inventory" component={Inventory} />
-        <Route path="/inventory/count" component={Inventory} />
+        <Route path="/inventory/count" component={InventoryCount} />
         <Route path="/inventory/movement" component={Inventory} />
         <Route path="/inventory/transfer" component={Inventory} />
         
