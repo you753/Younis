@@ -22,6 +22,10 @@ import InventoryMovement from "@/pages/InventoryMovement";
 import InventoryTransfer from "@/pages/InventoryTransfer";
 import Accounts from "@/pages/Accounts";
 import Reports from "@/pages/Reports";
+import SalesReports from "@/pages/reports/SalesReports";
+import PurchasesReports from "@/pages/reports/PurchasesReports";
+import InventoryReports from "@/pages/reports/InventoryReports";
+import FinancialReports from "@/pages/reports/FinancialReports";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/not-found";
 import Employees from "@/pages/Employees";
@@ -77,10 +81,13 @@ function Router() {
         
         {/* التقارير */}
         <Route path="/reports" component={Reports} />
-        <Route path="/reports/sales" component={Reports} />
-        <Route path="/reports/purchases" component={Reports} />
-        <Route path="/reports/financial" component={Reports} />
-        <Route path="/reports/inventory" component={Reports} />
+        <Route path="/reports/sales" component={SalesReports} />
+        <Route path="/reports/purchases" component={PurchasesReports} />
+        <Route path="/reports/inventory" component={InventoryReports} />
+        <Route path="/reports/financial" component={FinancialReports} />
+        <Route path="/reports/clients" component={Reports} />
+        <Route path="/reports/suppliers" component={Reports} />
+        <Route path="/reports/employees" component={Reports} />
         
         {/* الإعدادات */}
         <Route path="/settings" component={Settings} />
