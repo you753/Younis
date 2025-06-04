@@ -100,7 +100,7 @@ export default function Calculator() {
 
   return (
     <div className="relative">
-      <Card className="w-64 shadow-xl absolute bottom-0 right-0">
+      <Card className="w-64 shadow-xl absolute bottom-0 left-0">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm">آلة حاسبة</CardTitle>
