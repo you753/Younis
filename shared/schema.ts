@@ -150,6 +150,18 @@ export const salesReturns = pgTable("sales_returns", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const purchaseReturns = pgTable("purchase_returns", {
+  id: serial("id").primaryKey(),
+  purchaseId: integer("purchase_id").references(() => purchases.id),
+  returnNumber: text("return_number").notNull().unique(),
+  total: decimal("total", { precision: 10, scale: 2 }).notNull(),
+  reason: text("reason").notNull(),
+  status: text("status").notNull().default("pending"), // pending, approved, completed
+  notes: text("notes"),
+  items: json("items"), // Array of returned items
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -212,6 +224,11 @@ export const insertSalesReturnSchema = createInsertSchema(salesReturns).omit({
   createdAt: true,
 });
 
+export const insertPurchaseReturnSchema = createInsertSchema(purchaseReturns).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -248,3 +265,6 @@ export type InsertQuote = z.infer<typeof insertQuoteSchema>;
 
 export type SalesReturn = typeof salesReturns.$inferSelect;
 export type InsertSalesReturn = z.infer<typeof insertSalesReturnSchema>;
+
+export type PurchaseReturn = typeof purchaseReturns.$inferSelect;
+export type InsertPurchaseReturn = z.infer<typeof insertPurchaseReturnSchema>;

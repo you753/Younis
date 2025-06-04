@@ -98,6 +98,13 @@ export interface IStorage {
   updateSalesReturn(id: number, salesReturn: Partial<InsertSalesReturn>): Promise<SalesReturn | undefined>;
   deleteSalesReturn(id: number): Promise<boolean>;
 
+  // Purchase Returns
+  getPurchaseReturn(id: number): Promise<PurchaseReturn | undefined>;
+  getAllPurchaseReturns(): Promise<PurchaseReturn[]>;
+  createPurchaseReturn(purchaseReturn: InsertPurchaseReturn): Promise<PurchaseReturn>;
+  updatePurchaseReturn(id: number, purchaseReturn: Partial<InsertPurchaseReturn>): Promise<PurchaseReturn | undefined>;
+  deletePurchaseReturn(id: number): Promise<boolean>;
+
   // Dashboard stats
   getDashboardStats(): Promise<{
     totalClients: number;

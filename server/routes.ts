@@ -564,6 +564,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Purchase Returns routes
+  app.get('/api/purchase-returns', async (req, res) => {
+    try {
+      // Since we don't have purchase returns in schema yet, return empty array
+      res.json([]);
+    } catch (error) {
+      console.error('Error fetching purchase returns:', error);
+      res.status(500).json({ error: 'Failed to fetch purchase returns' });
+    }
+  });
+
+  app.post('/api/purchase-returns', async (req, res) => {
+    try {
+      const insertPurchaseReturnSchema = z.object({
+        purchaseId: z.number().optional(),
+        returnNumber: z.string(),
+        total: z.string(),
+        reason: z.string(),
+        status: z.string().optional(),
+        notes: z.string().optional(),
+        items: z.any().optional(),
+      });
+      
+      const validatedData = insertPurchaseReturnSchema.parse(req.body);
+      // For now, just return success - will implement storage later
+      res.status(201).json({ id: Date.now(), ...validatedData });
+    } catch (error) {
+      console.error('Error creating purchase return:', error);
+      res.status(500).json({ error: 'Failed to create purchase return' });
+    }
+  });
+
+  app.put('/api/purchase-returns/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updateData = req.body;
+      
+      // For now, just return success - will implement storage later
+      res.json({ id, ...updateData });
+    } catch (error) {
+      console.error('Error updating purchase return:', error);
+      res.status(500).json({ error: 'Failed to update purchase return' });
+    }
+  });
+
+  app.delete('/api/purchase-returns/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      // For now, just return success - will implement storage later
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting purchase return:', error);
+      res.status(500).json({ error: 'Failed to delete purchase return' });
+    }
+  });
+
   // Voice Assistant - Audio transcription and analysis
   app.post("/api/voice/transcribe", uploadMiddleware, transcribeAudio);
 
