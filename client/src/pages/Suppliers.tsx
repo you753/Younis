@@ -71,7 +71,7 @@ export default function Suppliers() {
   });
 
   // Fetch data
-  const { data: suppliers = [] } = useQuery({
+  const { data: suppliers = [] } = useQuery<any[]>({
     queryKey: ['/api/suppliers'],
   });
 
