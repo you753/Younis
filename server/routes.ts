@@ -7,7 +7,10 @@ import {
   insertClientSchema, 
   insertProductSchema,
   insertSaleSchema,
-  insertPurchaseSchema
+  insertPurchaseSchema,
+  insertEmployeeSchema,
+  insertDeductionSchema,
+  insertSalarySchema
 } from "@shared/schema";
 import { uploadMiddleware, transcribeAudio } from "./voice";
 import { handleAIChat } from "./ai-chat";
@@ -217,11 +220,149 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Voice Assistant - Audio transcription and analysis
-  app.post("/api/voice/transcribe", uploadMiddleware, transcribeAudio);
+  // Employees routes
+  app.get("/api/employees", async (req, res) => {
+    try {
+      const employees = await storage.getAllEmployees();
+      res.json(employees);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch employees" });
+    }
+  });
 
-  // AI Chat
-  app.post("/api/ai/chat", handleAIChat);
+  app.post("/api/employees", async (req, res) => {
+    try {
+      const validatedData = insertEmployeeSchema.parse(req.body);
+      const employee = await storage.createEmployee(validatedData);
+      res.status(201).json(employee);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid employee data" });
+    }
+  });
+
+  app.patch("/api/employees/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updateData = req.body;
+      const employee = await storage.updateEmployee(id, updateData);
+      if (!employee) {
+        return res.status(404).json({ message: "Employee not found" });
+      }
+      res.json(employee);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to update employee" });
+    }
+  });
+
+  app.delete("/api/employees/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteEmployee(id);
+      if (deleted) {
+        res.json({ message: "Employee deleted successfully" });
+      } else {
+        res.status(404).json({ message: "Employee not found" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete employee" });
+    }
+  });
+
+  // Deductions routes
+  app.get("/api/deductions", async (req, res) => {
+    try {
+      const deductions = await storage.getAllDeductions();
+      res.json(deductions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch deductions" });
+    }
+  });
+
+  app.post("/api/deductions", async (req, res) => {
+    try {
+      const validatedData = insertDeductionSchema.parse(req.body);
+      const deduction = await storage.createDeduction(validatedData);
+      res.status(201).json(deduction);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid deduction data" });
+    }
+  });
+
+  app.patch("/api/deductions/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updateData = req.body;
+      const deduction = await storage.updateDeduction(id, updateData);
+      if (!deduction) {
+        return res.status(404).json({ message: "Deduction not found" });
+      }
+      res.json(deduction);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to update deduction" });
+    }
+  });
+
+  app.delete("/api/deductions/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteDeduction(id);
+      if (deleted) {
+        res.json({ message: "Deduction deleted successfully" });
+      } else {
+        res.status(404).json({ message: "Deduction not found" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete deduction" });
+    }
+  });
+
+  // Salaries routes
+  app.get("/api/salaries", async (req, res) => {
+    try {
+      const salaries = await storage.getAllSalaries();
+      res.json(salaries);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch salaries" });
+    }
+  });
+
+  app.post("/api/salaries", async (req, res) => {
+    try {
+      const validatedData = insertSalarySchema.parse(req.body);
+      const salary = await storage.createSalary(validatedData);
+      res.status(201).json(salary);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid salary data" });
+    }
+  });
+
+  app.patch("/api/salaries/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updateData = req.body;
+      const salary = await storage.updateSalary(id, updateData);
+      if (!salary) {
+        return res.status(404).json({ message: "Salary not found" });
+      }
+      res.json(salary);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to update salary" });
+    }
+  });
+
+  app.delete("/api/salaries/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteSalary(id);
+      if (deleted) {
+        res.json({ message: "Salary deleted successfully" });
+      } else {
+        res.status(404).json({ message: "Salary not found" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete salary" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
