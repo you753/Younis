@@ -1,11 +1,14 @@
 import { 
-  users, suppliers, clients, products, sales, purchases,
+  users, suppliers, clients, products, sales, purchases, employees, deductions, salaries,
   type User, type InsertUser,
   type Supplier, type InsertSupplier,
   type Client, type InsertClient,
   type Product, type InsertProduct,
   type Sale, type InsertSale,
-  type Purchase, type InsertPurchase
+  type Purchase, type InsertPurchase,
+  type Employee, type InsertEmployee,
+  type Deduction, type InsertDeduction,
+  type Salary, type InsertSalary
 } from "@shared/schema";
 
 export interface IStorage {
@@ -48,6 +51,27 @@ export interface IStorage {
   getAllPurchases(): Promise<Purchase[]>;
   createPurchase(purchase: InsertPurchase): Promise<Purchase>;
 
+  // Employees
+  getEmployee(id: number): Promise<Employee | undefined>;
+  getAllEmployees(): Promise<Employee[]>;
+  createEmployee(employee: InsertEmployee): Promise<Employee>;
+  updateEmployee(id: number, employee: Partial<InsertEmployee>): Promise<Employee | undefined>;
+  deleteEmployee(id: number): Promise<boolean>;
+
+  // Deductions
+  getDeduction(id: number): Promise<Deduction | undefined>;
+  getAllDeductions(): Promise<Deduction[]>;
+  createDeduction(deduction: InsertDeduction): Promise<Deduction>;
+  updateDeduction(id: number, deduction: Partial<InsertDeduction>): Promise<Deduction | undefined>;
+  deleteDeduction(id: number): Promise<boolean>;
+
+  // Salaries
+  getSalary(id: number): Promise<Salary | undefined>;
+  getAllSalaries(): Promise<Salary[]>;
+  createSalary(salary: InsertSalary): Promise<Salary>;
+  updateSalary(id: number, salary: Partial<InsertSalary>): Promise<Salary | undefined>;
+  deleteSalary(id: number): Promise<boolean>;
+
   // Dashboard stats
   getDashboardStats(): Promise<{
     totalClients: number;
@@ -64,6 +88,9 @@ export class MemStorage implements IStorage {
   private products: Map<number, Product> = new Map();
   private sales: Map<number, Sale> = new Map();
   private purchases: Map<number, Purchase> = new Map();
+  private employees: Map<number, Employee> = new Map();
+  private deductions: Map<number, Deduction> = new Map();
+  private salaries: Map<number, Salary> = new Map();
   private currentId = 1;
 
   constructor() {
@@ -258,6 +285,105 @@ export class MemStorage implements IStorage {
     };
     this.purchases.set(id, purchase);
     return purchase;
+  }
+
+  // Employees
+  async getEmployee(id: number): Promise<Employee | undefined> {
+    return this.employees.get(id);
+  }
+
+  async getAllEmployees(): Promise<Employee[]> {
+    return Array.from(this.employees.values());
+  }
+
+  async createEmployee(insertEmployee: InsertEmployee): Promise<Employee> {
+    const id = this.nextId();
+    const employee: Employee = {
+      ...insertEmployee,
+      id,
+      createdAt: new Date()
+    };
+    this.employees.set(id, employee);
+    return employee;
+  }
+
+  async updateEmployee(id: number, updateData: Partial<InsertEmployee>): Promise<Employee | undefined> {
+    const employee = this.employees.get(id);
+    if (!employee) return undefined;
+    
+    const updatedEmployee = { ...employee, ...updateData };
+    this.employees.set(id, updatedEmployee);
+    return updatedEmployee;
+  }
+
+  async deleteEmployee(id: number): Promise<boolean> {
+    return this.employees.delete(id);
+  }
+
+  // Deductions
+  async getDeduction(id: number): Promise<Deduction | undefined> {
+    return this.deductions.get(id);
+  }
+
+  async getAllDeductions(): Promise<Deduction[]> {
+    return Array.from(this.deductions.values());
+  }
+
+  async createDeduction(insertDeduction: InsertDeduction): Promise<Deduction> {
+    const id = this.nextId();
+    const deduction: Deduction = {
+      ...insertDeduction,
+      id,
+      createdAt: new Date()
+    };
+    this.deductions.set(id, deduction);
+    return deduction;
+  }
+
+  async updateDeduction(id: number, updateData: Partial<InsertDeduction>): Promise<Deduction | undefined> {
+    const deduction = this.deductions.get(id);
+    if (!deduction) return undefined;
+    
+    const updatedDeduction = { ...deduction, ...updateData };
+    this.deductions.set(id, updatedDeduction);
+    return updatedDeduction;
+  }
+
+  async deleteDeduction(id: number): Promise<boolean> {
+    return this.deductions.delete(id);
+  }
+
+  // Salaries
+  async getSalary(id: number): Promise<Salary | undefined> {
+    return this.salaries.get(id);
+  }
+
+  async getAllSalaries(): Promise<Salary[]> {
+    return Array.from(this.salaries.values());
+  }
+
+  async createSalary(insertSalary: InsertSalary): Promise<Salary> {
+    const id = this.nextId();
+    const salary: Salary = {
+      ...insertSalary,
+      id,
+      createdAt: new Date()
+    };
+    this.salaries.set(id, salary);
+    return salary;
+  }
+
+  async updateSalary(id: number, updateData: Partial<InsertSalary>): Promise<Salary | undefined> {
+    const salary = this.salaries.get(id);
+    if (!salary) return undefined;
+    
+    const updatedSalary = { ...salary, ...updateData };
+    this.salaries.set(id, updatedSalary);
+    return updatedSalary;
+  }
+
+  async deleteSalary(id: number): Promise<boolean> {
+    return this.salaries.delete(id);
   }
 
   // Dashboard stats

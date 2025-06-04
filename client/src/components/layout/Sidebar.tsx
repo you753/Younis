@@ -71,6 +71,15 @@ const navigationItems: NavItem[] = [
     ]
   },
   {
+    title: 'الموظفين',
+    icon: Users,
+    children: [
+      { title: 'قائمة الموظفين', icon: Users, href: '/employees' },
+      { title: 'الخصومات', icon: Minus, href: '/deductions' },
+      { title: 'الرواتب', icon: DollarSign, href: '/salaries' }
+    ]
+  },
+  {
     title: 'الحسابات',
     icon: FileText,
     children: [
