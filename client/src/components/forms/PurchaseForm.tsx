@@ -1,289 +1,386 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Trash2 } from 'lucide-react';
-import { insertPurchaseSchema, type InsertPurchase } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Plus, Trash2, Save, Package } from 'lucide-react';
 
-interface PurchaseItem {
-  productId: number;
-  productName: string;
-  quantity: number;
-  unitPrice: number;
-  total: number;
+// Schema for purchase items
+const purchaseItemSchema = z.object({
+  productId: z.number().min(1, 'يجب اختيار منتج'),
+  productName: z.string(),
+  quantity: z.number().min(1, 'الكمية يجب أن تكون أكبر من صفر'),
+  unitPrice: z.number().min(0, 'السعر يجب أن يكون صفر أو أكبر'),
+  total: z.number().min(0),
+});
+
+// Schema for form validation
+const purchaseFormSchema = z.object({
+  supplierId: z.number().optional(),
+  total: z.string().min(1, 'المبلغ الإجمالي مطلوب'),
+  notes: z.string().optional(),
+  items: z.array(purchaseItemSchema).optional(),
+});
+
+type PurchaseForm = z.infer<typeof purchaseFormSchema>;
+
+interface PurchaseFormProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  editingPurchase?: any;
+  onSuccess?: () => void;
 }
 
-interface PurchaseFormData extends Omit<InsertPurchase, 'items'> {
-  items: PurchaseItem[];
-}
-
-export default function PurchaseForm({ onClose }: { onClose: () => void }) {
-  const { toast } = useToast();
+export default function PurchaseFormComponent({ open, onOpenChange, editingPurchase, onSuccess }: PurchaseFormProps) {
   const queryClient = useQueryClient();
-  const [items, setItems] = useState<PurchaseItem[]>([]);
+  const { toast } = useToast();
 
-  const form = useForm<PurchaseFormData>({
-    resolver: zodResolver(insertPurchaseSchema.extend({
-      items: insertPurchaseSchema.shape.items
-    })),
-    defaultValues: {
-      supplierId: 0,
-      purchaseDate: new Date().toISOString().split('T')[0],
-      totalAmount: 0,
-      status: 'completed',
-      paymentMethod: 'cash',
-      notes: '',
-      items: []
-    }
-  });
-
-  // Fetch suppliers and products
-  const { data: suppliers } = useQuery({
-    queryKey: ['/api/suppliers'],
-  });
-
-  const { data: products } = useQuery({
+  const { data: products = [] } = useQuery({
     queryKey: ['/api/products'],
   });
 
-  const mutation = useMutation({
-    mutationFn: async (data: InsertPurchase) => {
-      const response = await apiRequest('/api/purchases', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
-      return response;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/purchases'] });
-      toast({
-        title: "تم إنشاء فاتورة المشتريات بنجاح",
-        description: "تم حفظ فاتورة المشتريات الجديدة",
-      });
-      onClose();
-    },
-    onError: () => {
-      toast({
-        title: "خطأ في إنشاء الفاتورة",
-        description: "حدث خطأ أثناء حفظ فاتورة المشتريات",
-        variant: "destructive",
-      });
-    }
+  const { data: suppliers = [] } = useQuery({
+    queryKey: ['/api/suppliers'],
   });
 
-  const addItem = () => {
-    setItems([...items, {
+  const form = useForm<PurchaseForm>({
+    resolver: zodResolver(purchaseFormSchema),
+    defaultValues: {
+      total: editingPurchase?.total || '',
+      notes: editingPurchase?.notes || '',
+      items: editingPurchase?.items || [],
+      supplierId: editingPurchase?.supplierId || undefined,
+    },
+  });
+
+  const { fields: itemFields, append: appendItem, remove: removeItem } = useFieldArray({
+    control: form.control,
+    name: 'items',
+  });
+
+  const createPurchaseMutation = useMutation({
+    mutationFn: (data: PurchaseForm) => apiRequest({
+      url: '/api/purchases',
+      method: 'POST',
+      body: data,
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/purchases'] });
+      onOpenChange(false);
+      form.reset();
+      onSuccess?.();
+      toast({
+        title: "نجح",
+        description: "تم إضافة المشتريات بنجاح",
+      });
+    },
+    onError: (error: any) => {
+      console.error('Error creating purchase:', error);
+      toast({
+        title: "خطأ",
+        description: "فشل في إضافة المشتريات",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updatePurchaseMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<PurchaseForm> }) => 
+      apiRequest({
+        url: `/api/purchases/${id}`,
+        method: 'PUT',
+        body: data,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/purchases'] });
+      onOpenChange(false);
+      form.reset();
+      onSuccess?.();
+      toast({
+        title: "نجح",
+        description: "تم تحديث المشتريات بنجاح",
+      });
+    },
+    onError: (error: any) => {
+      console.error('Error updating purchase:', error);
+      toast({
+        title: "خطأ",
+        description: "فشل في تحديث المشتريات",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: PurchaseForm) => {
+    if (editingPurchase) {
+      updatePurchaseMutation.mutate({ id: editingPurchase.id, data });
+    } else {
+      createPurchaseMutation.mutate(data);
+    }
+  };
+
+  const addNewItem = () => {
+    appendItem({
       productId: 0,
       productName: '',
       quantity: 1,
       unitPrice: 0,
-      total: 0
-    }]);
+      total: 0,
+    });
   };
 
-  const removeItem = (index: number) => {
-    const newItems = items.filter((_, i) => i !== index);
-    setItems(newItems);
-    updateTotal(newItems);
+  const calculateItemTotal = (index: number) => {
+    const quantity = form.watch(`items.${index}.quantity`);
+    const unitPrice = form.watch(`items.${index}.unitPrice`);
+    const total = quantity * unitPrice;
+    form.setValue(`items.${index}.total`, total);
+    calculateGrandTotal();
   };
 
-  const updateItem = (index: number, field: keyof PurchaseItem, value: any) => {
-    const newItems = [...items];
-    newItems[index] = { ...newItems[index], [field]: value };
-    
-    if (field === 'productId') {
-      const product = products?.find((p: any) => p.id === value);
-      if (product) {
-        newItems[index].productName = product.name;
-        newItems[index].unitPrice = product.price || 0;
-      }
+  const calculateGrandTotal = () => {
+    const items = form.watch('items') || [];
+    const grandTotal = items.reduce((sum: number, item: any) => sum + (item.total || 0), 0);
+    form.setValue('total', grandTotal.toFixed(2));
+  };
+
+  const handleProductChange = (index: number, productId: number) => {
+    const product = Array.isArray(products) ? products.find((p: any) => p.id === productId) : null;
+    if (product) {
+      form.setValue(`items.${index}.productId`, product.id);
+      form.setValue(`items.${index}.productName`, product.name);
+      form.setValue(`items.${index}.unitPrice`, parseFloat(product.purchasePrice));
+      calculateItemTotal(index);
     }
-    
-    if (field === 'quantity' || field === 'unitPrice') {
-      newItems[index].total = newItems[index].quantity * newItems[index].unitPrice;
-    }
-    
-    setItems(newItems);
-    updateTotal(newItems);
-  };
-
-  const updateTotal = (items: PurchaseItem[]) => {
-    const total = items.reduce((sum, item) => sum + item.total, 0);
-    form.setValue('totalAmount', total);
-  };
-
-  const onSubmit = (data: PurchaseFormData) => {
-    const purchaseData: InsertPurchase = {
-      ...data,
-      items: items.map(item => ({
-        productId: item.productId,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        total: item.total
-      }))
-    };
-    mutation.mutate(purchaseData);
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-4xl max-h-[90vh] overflow-auto">
-        <CardHeader>
-          <CardTitle className="text-xl font-bold">فاتورة مشتريات جديدة</CardTitle>
-        </CardHeader>
-        <CardContent>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            {editingPurchase ? 'تعديل فاتورة المشتريات' : 'إضافة فاتورة مشتريات جديدة'}
+          </DialogTitle>
+        </DialogHeader>
+
+        <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Basic Info */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="supplierId">المورد</Label>
-                <Select onValueChange={(value) => form.setValue('supplierId', parseInt(value))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="اختر المورد" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {suppliers?.map((supplier: any) => (
-                      <SelectItem key={supplier.id} value={supplier.id.toString()}>
-                        {supplier.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* Basic Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="supplierId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>المورد</FormLabel>
+                    <Select
+                      onValueChange={(value) => field.onChange(value ? parseInt(value) : undefined)}
+                      value={field.value?.toString() || ''}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر المورد" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Array.isArray(suppliers) && suppliers.map((supplier: any) => (
+                          <SelectItem key={supplier.id} value={supplier.id.toString()}>
+                            {supplier.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-              <div>
-                <Label htmlFor="purchaseDate">تاريخ الفاتورة</Label>
-                <Input 
-                  type="date" 
-                  {...form.register('purchaseDate')}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="paymentMethod">طريقة الدفع</Label>
-                <Select onValueChange={(value) => form.setValue('paymentMethod', value as any)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="اختر طريقة الدفع" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="cash">نقدي</SelectItem>
-                    <SelectItem value="credit">آجل</SelectItem>
-                    <SelectItem value="bank_transfer">تحويل بنكي</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <FormField
+                control={form.control}
+                name="total"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>المبلغ الإجمالي</FormLabel>
+                    <FormControl>
+                      <Input placeholder="المبلغ الإجمالي" {...field} readOnly />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
-            {/* Items */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <Label className="text-lg font-semibold">أصناف الفاتورة</Label>
-                <Button type="button" onClick={addItem} size="sm">
-                  <Plus className="ml-2 h-4 w-4" />
+            {/* Items Section */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">أصناف المشتريات</h3>
+                <Button type="button" onClick={addNewItem} variant="outline" size="sm">
+                  <Plus className="h-4 w-4 ml-2" />
                   إضافة صنف
                 </Button>
               </div>
 
-              <div className="space-y-4">
-                {items.map((item, index) => (
-                  <div key={index} className="grid grid-cols-12 gap-4 items-end p-4 border rounded-lg">
-                    <div className="col-span-4">
-                      <Label>الصنف</Label>
-                      <Select onValueChange={(value) => updateItem(index, 'productId', parseInt(value))}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="اختر الصنف" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {products?.map((product: any) => (
-                            <SelectItem key={product.id} value={product.id.toString()}>
-                              {product.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="col-span-2">
-                      <Label>الكمية</Label>
-                      <Input 
-                        type="number" 
-                        value={item.quantity}
-                        onChange={(e) => updateItem(index, 'quantity', parseFloat(e.target.value) || 0)}
-                        min="1"
+              {itemFields.length > 0 && (
+                <div className="border rounded-lg p-4 space-y-4">
+                  {itemFields.map((item, index) => (
+                    <div key={item.id} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end p-4 bg-gray-50 rounded-lg">
+                      <FormField
+                        control={form.control}
+                        name={`items.${index}.productId`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>المنتج</FormLabel>
+                            <Select
+                              onValueChange={(value) => {
+                                const productId = parseInt(value);
+                                field.onChange(productId);
+                                handleProductChange(index, productId);
+                              }}
+                              value={field.value?.toString() || ''}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="اختر المنتج" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {Array.isArray(products) && products.map((product: any) => (
+                                  <SelectItem key={product.id} value={product.id.toString()}>
+                                    {product.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                    </div>
 
-                    <div className="col-span-2">
-                      <Label>السعر</Label>
-                      <Input 
-                        type="number" 
-                        value={item.unitPrice}
-                        onChange={(e) => updateItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
-                        step="0.01"
+                      <FormField
+                        control={form.control}
+                        name={`items.${index}.quantity`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>الكمية</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="الكمية"
+                                {...field}
+                                onChange={(e) => {
+                                  field.onChange(parseInt(e.target.value) || 0);
+                                  calculateItemTotal(index);
+                                }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                    </div>
 
-                    <div className="col-span-3">
-                      <Label>الإجمالي</Label>
-                      <Input 
-                        type="number" 
-                        value={item.total.toFixed(2)}
-                        readOnly
-                        className="bg-gray-50"
+                      <FormField
+                        control={form.control}
+                        name={`items.${index}.unitPrice`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>سعر الوحدة</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                placeholder="السعر"
+                                {...field}
+                                onChange={(e) => {
+                                  field.onChange(parseFloat(e.target.value) || 0);
+                                  calculateItemTotal(index);
+                                }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                    </div>
 
-                    <div className="col-span-1">
-                      <Button 
-                        type="button" 
-                        variant="outline" 
+                      <FormField
+                        control={form.control}
+                        name={`items.${index}.total`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>الإجمالي</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                placeholder="الإجمالي"
+                                {...field}
+                                readOnly
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <Button
+                        type="button"
+                        variant="outline"
                         size="sm"
                         onClick={() => removeItem(index)}
-                        className="text-red-600 hover:text-red-700"
+                        className="h-10"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Total */}
-            <div className="flex justify-end">
-              <div className="w-64 space-y-2">
-                <div className="flex items-center justify-between text-lg font-semibold">
-                  <span>الإجمالي:</span>
-                  <span>{form.watch('totalAmount')?.toFixed(2) || '0.00'} ر.س</span>
-                </div>
-              </div>
-            </div>
+            <Separator />
 
             {/* Notes */}
-            <div>
-              <Label htmlFor="notes">ملاحظات</Label>
-              <Input {...form.register('notes')} placeholder="ملاحظات إضافية" />
-            </div>
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>ملاحظات</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="أدخل أي ملاحظات إضافية"
+                      className="min-h-[100px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            {/* Actions */}
+            {/* Form Actions */}
             <div className="flex justify-end gap-4">
-              <Button type="button" variant="outline" onClick={onClose}>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 إلغاء
               </Button>
-              <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? 'جاري الحفظ...' : 'حفظ الفاتورة'}
+              <Button 
+                type="submit" 
+                disabled={createPurchaseMutation.isPending || updatePurchaseMutation.isPending}
+              >
+                <Save className="h-4 w-4 ml-2" />
+                {editingPurchase ? 'تحديث المشتريات' : 'إضافة المشتريات'}
               </Button>
             </div>
           </form>
-        </CardContent>
-      </Card>
-    </div>
+        </Form>
+      </DialogContent>
+    </Dialog>
   );
 }

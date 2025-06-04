@@ -89,7 +89,8 @@ export default function SalesReturnFormComponent({ open, onOpenChange, editingRe
         description: "تم إضافة المرتجع بنجاح",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Error creating sales return:', error);
       toast({
         title: "خطأ",
         description: "فشل في إضافة المرتجع",
