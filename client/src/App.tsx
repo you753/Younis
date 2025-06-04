@@ -25,6 +25,7 @@ import NotFound from "@/pages/not-found";
 import Employees from "@/pages/Employees";
 import Deductions from "@/pages/Deductions";
 import Salaries from "@/pages/Salaries";
+import TaxCalculator from "@/pages/TaxCalculator";
 
 function Router() {
   return (
@@ -51,6 +52,7 @@ function Router() {
         <Route path="/sales" component={Sales} />
         <Route path="/sales-returns" component={SalesReturns} />
         <Route path="/quotes" component={Quotes} />
+        <Route path="/tax-calculator" component={TaxCalculator} />
         <Route path="/sales-reports" component={Reports} />
         
         {/* إدارة المخزون */}
