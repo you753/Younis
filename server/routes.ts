@@ -567,8 +567,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Purchase Returns routes
   app.get('/api/purchase-returns', async (req, res) => {
     try {
-      // Since we don't have purchase returns in schema yet, return empty array
-      res.json([]);
+      const purchaseReturns = await storage.getAllPurchaseReturns();
+      res.json(purchaseReturns);
     } catch (error) {
       console.error('Error fetching purchase returns:', error);
       res.status(500).json({ error: 'Failed to fetch purchase returns' });
@@ -588,8 +588,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       const validatedData = insertPurchaseReturnSchema.parse(req.body);
-      // For now, just return success - will implement storage later
-      res.status(201).json({ id: Date.now(), ...validatedData });
+      const purchaseReturn = await storage.createPurchaseReturn(validatedData);
+      res.status(201).json(purchaseReturn);
     } catch (error) {
       console.error('Error creating purchase return:', error);
       res.status(500).json({ error: 'Failed to create purchase return' });
@@ -601,8 +601,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const updateData = req.body;
       
-      // For now, just return success - will implement storage later
-      res.json({ id, ...updateData });
+      const purchaseReturn = await storage.updatePurchaseReturn(id, updateData);
+      
+      if (!purchaseReturn) {
+        return res.status(404).json({ error: 'Purchase return not found' });
+      }
+      
+      res.json(purchaseReturn);
     } catch (error) {
       console.error('Error updating purchase return:', error);
       res.status(500).json({ error: 'Failed to update purchase return' });
@@ -612,7 +617,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/purchase-returns/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      // For now, just return success - will implement storage later
+      const deleted = await storage.deletePurchaseReturn(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: 'Purchase return not found' });
+      }
+      
       res.json({ success: true });
     } catch (error) {
       console.error('Error deleting purchase return:', error);
