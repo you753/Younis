@@ -10,7 +10,8 @@ import {
   insertPurchaseSchema,
   insertEmployeeSchema,
   insertDeductionSchema,
-  insertSalarySchema
+  insertSalarySchema,
+  insertProductCategorySchema
 } from "@shared/schema";
 import { uploadMiddleware, transcribeAudio } from "./voice";
 import { handleAIChat } from "./ai-chat";
@@ -361,6 +362,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     } catch (error) {
       res.status(500).json({ message: "Failed to delete salary" });
+    }
+  });
+
+  // Product Categories routes
+  app.get("/api/product-categories", async (req, res) => {
+    try {
+      const categories = await storage.getAllProductCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching product categories:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/product-categories", async (req, res) => {
+    try {
+      const categoryData = insertProductCategorySchema.parse(req.body);
+      const category = await storage.createProductCategory(categoryData);
+      res.status(201).json(category);
+    } catch (error) {
+      console.error("Error creating product category:", error);
+      res.status(400).json({ message: "Invalid category data" });
+    }
+  });
+
+  app.put("/api/product-categories/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updateData = insertProductCategorySchema.partial().parse(req.body);
+      const category = await storage.updateProductCategory(id, updateData);
+      
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+      
+      res.json(category);
+    } catch (error) {
+      console.error("Error updating product category:", error);
+      res.status(400).json({ message: "Invalid category data" });
+    }
+  });
+
+  app.delete("/api/product-categories/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteProductCategory(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting product category:", error);
+      res.status(500).json({ message: "Internal server error" });
     }
   });
 
