@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import { 
   Home, Users, UserCheck, Package, ShoppingCart, 
@@ -125,11 +125,22 @@ export default function Sidebar() {
     return children.some(child => isActive(child.href));
   };
 
+  // فتح القوائم التي تحتوي على صفحات نشطة تلقائياً
+  useEffect(() => {
+    navigationItems.forEach(item => {
+      if (item.children && hasActiveChild(item.children)) {
+        setExpandedItems(prev => 
+          prev.includes(item.title) ? prev : [...prev, item.title]
+        );
+      }
+    });
+  }, [location]);
+
   const renderNavItem = (item: NavItem, level = 0) => {
     const isExpanded = expandedItems.includes(item.title);
     const hasChildren = item.children && item.children.length > 0;
     const isItemActive = isActive(item.href);
-    const hasActiveChild_ = hasActiveChild(item.children);
+    const hasActiveChildItem = hasActiveChild(item.children);
 
     if (hasChildren) {
       return (
@@ -139,7 +150,7 @@ export default function Sidebar() {
             className={cn(
               "w-full justify-between text-right p-3 h-auto font-medium text-white hover:bg-white/10",
               level > 0 && "mr-4",
-              (isExpanded || hasActiveChild_) && "bg-white/10"
+              (isExpanded || hasActiveChildItem) && "bg-white/10"
             )}
             onClick={() => toggleExpanded(item.title)}
           >
