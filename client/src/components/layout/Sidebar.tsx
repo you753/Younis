@@ -147,8 +147,12 @@ export default function Sidebar() {
           </div>
           
           {isExpanded && (
-            <div className="mt-1 space-y-1 mr-8 border-r border-white/20 pr-4">
-              {item.children?.map(child => renderNavItem(child, level + 1))}
+            <div className="mt-1 space-y-1 mr-4 bg-white/5 rounded-lg p-2">
+              {item.children?.map(child => (
+                <div key={child.title} className="border-r-2 border-white/20 pr-3">
+                  {renderNavItem(child, level + 1)}
+                </div>
+              ))}
             </div>
           )}
         </div>
