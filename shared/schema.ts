@@ -38,6 +38,7 @@ export const products = pgTable("products", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   code: text("code").unique(),
+  barcode: text("barcode").unique(),
   description: text("description"),
   category: text("category"),
   purchasePrice: decimal("purchase_price", { precision: 10, scale: 2 }).notNull(),

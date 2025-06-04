@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Package } from 'lucide-react';
+import { Package, ScanBarcode } from 'lucide-react';
 
 export default function ProductForm() {
   const { success, error } = useNotification();
@@ -20,6 +20,7 @@ export default function ProductForm() {
     defaultValues: {
       name: '',
       code: '',
+      barcode: '',
       description: '',
       category: '',
       purchasePrice: '0',
@@ -76,7 +77,24 @@ export default function ProductForm() {
                 <FormItem>
                   <FormLabel>الكود أو الرقم المرجعي</FormLabel>
                   <FormControl>
-                    <Input placeholder="رقم الصنف" {...field} />
+                    <Input placeholder="رقم الصنف" {...field} value={field.value || ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="barcode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    <ScanBarcode className="h-4 w-4" />
+                    الباركود
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="ادخل الباركود أو امسحه" {...field} value={field.value || ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
