@@ -1,15 +1,22 @@
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/lib/store';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-import { Plus, Package, CheckCircle, AlertCircle, Eye } from 'lucide-react';
+import { Plus, Package, CheckCircle, AlertCircle, Eye, Edit, Trash2 } from 'lucide-react';
+import InventoryCountFormComponent from '@/components/forms/InventoryCountForm';
+import { format } from 'date-fns';
 
 export default function InventoryCount() {
   const { setCurrentPage } = useAppStore();
   const [showForm, setShowForm] = useState(false);
+  const [editingCount, setEditingCount] = useState<any>(null);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   useEffect(() => {
     setCurrentPage('جرد المخزون');
@@ -18,6 +25,47 @@ export default function InventoryCount() {
   const { data: products = [], isLoading } = useQuery({
     queryKey: ['/api/products'],
   });
+
+  const { data: inventoryCounts = [] } = useQuery({
+    queryKey: ['/api/inventory-counts'],
+  });
+
+  const deleteCountMutation = useMutation({
+    mutationFn: (id: number) => apiRequest({
+      url: `/api/inventory-counts/${id}`,
+      method: 'DELETE',
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/inventory-counts'] });
+      toast({
+        title: "نجح",
+        description: "تم حذف الجرد بنجاح",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "خطأ",
+        description: "فشل في حذف الجرد",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEdit = (count: any) => {
+    setEditingCount(count);
+    setShowForm(true);
+  };
+
+  const handleDelete = (id: number) => {
+    if (confirm('هل أنت متأكد من حذف هذا الجرد؟')) {
+      deleteCountMutation.mutate(id);
+    }
+  };
+
+  const handleFormSuccess = () => {
+    setEditingCount(null);
+    setShowForm(false);
+  };
 
   if (isLoading) {
     return <div className="p-6">جاري تحميل البيانات...</div>;
@@ -166,6 +214,14 @@ export default function InventoryCount() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Inventory Count Form */}
+      <InventoryCountFormComponent
+        open={showForm}
+        onOpenChange={setShowForm}
+        editingCount={editingCount}
+        onSuccess={handleFormSuccess}
+      />
     </div>
   );
 }
