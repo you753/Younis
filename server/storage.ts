@@ -82,6 +82,20 @@ export interface IStorage {
   updateProductCategory(id: number, category: Partial<InsertProductCategory>): Promise<ProductCategory | undefined>;
   deleteProductCategory(id: number): Promise<boolean>;
 
+  // Quotes
+  getQuote(id: number): Promise<Quote | undefined>;
+  getAllQuotes(): Promise<Quote[]>;
+  createQuote(quote: InsertQuote): Promise<Quote>;
+  updateQuote(id: number, quote: Partial<InsertQuote>): Promise<Quote | undefined>;
+  deleteQuote(id: number): Promise<boolean>;
+
+  // Sales Returns
+  getSalesReturn(id: number): Promise<SalesReturn | undefined>;
+  getAllSalesReturns(): Promise<SalesReturn[]>;
+  createSalesReturn(salesReturn: InsertSalesReturn): Promise<SalesReturn>;
+  updateSalesReturn(id: number, salesReturn: Partial<InsertSalesReturn>): Promise<SalesReturn | undefined>;
+  deleteSalesReturn(id: number): Promise<boolean>;
+
   // Dashboard stats
   getDashboardStats(): Promise<{
     totalClients: number;

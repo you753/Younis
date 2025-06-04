@@ -124,6 +124,32 @@ export const productCategories = pgTable("product_categories", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const quotes = pgTable("quotes", {
+  id: serial("id").primaryKey(),
+  clientId: integer("client_id").references(() => clients.id),
+  quoteNumber: text("quote_number").notNull().unique(),
+  total: decimal("total", { precision: 10, scale: 2 }).notNull(),
+  tax: decimal("tax", { precision: 10, scale: 2 }).default("0"),
+  discount: decimal("discount", { precision: 10, scale: 2 }).default("0"),
+  status: text("status").notNull().default("pending"), // pending, accepted, rejected, expired
+  validUntil: timestamp("valid_until").notNull(),
+  notes: text("notes"),
+  items: json("items"), // Array of quote items
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const salesReturns = pgTable("sales_returns", {
+  id: serial("id").primaryKey(),
+  saleId: integer("sale_id").references(() => sales.id),
+  returnNumber: text("return_number").notNull().unique(),
+  total: decimal("total", { precision: 10, scale: 2 }).notNull(),
+  reason: text("reason").notNull(),
+  status: text("status").notNull().default("pending"), // pending, approved, completed
+  notes: text("notes"),
+  items: json("items"), // Array of returned items
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -176,6 +202,16 @@ export const insertProductCategorySchema = createInsertSchema(productCategories)
   createdAt: true,
 });
 
+export const insertQuoteSchema = createInsertSchema(quotes).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSalesReturnSchema = createInsertSchema(salesReturns).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -206,3 +242,9 @@ export type InsertSalary = z.infer<typeof insertSalarySchema>;
 
 export type ProductCategory = typeof productCategories.$inferSelect;
 export type InsertProductCategory = z.infer<typeof insertProductCategorySchema>;
+
+export type Quote = typeof quotes.$inferSelect;
+export type InsertQuote = z.infer<typeof insertQuoteSchema>;
+
+export type SalesReturn = typeof salesReturns.$inferSelect;
+export type InsertSalesReturn = z.infer<typeof insertSalesReturnSchema>;
