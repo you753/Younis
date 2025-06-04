@@ -40,7 +40,7 @@ export default function TopBar() {
   };
 
   return (
-    <div className="bg-gradient-to-l from-emerald-600 to-teal-700 border-b border-emerald-500/30 shadow-lg">
+    <div className="bg-gradient-to-l from-blue-600 to-blue-800 border-b border-blue-500/30 shadow-lg">
       <div className="flex items-center justify-between px-6 py-4">
         {/* الترحيب والوقت */}
         <div className="flex items-center gap-6">
@@ -49,10 +49,10 @@ export default function TopBar() {
               مرحباً بك في المحاسب الأعظم ✨
             </h2>
             <div className="flex items-center gap-4 mt-1">
-              <p className="text-emerald-100 text-sm">{formatDate(currentTime)}</p>
+              <p className="text-blue-100 text-sm">{formatDate(currentTime)}</p>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-                <p className="text-emerald-100 text-sm font-mono">{formatTime(currentTime)}</p>
+                <p className="text-blue-100 text-sm font-mono">{formatTime(currentTime)}</p>
               </div>
             </div>
           </div>
@@ -61,10 +61,10 @@ export default function TopBar() {
         {/* شريط البحث */}
         <div className="flex-1 max-w-md mx-8">
           <div className="relative">
-            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-emerald-400" />
+            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-blue-400" />
             <Input
               placeholder="البحث في النظام..."
-              className="pl-4 pr-10 bg-white/10 border-white/20 text-white placeholder:text-emerald-200 focus:bg-white/20 focus:border-white/40"
+              className="pl-4 pr-10 bg-white/10 border-white/20 text-white placeholder:text-blue-200 focus:bg-white/20 focus:border-white/40"
             />
           </div>
         </div>
@@ -104,7 +104,7 @@ export default function TopBar() {
               >
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-medium">المدير العام</p>
-                  <p className="text-xs text-emerald-200">admin@company.com</p>
+                  <p className="text-xs text-blue-200">admin@company.com</p>
                 </div>
                 <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
                   <User className="h-4 w-4 text-white" />
