@@ -88,21 +88,19 @@ export default function Calculator() {
 
   if (!isOpen) {
     return (
-      <div className="fixed bottom-4 left-4 z-50">
-        <Button
-          onClick={() => setIsOpen(true)}
-          className="rounded-full h-12 w-12 shadow-lg"
-          size="sm"
-        >
-          <CalculatorIcon className="h-5 w-5" />
-        </Button>
-      </div>
+      <Button
+        onClick={() => setIsOpen(true)}
+        className="rounded-full h-12 w-12 shadow-lg bg-green-600 hover:bg-green-700"
+        size="sm"
+      >
+        <CalculatorIcon className="h-5 w-5" />
+      </Button>
     );
   }
 
   return (
-    <div className="fixed bottom-4 left-4 z-50">
-      <Card className="w-64 shadow-xl">
+    <div className="relative">
+      <Card className="w-64 shadow-xl absolute bottom-0 left-0">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm">آلة حاسبة</CardTitle>
