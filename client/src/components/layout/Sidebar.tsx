@@ -4,7 +4,7 @@ import {
   Home, Users, UserCheck, Package, ShoppingCart, 
   ScanBarcode, Warehouse, FileText, BarChart3, 
   Settings, ChevronDown, X, Truck, UsersRound,
-  DollarSign, Tags, List, Plus, Percent, Minus, Calendar
+  DollarSign, Tags, List, Plus, Percent, Minus
 } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
@@ -20,12 +20,68 @@ interface NavItem {
 const navigationItems: NavItem[] = [
   { title: 'لوحة التحكم', icon: Home, href: '/' },
   { title: 'إدارة المستخدمين', icon: Users, href: '/users' },
-  { title: 'الموردين', icon: Truck, href: '/suppliers' },
-  { title: 'العملاء', icon: UserCheck, href: '/clients' },
-  { title: 'الأصناف', icon: Package, href: '/products' },
-  { title: 'المشتريات', icon: ShoppingCart, href: '/purchases' },
-  { title: 'المبيعات', icon: ScanBarcode, href: '/sales' },
-  { title: 'المخزون', icon: Warehouse, href: '/inventory' },
+  { 
+    title: 'الموردين', 
+    icon: Truck,
+    children: [
+      { title: 'قائمة الموردين', icon: Truck, href: '/suppliers' },
+      { title: 'إضافة مورد', icon: Plus, href: '/suppliers/add' },
+      { title: 'فئات الموردين', icon: Tags, href: '/supplier-categories' },
+      { title: 'تقييم الموردين', icon: BarChart3, href: '/supplier-evaluation' }
+    ]
+  },
+  { 
+    title: 'العملاء', 
+    icon: UserCheck,
+    children: [
+      { title: 'قائمة العملاء', icon: UserCheck, href: '/clients' },
+      { title: 'عملاء نقدي', icon: Users, href: '/cash-clients' },
+      { title: 'مجموعات العملاء', icon: Users, href: '/client-groups' },
+      { title: 'حسابات العملاء', icon: FileText, href: '/client-accounts' }
+    ]
+  },
+  { 
+    title: 'الأصناف', 
+    icon: Package,
+    children: [
+      { title: 'إدارة الأصناف', icon: Package, href: '/products' },
+      { title: 'إضافة صنف', icon: Plus, href: '/products/add' },
+      { title: 'فئات الأصناف', icon: Tags, href: '/product-categories' },
+      { title: 'الباركود', icon: ScanBarcode, href: '/products/barcodes' }
+    ]
+  },
+  { 
+    title: 'المشتريات', 
+    icon: ShoppingCart,
+    children: [
+      { title: 'فواتير المشتريات', icon: ShoppingCart, href: '/purchases' },
+      { title: 'مرتجعات المشتريات', icon: Minus, href: '/purchase-returns' },
+      { title: 'طلبات الشراء', icon: List, href: '/purchase-orders' },
+      { title: 'تقارير المشتريات', icon: BarChart3, href: '/purchase-reports' }
+    ]
+  },
+  { 
+    title: 'المبيعات', 
+    icon: ScanBarcode,
+    children: [
+      { title: 'فواتير المبيعات', icon: ScanBarcode, href: '/sales' },
+      { title: 'مرتجعات المبيعات', icon: Minus, href: '/sales-returns' },
+      { title: 'عروض الأسعار', icon: FileText, href: '/quotes' },
+      { title: 'حاسبة الضريبة', icon: Percent, href: '/tax-calculator' },
+      { title: 'تقارير المبيعات', icon: BarChart3, href: '/sales-reports' }
+    ]
+  },
+  { 
+    title: 'المخزون', 
+    icon: Warehouse,
+    children: [
+      { title: 'حالة المخزون', icon: Warehouse, href: '/inventory' },
+      { title: 'جرد المخزون', icon: List, href: '/inventory-count' },
+      { title: 'حركة المخزون', icon: FileText, href: '/inventory-movement' },
+      { title: 'نقل المخزون', icon: Package, href: '/inventory-transfer' },
+      { title: 'الباركود', icon: ScanBarcode, href: '/inventory/barcodes' }
+    ]
+  },
   { 
     title: 'الموظفين', 
     icon: UsersRound,
@@ -57,7 +113,7 @@ const navigationItems: NavItem[] = [
 export default function Sidebar() {
   const [location] = useLocation();
   const { sidebarCollapsed, toggleSidebar } = useAppStore();
-  const [expandedItems, setExpandedItems] = useState<string[]>(['الموظفين', 'التقارير']);
+  const [expandedItems, setExpandedItems] = useState<string[]>(['الموردين', 'العملاء', 'الأصناف', 'المشتريات', 'المبيعات', 'المخزون', 'الموظفين', 'التقارير']);
 
   const toggleExpanded = (title: string) => {
     setExpandedItems(prev => 
