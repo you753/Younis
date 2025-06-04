@@ -57,7 +57,7 @@ const navigationItems: NavItem[] = [
 export default function Sidebar() {
   const [location] = useLocation();
   const { sidebarCollapsed, toggleSidebar } = useAppStore();
-  const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const [expandedItems, setExpandedItems] = useState<string[]>(['الموظفين', 'التقارير']);
 
   const toggleExpanded = (title: string) => {
     setExpandedItems(prev => 
