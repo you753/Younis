@@ -45,11 +45,19 @@ export default function Purchases() {
   // Create purchase mutation
   const createPurchaseMutation = useMutation({
     mutationFn: async (data: PurchaseFormData) => {
-      const response = await apiRequest('/api/purchases', {
+      const response = await fetch('/api/purchases', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(data),
       });
-      return response;
+      
+      if (!response.ok) {
+        throw new Error('Failed to create purchase');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/purchases'] });
