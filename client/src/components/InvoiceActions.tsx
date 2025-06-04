@@ -21,7 +21,7 @@ export default function InvoiceActions({ sale, client, products, showPreview = f
 
   // Print handler
   const handlePrint = useReactToPrint({
-    content: () => invoiceRef.current,
+    contentRef: invoiceRef,
     documentTitle: `فاتورة-${sale.id}`,
     onAfterPrint: () => {
       toast({

@@ -4,13 +4,16 @@ import { useAppStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, FileText, TrendingUp, DollarSign, Edit, Trash2 } from 'lucide-react';
+import { Plus, FileText, TrendingUp, DollarSign, Edit, Trash2, Printer, Download, Eye } from 'lucide-react';
 import EnhancedSaleForm from '@/components/forms/EnhancedSaleForm';
 import Calculator from '@/components/Calculator';
+import InvoiceActions from '@/components/InvoiceActions';
 
 export default function Sales() {
   const { setCurrentPage } = useAppStore();
   const [showForm, setShowForm] = useState(false);
+  const [selectedSale, setSelectedSale] = useState<any>(null);
+  const [showInvoicePreview, setShowInvoicePreview] = useState(false);
 
   useEffect(() => {
     setCurrentPage('إدارة المبيعات');
@@ -24,6 +27,11 @@ export default function Sales() {
   // Fetch clients
   const { data: clients = [] } = useQuery({
     queryKey: ['/api/clients'],
+  });
+
+  // Fetch products
+  const { data: products = [] } = useQuery({
+    queryKey: ['/api/products'],
   });
 
   const totalSales = sales.reduce((sum: number, sale: any) => sum + parseFloat(sale.total), 0);
@@ -146,6 +154,17 @@ export default function Sales() {
                       <TableCell>{sale.notes || '-'}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              setSelectedSale(sale);
+                              setShowInvoicePreview(true);
+                            }}
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
                           <Button variant="outline" size="sm">
                             <Edit className="h-4 w-4" />
                           </Button>

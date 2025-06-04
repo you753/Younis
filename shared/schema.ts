@@ -96,7 +96,6 @@ export const insertProductSchema = createInsertSchema(products).omit({
 
 export const insertSaleSchema = createInsertSchema(sales).omit({
   id: true,
-  date: true,
 });
 
 export const insertPurchaseSchema = createInsertSchema(purchases).omit({
