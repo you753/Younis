@@ -25,7 +25,7 @@ export default function Layout({ children }: LayoutProps) {
       </div>
       
       {/* الأدوات العائمة في الزاوية اليسرى */}
-      <div className="fixed left-6 bottom-6 z-50 flex flex-col gap-4">
+      <div className="fixed left-6 bottom-6 z-50 flex flex-row gap-4">
         <Calculator />
         <AIChat />
       </div>
