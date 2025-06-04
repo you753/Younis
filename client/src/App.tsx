@@ -4,9 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Layout from "@/components/layout/Layout";
-import AIChat from "@/components/AIChat";
 import Dashboard from "@/pages/Dashboard";
-import VoiceNotes from "@/pages/VoiceNotes";
 import Users from "@/pages/Users";
 import Suppliers from "@/pages/Suppliers";
 import Clients from "@/pages/Clients";
@@ -30,7 +28,6 @@ function Router() {
     <Layout>
       <Switch>
         <Route path="/" component={Dashboard} />
-        <Route path="/voice-notes" component={VoiceNotes} />
         <Route path="/users" component={Users} />
         <Route path="/suppliers" component={Suppliers} />
         <Route path="/clients" component={Clients} />
@@ -90,7 +87,6 @@ function App() {
       <TooltipProvider>
         <Toaster />
         <Router />
-        <AIChat />
       </TooltipProvider>
     </QueryClientProvider>
   );
