@@ -57,7 +57,7 @@ const InvoicePrint = forwardRef<HTMLDivElement, InvoicePrintProps>(
               <h2 className="text-2xl font-bold text-gray-800 mb-4">فاتورة مبيعات</h2>
               <div className="bg-blue-50 p-4 rounded-lg">
                 <p className="font-semibold">رقم الفاتورة: <span className="text-blue-600">#{sale.id}</span></p>
-                <p className="font-semibold">التاريخ: <span className="text-gray-700">{formatDate(sale.createdAt || sale.date)}</span></p>
+                <p className="font-semibold">التاريخ: <span className="text-gray-700">{formatDate(sale.date)}</span></p>
               </div>
             </div>
           </div>
@@ -159,20 +159,22 @@ const InvoicePrint = forwardRef<HTMLDivElement, InvoicePrintProps>(
         </div>
 
         {/* Print Styles */}
-        <style jsx>{`
-          @media print {
-            .no-print {
-              display: none !important;
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            @media print {
+              .no-print {
+                display: none !important;
+              }
+              body {
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+              }
+              .page-break {
+                page-break-before: always;
+              }
             }
-            body {
-              -webkit-print-color-adjust: exact;
-              color-adjust: exact;
-            }
-            .page-break {
-              page-break-before: always;
-            }
-          }
-        `}</style>
+          `
+        }} />
       </div>
     );
   }
