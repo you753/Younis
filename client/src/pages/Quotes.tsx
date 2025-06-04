@@ -17,6 +17,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
+import QuoteFormComponent from '@/components/forms/QuoteForm';
 
 // Schema for form validation
 const quoteFormSchema = z.object({
@@ -331,6 +332,17 @@ export default function Quotes() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Quote Form */}
+      <QuoteFormComponent
+        open={showForm}
+        onOpenChange={setShowForm}
+        editingQuote={editingQuote}
+        onSuccess={() => {
+          setEditingQuote(null);
+          setShowForm(false);
+        }}
+      />
     </div>
   );
 }
