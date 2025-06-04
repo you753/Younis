@@ -200,6 +200,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update product (including inventory adjustments)
+  app.patch("/api/products/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updateData = req.body;
+      const product = await storage.updateProduct(id, updateData);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      res.json(product);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to update product" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
