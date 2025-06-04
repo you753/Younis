@@ -115,6 +115,15 @@ export const salaries = pgTable("salaries", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const productCategories = pgTable("product_categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  code: text("code").unique(),
+  description: text("description"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -162,6 +171,11 @@ export const insertSalarySchema = createInsertSchema(salaries).omit({
   createdAt: true,
 });
 
+export const insertProductCategorySchema = createInsertSchema(productCategories).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -189,3 +203,6 @@ export type InsertDeduction = z.infer<typeof insertDeductionSchema>;
 
 export type Salary = typeof salaries.$inferSelect;
 export type InsertSalary = z.infer<typeof insertSalarySchema>;
+
+export type ProductCategory = typeof productCategories.$inferSelect;
+export type InsertProductCategory = z.infer<typeof insertProductCategorySchema>;
