@@ -51,11 +51,19 @@ export default function EnhancedSaleForm({ onClose }: EnhancedSaleFormProps) {
   // Create sale mutation
   const createSaleMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest('/api/sales', {
+      const response = await fetch('/api/sales', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(data),
       });
-      return response;
+      
+      if (!response.ok) {
+        throw new Error('Failed to create sale');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/sales'] });
