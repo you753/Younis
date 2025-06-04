@@ -17,7 +17,7 @@ export default function AIChat() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'مرحباً! أنا مساعدك الذكي للأعمال المحاسبية. كيف يمكنني مساعدتك اليوم؟',
+      text: '👋 مرحباً بك! أنا مساعدك الذكي المتخصص في الأعمال المحاسبية والمالية.\n\n🔹 يمكنني مساعدتك في:\n• إدارة المبيعات والمشتريات\n• تحليل التقارير المالية\n• إدارة المخزون والعملاء\n• الاستشارات المحاسبية\n\nكيف يمكنني خدمتك اليوم؟ 😊',
       sender: 'ai',
       timestamp: new Date()
     }
@@ -25,8 +25,16 @@ export default function AIChat() {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [showQuickButtons, setShowQuickButtons] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
+
+  const quickQuestions = [
+    "كيف أضيف منتج جديد؟",
+    "كيف أعمل فاتورة مبيعات؟",
+    "كيف أتابع المخزون؟",
+    "كيف أطبع التقارير؟"
+  ];
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -61,12 +69,19 @@ export default function AIChat() {
     }
   }, []);
 
-  const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return;
+  const handleQuickQuestion = (question: string) => {
+    setInputMessage(question);
+    setShowQuickButtons(false);
+    handleSendMessage(question);
+  };
+
+  const handleSendMessage = async (messageText?: string) => {
+    const textToSend = messageText || inputMessage;
+    if (!textToSend.trim()) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      text: inputMessage,
+      text: textToSend,
       sender: 'user',
       timestamp: new Date()
     };
@@ -74,6 +89,7 @@ export default function AIChat() {
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
     setIsLoading(true);
+    setShowQuickButtons(false);
 
     try {
       // Send message to AI API
@@ -82,7 +98,7 @@ export default function AIChat() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message: inputMessage }),
+        body: JSON.stringify({ message: textToSend }),
       });
 
       if (!response.ok) {
@@ -102,7 +118,7 @@ export default function AIChat() {
     } catch (error) {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: 'عذراً، حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.',
+        text: '🔧 يبدو أن هناك مشكلة في الاتصال بخدمة الذكاء الاصطناعي.\n\n💡 في الوقت الحالي، يمكنك:\n• استخدام المساعد الصوتي للملاحظات المالية\n• تصفح التقارير والإحصائيات\n• إدارة العملاء والمنتجات\n\nسيتم حل المشكلة قريباً! 😊',
         sender: 'ai',
         timestamp: new Date()
       };
@@ -128,8 +144,25 @@ export default function AIChat() {
 
   const speakText = (text: string) => {
     if ('speechSynthesis' in window) {
+      // Stop any ongoing speech
+      window.speechSynthesis.cancel();
+      
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'ar-SA';
+      utterance.rate = 0.9; // Slightly slower for better clarity
+      utterance.pitch = 1.1; // Slightly higher pitch for professional sound
+      utterance.volume = 1.0;
+      
+      // Try to use a better voice if available
+      const voices = window.speechSynthesis.getVoices();
+      const arabicVoice = voices.find(voice => 
+        voice.lang.includes('ar') && voice.name.toLowerCase().includes('enhanced')
+      ) || voices.find(voice => voice.lang.includes('ar'));
+      
+      if (arabicVoice) {
+        utterance.voice = arabicVoice;
+      }
+      
       window.speechSynthesis.speak(utterance);
     }
   };
@@ -207,6 +240,27 @@ export default function AIChat() {
                     </div>
                   </div>
                 )}
+                
+                {/* Quick Question Buttons */}
+                {showQuickButtons && messages.length === 1 && (
+                  <div className="mt-4 space-y-2">
+                    <p className="text-xs text-gray-500 text-center">أسئلة سريعة:</p>
+                    <div className="grid grid-cols-1 gap-2">
+                      {quickQuestions.map((question, index) => (
+                        <Button
+                          key={index}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleQuickQuestion(question)}
+                          className="text-xs h-8 justify-start bg-blue-50 hover:bg-blue-100 border-blue-200"
+                        >
+                          {question}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
                 <div ref={messagesEndRef} />
               </div>
             </ScrollArea>
@@ -232,7 +286,7 @@ export default function AIChat() {
                   <Mic className={`h-4 w-4 ${isListening ? 'text-red-500' : ''}`} />
                 </Button>
                 <Button
-                  onClick={handleSendMessage}
+                  onClick={() => handleSendMessage()}
                   disabled={isLoading || !inputMessage.trim()}
                   size="sm"
                 >
