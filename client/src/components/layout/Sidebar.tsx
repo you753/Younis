@@ -261,8 +261,11 @@ export default function Sidebar() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 py-6 px-4 space-y-2 overflow-y-auto max-h-[calc(100vh-120px)]">
+        <nav className="flex-1 py-6 px-4 space-y-2 overflow-y-auto pb-20">
           {navigationItems.map(item => renderNavItem(item))}
+          
+          {/* مساحة إضافية لضمان امتداد القائمة حتى النهاية */}
+          <div className="h-32"></div>
         </nav>
       </aside>
     </>
