@@ -1,19 +1,62 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Users, Edit, Trash2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Employee } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import EmployeeFormComponent from "@/components/forms/EmployeeForm";
 
 export default function Employees() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<any>(null);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: employees = [], isLoading } = useQuery<Employee[]>({
     queryKey: ["/api/employees"],
   });
+
+  const deleteEmployeeMutation = useMutation({
+    mutationFn: (id: number) => apiRequest({
+      url: `/api/employees/${id}`,
+      method: 'DELETE',
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/employees'] });
+      toast({
+        title: "نجح",
+        description: "تم حذف الموظف بنجاح",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "خطأ",
+        description: "فشل في حذف الموظف",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEdit = (employee: any) => {
+    setEditingEmployee(employee);
+    setShowForm(true);
+  };
+
+  const handleDelete = (id: number) => {
+    if (confirm('هل أنت متأكد من حذف هذا الموظف؟')) {
+      deleteEmployeeMutation.mutate(id);
+    }
+  };
+
+  const handleFormSuccess = () => {
+    setEditingEmployee(null);
+    setShowForm(false);
+  };
 
   const filteredEmployees = employees.filter((employee: Employee) =>
     employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -223,10 +266,19 @@ export default function Employees() {
                       </td>
                       <td className="p-4">
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleEdit(employee)}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-red-600 hover:text-red-700"
+                            onClick={() => handleDelete(employee.id)}
+                          >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -239,6 +291,14 @@ export default function Employees() {
           )}
         </CardContent>
       </Card>
+
+      {/* Employee Form */}
+      <EmployeeFormComponent
+        open={showForm}
+        onOpenChange={setShowForm}
+        editingEmployee={editingEmployee}
+        onSuccess={handleFormSuccess}
+      />
     </div>
   );
 }
