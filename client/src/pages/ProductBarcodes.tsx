@@ -37,85 +37,245 @@ export default function ProductBarcodes() {
   };
 
   const generateBarcodeImage = (barcode: string) => {
-    // Create a Code 128-like barcode pattern
-    const width = 250;
-    const height = 60;
+    // Create a more realistic Code 128-like barcode pattern
+    const width = 320;
+    const height = 80;
     const patterns = [];
     
-    // Generate alternating black/white bars based on barcode digits
+    // Add start pattern (quiet zone and start bars)
+    patterns.push(
+      { width: 3, color: 'white' },  // Quiet zone
+      { width: 2, color: 'black' },
+      { width: 1, color: 'white' },
+      { width: 1, color: 'black' },
+      { width: 1, color: 'white' }
+    );
+    
+    // Generate more realistic bar patterns for each digit
     for (let i = 0; i < barcode.length; i++) {
       const digit = parseInt(barcode[i]) || 0;
-      // Each digit creates 3-4 bars of varying widths
-      const barPattern = [
-        { width: digit % 3 + 1, color: 'black' },
-        { width: digit % 2 + 1, color: 'white' },
-        { width: (digit + 1) % 3 + 1, color: 'black' },
-        { width: digit % 2 + 1, color: 'white' }
+      // Realistic bar patterns for digits 0-9
+      const digitPatterns = [
+        [3, 2, 1, 1], // 0
+        [2, 2, 2, 1], // 1  
+        [2, 1, 2, 2], // 2
+        [1, 4, 1, 1], // 3
+        [1, 1, 3, 2], // 4
+        [1, 2, 3, 1], // 5
+        [1, 1, 1, 4], // 6
+        [1, 3, 1, 2], // 7
+        [1, 2, 1, 3], // 8
+        [3, 1, 1, 2]  // 9
       ];
-      patterns.push(...barPattern);
+      
+      const pattern = digitPatterns[digit];
+      for (let j = 0; j < pattern.length; j++) {
+        patterns.push({
+          width: pattern[j],
+          color: j % 2 === 0 ? 'black' : 'white'
+        });
+      }
     }
     
-    let xPos = 10;
-    const bars = patterns.map(bar => {
-      const rect = `<rect x="${xPos}" y="10" width="${bar.width * 2}" height="${height - 20}" fill="${bar.color}"/>`;
-      xPos += bar.width * 2;
-      return rect;
-    }).join('');
+    // Add end pattern (end bars and quiet zone)
+    patterns.push(
+      { width: 1, color: 'white' },
+      { width: 1, color: 'black' },
+      { width: 1, color: 'white' },
+      { width: 2, color: 'black' },
+      { width: 3, color: 'white' }  // Quiet zone
+    );
+    
+    // Create SVG with better scaling
+    let x = 0;
+    const bars = patterns.map(pattern => {
+      if (pattern.color === 'black') {
+        const rect = `<rect x="${x}" y="15" width="${pattern.width * 2}" height="${height - 35}" fill="black"/>`;
+      }
+      x += pattern.width * 2;
+      return pattern.color === 'black' ? 
+        `<rect x="${x - pattern.width * 2}" y="15" width="${pattern.width * 2}" height="${height - 35}" fill="black"/>` : '';
+    }).filter(Boolean).join('');
     
     const svgContent = `
-      <svg width="${width}" height="${height + 30}" xmlns="http://www.w3.org/2000/svg">
-        <rect width="${width}" height="${height + 30}" fill="white" stroke="#ddd" stroke-width="1"/>
+      <svg width="${width}" height="${height + 20}" xmlns="http://www.w3.org/2000/svg" style="background: white;">
+        <rect width="100%" height="100%" fill="white" stroke="#e0e0e0" stroke-width="1"/>
         ${bars}
-        <text x="${width/2}" y="${height + 20}" text-anchor="middle" font-family="monospace" font-size="14" fill="black">${barcode}</text>
+        <text x="${width/2}" y="${height + 12}" text-anchor="middle" font-family="Arial, monospace" font-size="12" font-weight="bold" fill="black">${barcode}</text>
       </svg>
     `;
-    return `data:image/svg+xml;base64,${btoa(svgContent)}`;
+    
+    return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgContent)))}`;
   };
 
   const printBarcodes = () => {
     const selectedProductsData = products.filter(p => selectedProducts.includes(p.id));
+    if (selectedProductsData.length === 0) {
+      alert('يرجى اختيار منتجات للطباعة');
+      return;
+    }
+
     const printWindow = window.open('', '_blank');
     if (printWindow) {
       printWindow.document.write(`
-        <html>
+        <!DOCTYPE html>
+        <html dir="rtl">
           <head>
-            <title>طباعة الباركود</title>
+            <meta charset="UTF-8">
+            <title>طباعة باركود الأصناف</title>
             <style>
-              body { font-family: Arial, sans-serif; padding: 20px; }
-              .barcode-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+              * { box-sizing: border-box; margin: 0; padding: 0; }
+              body { 
+                font-family: 'Arial', 'Tahoma', sans-serif; 
+                padding: 15mm;
+                background: white;
+                direction: rtl;
+              }
+              
+              .print-header {
+                text-align: center;
+                margin-bottom: 20px;
+                border-bottom: 2px solid #333;
+                padding-bottom: 15px;
+              }
+              
+              .print-header h1 {
+                font-size: 24px;
+                color: #333;
+                margin-bottom: 5px;
+              }
+              
+              .print-header p {
+                color: #666;
+                font-size: 14px;
+              }
+              
+              .barcode-grid { 
+                display: grid; 
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+                gap: 15px;
+                margin-top: 20px;
+              }
+              
               .barcode-item { 
-                border: 1px solid #ddd; 
-                padding: 15px; 
+                border: 2px solid #e0e0e0; 
+                border-radius: 8px;
+                padding: 20px; 
                 text-align: center; 
                 page-break-inside: avoid;
+                background: #fafafa;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
               }
-              .product-name { font-weight: bold; margin-bottom: 10px; }
-              .barcode-image { margin: 10px 0; }
+              
+              .product-name { 
+                font-weight: bold; 
+                font-size: 16px;
+                margin-bottom: 12px;
+                color: #333;
+                border-bottom: 1px solid #ddd;
+                padding-bottom: 8px;
+              }
+              
+              .barcode-image { 
+                margin: 15px 0;
+                background: white;
+                padding: 10px;
+                border-radius: 4px;
+                border: 1px solid #ddd;
+              }
+              
+              .barcode-image img {
+                max-width: 100%;
+                height: auto;
+              }
+              
+              .product-details {
+                font-size: 14px;
+                color: #555;
+                line-height: 1.6;
+              }
+              
+              .product-details div {
+                margin: 5px 0;
+              }
+              
+              .price {
+                font-weight: bold;
+                color: #2563eb;
+                font-size: 16px;
+              }
+              
+              .print-footer {
+                margin-top: 30px;
+                text-align: center;
+                font-size: 12px;
+                color: #666;
+                border-top: 1px solid #ddd;
+                padding-top: 15px;
+              }
+              
               @media print { 
-                .no-print { display: none; }
-                body { margin: 0; }
+                body { 
+                  margin: 0; 
+                  padding: 10mm;
+                }
+                .barcode-grid { 
+                  grid-template-columns: repeat(2, 1fr);
+                  gap: 10px;
+                }
+                .barcode-item {
+                  border: 1px solid #333;
+                  box-shadow: none;
+                  background: white;
+                }
+                .print-header h1 {
+                  font-size: 20px;
+                }
+              }
+              
+              @page {
+                size: A4;
+                margin: 15mm;
               }
             </style>
           </head>
           <body>
+            <div class="print-header">
+              <h1>باركود الأصناف</h1>
+              <p>تاريخ الطباعة: ${new Date().toLocaleDateString('ar-SA')} | عدد الأصناف: ${selectedProductsData.length}</p>
+            </div>
+            
             <div class="barcode-grid">
               ${selectedProductsData.map(product => `
                 <div class="barcode-item">
                   <div class="product-name">${product.name}</div>
                   ${product.barcode ? `
                     <div class="barcode-image">
-                      <img src="${generateBarcodeImage(product.barcode)}" alt="barcode" />
+                      <img src="${generateBarcodeImage(product.barcode)}" alt="barcode for ${product.name}" />
                     </div>
-                  ` : '<div>لا يوجد باركود</div>'}
-                  <div>الكود: ${product.code || 'غير محدد'}</div>
-                  <div>السعر: ${product.salePrice} ر.س</div>
+                  ` : '<div style="color: #dc2626; font-weight: bold;">لا يوجد باركود</div>'}
+                  <div class="product-details">
+                    <div><strong>الكود:</strong> ${product.code || 'غير محدد'}</div>
+                    <div><strong>الباركود:</strong> ${product.barcode || 'غير محدد'}</div>
+                    <div><strong>الفئة:</strong> ${product.category || 'غير محدد'}</div>
+                    <div class="price"><strong>السعر:</strong> ${product.salePrice} ر.س</div>
+                    <div><strong>الكمية:</strong> ${product.quantity || 0} قطعة</div>
+                  </div>
                 </div>
               `).join('')}
             </div>
+            
+            <div class="print-footer">
+              <p>تم إنشاؤها بواسطة نظام المحاسبة المتكامل</p>
+            </div>
+            
             <script>
               window.onload = function() { 
-                window.print(); 
-                setTimeout(() => window.close(), 1000);
+                // تأخير قصير للتأكد من تحميل الصور
+                setTimeout(() => {
+                  window.print(); 
+                  setTimeout(() => window.close(), 2000);
+                }, 500);
               }
             </script>
           </body>
