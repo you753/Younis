@@ -1,5 +1,5 @@
-import SimpleSidebar from './SimpleSidebar';
-import Header from './Header';
+import Sidebar from './Sidebar';
+import TopBar from './TopBar';
 import NotificationBar from '../NotificationBar';
 import AIChat from '../AIChat';
 import Calculator from '../Calculator';
@@ -11,12 +11,11 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen bg-gray-50" dir="rtl">
-      <NotificationBar />
       <div className="flex">
-        <SimpleSidebar />
-        <div className="flex-1 mr-64">
-          <Header />
-          <main className="p-4">
+        <Sidebar />
+        <div className="flex-1">
+          <TopBar />
+          <main className="p-6 bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
             <div className="max-w-7xl mx-auto">
               {children}
             </div>
