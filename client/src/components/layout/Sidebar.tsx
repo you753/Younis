@@ -26,9 +26,16 @@ const navigationItems: NavItem[] = [
   { title: 'المشتريات', icon: ShoppingCart, href: '/purchases' },
   { title: 'المبيعات', icon: ScanBarcode, href: '/sales' },
   { title: 'المخزون', icon: Warehouse, href: '/inventory' },
-  { title: 'الموظفين', icon: Users, href: '/employees' },
-  { title: 'الخصومات', icon: Minus, href: '/deductions' },
-  { title: 'الرواتب', icon: DollarSign, href: '/salaries' },
+  { 
+    title: 'الموظفين', 
+    icon: UsersRound, 
+    href: '/employees',
+    children: [
+      { title: 'قائمة الموظفين', icon: Users, href: '/employees' },
+      { title: 'الخصومات', icon: Minus, href: '/deductions' },
+      { title: 'الرواتب', icon: DollarSign, href: '/salaries' }
+    ]
+  },
   { title: 'التقارير', icon: BarChart3, href: '/reports' },
   { title: 'الإعدادات', icon: Settings, href: '/settings' }
 ];
