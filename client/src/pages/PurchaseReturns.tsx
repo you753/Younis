@@ -1,14 +1,21 @@
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/lib/store';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, ArrowLeft, Eye, Edit, Trash2 } from 'lucide-react';
+import PurchaseReturnFormComponent from '@/components/forms/PurchaseReturnForm';
+import { format } from 'date-fns';
 
 export default function PurchaseReturns() {
   const { setCurrentPage } = useAppStore();
   const [showForm, setShowForm] = useState(false);
+  const [editingReturn, setEditingReturn] = useState<any>(null);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   useEffect(() => {
     setCurrentPage('مرتجعات المشتريات');
@@ -17,6 +24,43 @@ export default function PurchaseReturns() {
   const { data: purchaseReturns = [], isLoading } = useQuery({
     queryKey: ['/api/purchase-returns'],
   });
+
+  const deleteReturnMutation = useMutation({
+    mutationFn: (id: number) => apiRequest({
+      url: `/api/purchase-returns/${id}`,
+      method: 'DELETE',
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/purchase-returns'] });
+      toast({
+        title: "نجح",
+        description: "تم حذف المرتجع بنجاح",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "خطأ",
+        description: "فشل في حذف المرتجع",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEdit = (returnItem: any) => {
+    setEditingReturn(returnItem);
+    setShowForm(true);
+  };
+
+  const handleDelete = (id: number) => {
+    if (confirm('هل أنت متأكد من حذف هذا المرتجع؟')) {
+      deleteReturnMutation.mutate(id);
+    }
+  };
+
+  const handleFormSuccess = () => {
+    setEditingReturn(null);
+    setShowForm(false);
+  };
 
   if (isLoading) {
     return <div className="p-6">جاري تحميل البيانات...</div>;
@@ -106,16 +150,69 @@ export default function PurchaseReturns() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                    لا توجد مرتجعات مشتريات حالياً
-                  </TableCell>
-                </TableRow>
+                {Array.isArray(purchaseReturns) && purchaseReturns.length > 0 ? (
+                  purchaseReturns.map((returnItem: any) => (
+                    <TableRow key={returnItem.id}>
+                      <TableCell className="font-medium">#{returnItem.returnNumber}</TableCell>
+                      <TableCell>
+                        {returnItem.createdAt ? format(new Date(returnItem.createdAt), 'yyyy-MM-dd') : '-'}
+                      </TableCell>
+                      <TableCell>مورد غير محدد</TableCell>
+                      <TableCell>{returnItem.total} ر.س</TableCell>
+                      <TableCell>{returnItem.reason}</TableCell>
+                      <TableCell>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          returnItem.status === 'completed' ? 'bg-green-100 text-green-800' :
+                          returnItem.status === 'approved' ? 'bg-blue-100 text-blue-800' :
+                          returnItem.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                          'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {returnItem.status === 'completed' ? 'مكتمل' :
+                           returnItem.status === 'approved' ? 'موافق عليه' :
+                           returnItem.status === 'rejected' ? 'مرفوض' :
+                           'قيد الانتظار'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEdit(returnItem)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDelete(returnItem.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                      لا توجد مرتجعات مشتريات حالياً
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>
         </CardContent>
       </Card>
+
+      {/* Purchase Return Form */}
+      <PurchaseReturnFormComponent
+        open={showForm}
+        onOpenChange={setShowForm}
+        editingReturn={editingReturn}
+        onSuccess={handleFormSuccess}
+      />
     </div>
   );
 }
