@@ -9,6 +9,7 @@ import {
   insertSaleSchema,
   insertPurchaseSchema
 } from "@shared/schema";
+import { uploadMiddleware, transcribeAudio } from "./voice";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard
@@ -214,6 +215,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(400).json({ message: "Failed to update product" });
     }
   });
+
+  // Voice Assistant - Audio transcription and analysis
+  app.post("/api/voice/transcribe", uploadMiddleware, transcribeAudio);
 
   const httpServer = createServer(app);
   return httpServer;
