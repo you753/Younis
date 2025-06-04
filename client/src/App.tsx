@@ -40,6 +40,9 @@ function Router() {
         <Route path="/" component={Dashboard} />
         <Route path="/users" component={Users} />
         <Route path="/suppliers" component={Suppliers} />
+        <Route path="/suppliers/add" component={Suppliers} />
+        <Route path="/supplier-categories" component={Suppliers} />
+        <Route path="/supplier-evaluation" component={Suppliers} />
         <Route path="/clients" component={Clients} />
         <Route path="/cash-clients" component={Clients} />
         <Route path="/client-groups" component={Clients} />
