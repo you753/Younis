@@ -59,27 +59,31 @@ async function analyzeFinancialContent(text: string) {
       messages: [
         {
           role: "system",
-          content: `أنت مساعد ذكي متخصص في تحليل الملاحظات المالية والمحاسبية باللغة العربية. 
-          
-          مهمتك تحليل النص المدخل وتصنيفه واستخراج المعلومات المالية المهمة.
-          
-          يجب أن ترد بصيغة JSON تحتوي على:
-          - category: التصنيف (مبيعات، مشتريات، مصروفات، إيرادات، تذكير، مهمة، أخرى)
-          - priority: الأولوية (low, medium, high)
-          - amount: المبلغ المالي إن وجد (رقم)
-          - currency: العملة (ر.س، دولار، يورو، إلخ)
-          - entities: قائمة بالكيانات المهمة (أسماء أشخاص، شركات، منتجات)
-          - summary: ملخص مختصر للمحتوى
-          
-          مثال:
-          {
-            "category": "مبيعات",
-            "priority": "medium",
-            "amount": 1500,
-            "currency": "ر.س",
-            "entities": ["أحمد محمد", "منتج A"],
-            "summary": "عملية بيع لمنتج A بقيمة 1500 ريال للعميل أحمد محمد"
-          }`
+          content: `أنت مساعد ذكي متخصص في تحليل المحتوى المالي العربي. قم بتحليل النص المقدم واستخراج المعلومات المالية ذات الصلة.
+
+قم بالرد بصيغة JSON تحتوي على:
+- category: نوع المعاملة (income/expense/investment/debt/budget/general)
+- priority: أولوية المعاملة (low/medium/high)
+- amount: المبلغ المذكور (رقم) أو null إذا لم يذكر
+- currency: العملة المستخدمة أو "ريال" كافتراضي
+- entities: الكيانات المالية المذكورة (أسماء الشركات، البنوك، إلخ)
+- summary: ملخص موجز وواضح للمحتوى
+- actionItems: المهام المطلوبة استناداً للمحتوى
+- tags: كلمات مفتاحية مرتبطة
+
+مثال للرد:
+{
+  "category": "expense",
+  "priority": "high",
+  "amount": 500,
+  "currency": "ريال",
+  "entities": ["متجر العثيم"],
+  "summary": "شراء مستلزمات مكتبية بقيمة 500 ريال",
+  "actionItems": ["تسجيل الفاتورة في النظام", "إضافة للمصروفات الشهرية"],
+  "tags": ["مكتب", "مستلزمات", "شراء"]
+}
+
+احرص على دقة التصنيف وتقديم تحليل مفيد للمحتوى المالي.`
         },
         {
           role: "user",
@@ -91,19 +95,33 @@ async function analyzeFinancialContent(text: string) {
     });
 
     const analysisText = response.choices[0].message.content;
-    return JSON.parse(analysisText || '{}');
+    const analysis = JSON.parse(analysisText || '{}');
+    
+    // Ensure required fields are present
+    return {
+      category: analysis.category || 'general',
+      priority: analysis.priority || 'medium',
+      amount: analysis.amount || null,
+      currency: analysis.currency || 'ريال',
+      entities: analysis.entities || [],
+      summary: analysis.summary || 'ملاحظة مالية',
+      actionItems: analysis.actionItems || [],
+      tags: analysis.tags || []
+    };
 
   } catch (error) {
     console.error('Error analyzing financial content:', error);
     
     // Fallback analysis if OpenAI fails
     return {
-      category: "أخرى",
-      priority: "low",
+      category: 'general',
+      priority: 'medium',
       amount: null,
-      currency: null,
+      currency: 'ريال',
       entities: [],
-      summary: "تم تسجيل الملاحظة ولكن لم يتم تحليلها بشكل كامل"
+      summary: 'ملاحظة مالية - فشل في التحليل',
+      actionItems: [],
+      tags: []
     };
   }
 }
