@@ -12,10 +12,12 @@ export default function Layout({ children }: LayoutProps) {
       <NotificationBar />
       <div className="flex">
         <Sidebar />
-        <div className="flex-1 lg:mr-80">
+        <div className="flex-1 mr-64">
           <Header />
-          <main className="p-6">
-            {children}
+          <main className="p-4">
+            <div className="max-w-7xl mx-auto">
+              {children}
+            </div>
           </main>
         </div>
       </div>
