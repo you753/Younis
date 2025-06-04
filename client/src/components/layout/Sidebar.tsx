@@ -28,8 +28,7 @@ const navigationItems: NavItem[] = [
   { title: 'المخزون', icon: Warehouse, href: '/inventory' },
   { 
     title: 'الموظفين', 
-    icon: UsersRound, 
-    href: '/employees',
+    icon: UsersRound,
     children: [
       { title: 'قائمة الموظفين', icon: Users, href: '/employees' },
       { title: 'الخصومات', icon: Minus, href: '/deductions' },
@@ -133,7 +132,7 @@ export default function Sidebar() {
           </div>
           
           {isExpanded && (
-            <div className="mt-1 space-y-1 mr-4">
+            <div className="mt-1 space-y-1 mr-8 border-r border-white/20 pr-4">
               {item.children?.map(child => renderNavItem(child, level + 1))}
             </div>
           )}
@@ -147,7 +146,7 @@ export default function Sidebar() {
           variant="ghost"
           className={cn(
             "w-full justify-start text-right p-3 h-auto font-medium text-white hover:bg-white/10",
-            level > 0 && "mr-8 text-sm",
+            level > 0 && "mr-2 text-sm bg-white/5",
             isItemActive && "bg-white/20 text-white"
           )}
           onClick={() => {
