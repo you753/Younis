@@ -1,4 +1,4 @@
-import Sidebar from './Sidebar';
+import SimpleSidebar from './SimpleSidebar';
 import Header from './Header';
 import NotificationBar from '../NotificationBar';
 import AIChat from '../AIChat';
@@ -13,7 +13,7 @@ export default function Layout({ children }: LayoutProps) {
     <div className="min-h-screen bg-gray-50" dir="rtl">
       <NotificationBar />
       <div className="flex">
-        <Sidebar />
+        <SimpleSidebar />
         <div className="flex-1 mr-64">
           <Header />
           <main className="p-4">
