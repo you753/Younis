@@ -2,6 +2,7 @@ import Sidebar from './Sidebar';
 import Header from './Header';
 import NotificationBar from '../NotificationBar';
 import VoiceAssistant from '../VoiceAssistant';
+import Calculator from '../Calculator';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -23,8 +24,9 @@ export default function Layout({ children }: LayoutProps) {
         </div>
       </div>
       
-      {/* المساعد الصوتي العائم في الزاوية اليسرى */}
-      <div className="fixed left-6 bottom-6 z-50">
+      {/* الأدوات العائمة في الزاوية اليسرى */}
+      <div className="fixed left-6 bottom-6 z-50 flex flex-col gap-4">
+        <Calculator />
         <VoiceAssistant />
       </div>
     </div>
