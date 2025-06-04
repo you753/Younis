@@ -6,40 +6,12 @@ import { apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Plus, ArrowLeft, Eye, Edit, Trash2, Save, Package, ShoppingCart } from 'lucide-react';
-import { useForm, useFieldArray } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { Plus, ArrowLeft, Eye, Edit, Trash2, CheckCircle, Package } from 'lucide-react';
+import SalesReturnFormComponent from '@/components/forms/SalesReturnForm';
 import { format } from 'date-fns';
 
-// Schema for return items
-const returnItemSchema = z.object({
-  productId: z.number().min(1, 'يجب اختيار منتج'),
-  productName: z.string(),
-  quantity: z.number().min(1, 'الكمية يجب أن تكون أكبر من صفر'),
-  unitPrice: z.number().min(0, 'السعر يجب أن يكون صفر أو أكبر'),
-  total: z.number().min(0),
-});
 
-// Schema for form validation
-const salesReturnFormSchema = z.object({
-  saleId: z.number().optional(),
-  returnNumber: z.string().min(1, 'رقم المرتجع مطلوب'),
-  total: z.string().min(1, 'المبلغ الإجمالي مطلوب'),
-  reason: z.string().min(1, 'سبب الإرجاع مطلوب'),
-  status: z.string().default('pending'),
-  notes: z.string().optional(),
-  items: z.array(returnItemSchema).optional(),
-});
-
-type SalesReturnForm = z.infer<typeof salesReturnFormSchema>;
 
 export default function SalesReturns() {
   const { setCurrentPage } = useAppStore();
@@ -55,81 +27,6 @@ export default function SalesReturns() {
   // Fetch sales returns data
   const { data: salesReturns = [], isLoading } = useQuery({
     queryKey: ['/api/sales-returns'],
-  });
-
-  const { data: products = [] } = useQuery({
-    queryKey: ['/api/products'],
-  });
-
-  const { data: sales = [] } = useQuery({
-    queryKey: ['/api/sales'],
-  });
-
-  const form = useForm<SalesReturnForm>({
-    resolver: zodResolver(salesReturnFormSchema),
-    defaultValues: {
-      returnNumber: '',
-      total: '',
-      reason: '',
-      status: 'pending',
-      notes: '',
-      items: [],
-    },
-  });
-
-  const { fields: itemFields, append: appendItem, remove: removeItem } = useFieldArray({
-    control: form.control,
-    name: 'items',
-  });
-
-  const createReturnMutation = useMutation({
-    mutationFn: (data: SalesReturnForm) => apiRequest({
-      url: '/api/sales-returns',
-      method: 'POST',
-      body: data,
-    }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/sales-returns'] });
-      setShowForm(false);
-      form.reset();
-      toast({
-        title: "نجح",
-        description: "تم إضافة المرتجع بنجاح",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "خطأ",
-        description: "فشل في إضافة المرتجع",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const updateReturnMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<SalesReturnForm> }) => 
-      apiRequest({
-        url: `/api/sales-returns/${id}`,
-        method: 'PUT',
-        body: data,
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/sales-returns'] });
-      setEditingReturn(null);
-      setShowForm(false);
-      form.reset();
-      toast({
-        title: "نجح",
-        description: "تم تحديث المرتجع بنجاح",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "خطأ",
-        description: "فشل في تحديث المرتجع",
-        variant: "destructive",
-      });
-    },
   });
 
   const deleteReturnMutation = useMutation({
@@ -153,65 +50,14 @@ export default function SalesReturns() {
     },
   });
 
-  const onSubmit = (data: SalesReturnForm) => {
-    if (editingReturn) {
-      updateReturnMutation.mutate({ id: editingReturn.id, data });
-    } else {
-      createReturnMutation.mutate(data);
-    }
-  };
-
   const handleEdit = (salesReturn: any) => {
     setEditingReturn(salesReturn);
-    form.reset({
-      saleId: salesReturn.saleId,
-      returnNumber: salesReturn.returnNumber,
-      total: salesReturn.total,
-      reason: salesReturn.reason,
-      status: salesReturn.status,
-      notes: salesReturn.notes || '',
-      items: salesReturn.items || [],
-    });
     setShowForm(true);
   };
 
   const handleDelete = (id: number) => {
     if (confirm('هل أنت متأكد من حذف المرتجع؟')) {
       deleteReturnMutation.mutate(id);
-    }
-  };
-
-  const addNewItem = () => {
-    appendItem({
-      productId: 0,
-      productName: '',
-      quantity: 1,
-      unitPrice: 0,
-      total: 0,
-    });
-  };
-
-  const calculateItemTotal = (index: number) => {
-    const quantity = form.watch(`items.${index}.quantity`);
-    const unitPrice = form.watch(`items.${index}.unitPrice`);
-    const total = quantity * unitPrice;
-    form.setValue(`items.${index}.total`, total);
-    calculateGrandTotal();
-  };
-
-  const calculateGrandTotal = () => {
-    const items = form.watch('items') || [];
-    const grandTotal = items.reduce((sum: number, item: any) => sum + (item.total || 0), 0);
-    form.setValue('total', grandTotal.toFixed(2));
-  };
-
-  const handleProductChange = (index: number, productId: number) => {
-    const product = Array.isArray(products) ? products.find((p: any) => p.id === productId) : null;
-    if (product) {
-      form.setValue(`items.${index}.productId`, product.id);
-      form.setValue(`items.${index}.productName`, product.name);
-      form.setValue(`items.${index}.unitPrice`, parseFloat(product.salePrice));
-      calculateItemTotal(index);
     }
   };
 
@@ -223,6 +69,11 @@ export default function SalesReturns() {
     };
     
     return statusMap[status as keyof typeof statusMap] || { label: status, variant: 'secondary' as const };
+  };
+
+  const handleFormSuccess = () => {
+    setEditingReturn(null);
+    setShowForm(false);
   };
 
   if (isLoading) {
@@ -360,6 +211,14 @@ export default function SalesReturns() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Sales Return Form */}
+      <SalesReturnFormComponent
+        open={showForm}
+        onOpenChange={setShowForm}
+        editingReturn={editingReturn}
+        onSuccess={handleFormSuccess}
+      />
     </div>
   );
 }
