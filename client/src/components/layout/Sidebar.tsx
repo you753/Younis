@@ -238,7 +238,7 @@ export default function Sidebar() {
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed top-0 right-0 h-screen w-80 bg-gradient-to-b from-blue-600 to-blue-800 text-white shadow-xl transition-transform duration-300 ease-in-out z-50",
+        "fixed top-0 right-0 h-full min-h-screen w-80 bg-gradient-to-b from-blue-600 to-blue-800 text-white shadow-xl transition-transform duration-300 ease-in-out z-50",
         "lg:relative lg:translate-x-0",
         sidebarCollapsed ? "translate-x-full" : "translate-x-0"
       )}>
@@ -261,7 +261,7 @@ export default function Sidebar() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+        <nav className="flex-1 py-6 px-4 space-y-2 overflow-y-auto max-h-[calc(100vh-120px)]">
           {navigationItems.map(item => renderNavItem(item))}
         </nav>
       </aside>
