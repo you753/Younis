@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, DollarSign, Edit, Trash2, Search, Filter, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,12 +7,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Salary, Employee } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import SalaryFormComponent from "@/components/forms/SalaryForm";
 
 export default function Salaries() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const [showForm, setShowForm] = useState(false);
+  const [editingSalary, setEditingSalary] = useState<any>(null);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: salaries = [], isLoading } = useQuery<Salary[]>({
     queryKey: ["/api/salaries"],
@@ -21,6 +27,43 @@ export default function Salaries() {
   const { data: employees = [] } = useQuery<Employee[]>({
     queryKey: ["/api/employees"],
   });
+
+  const deleteSalaryMutation = useMutation({
+    mutationFn: (id: number) => apiRequest({
+      url: `/api/salaries/${id}`,
+      method: 'DELETE',
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/salaries'] });
+      toast({
+        title: "نجح",
+        description: "تم حذف الراتب بنجاح",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "خطأ",
+        description: "فشل في حذف الراتب",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEdit = (salary: any) => {
+    setEditingSalary(salary);
+    setShowForm(true);
+  };
+
+  const handleDelete = (id: number) => {
+    if (confirm('هل أنت متأكد من حذف هذا الراتب؟')) {
+      deleteSalaryMutation.mutate(id);
+    }
+  };
+
+  const handleFormSuccess = () => {
+    setEditingSalary(null);
+    setShowForm(false);
+  };
 
   const filteredSalaries = salaries.filter((salary: Salary) => {
     const employee = employees.find((emp: Employee) => emp.id === salary.employeeId);
@@ -281,10 +324,19 @@ export default function Salaries() {
                         </td>
                         <td className="p-4">
                           <div className="flex gap-2">
-                            <Button size="sm" variant="outline">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleEdit(salary)}
+                            >
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="text-red-600 hover:text-red-700"
+                              onClick={() => handleDelete(salary.id)}
+                            >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
@@ -298,6 +350,14 @@ export default function Salaries() {
           )}
         </CardContent>
       </Card>
+
+      {/* Salary Form */}
+      <SalaryFormComponent
+        open={showForm}
+        onOpenChange={setShowForm}
+        editingSalary={editingSalary}
+        onSuccess={handleFormSuccess}
+      />
     </div>
   );
 }
