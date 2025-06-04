@@ -182,7 +182,7 @@ export default function Sidebar() {
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed top-0 right-0 h-screen w-80 bg-gradient-to-b from-[hsl(var(--accounting-primary))] to-[hsl(var(--accounting-primary-dark))] text-white shadow-xl transition-transform duration-300 ease-in-out z-50",
+        "fixed top-0 right-0 h-screen w-80 bg-gradient-to-b from-blue-600 to-blue-800 text-white shadow-xl transition-transform duration-300 ease-in-out z-50",
         "lg:relative lg:translate-x-0",
         sidebarCollapsed ? "translate-x-full" : "translate-x-0"
       )}>
