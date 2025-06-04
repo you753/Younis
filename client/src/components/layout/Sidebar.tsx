@@ -4,7 +4,7 @@ import {
   Home, Users, UserCheck, Package, ShoppingCart, 
   ScanBarcode, Warehouse, FileText, BarChart3, 
   Settings, ChevronDown, X, Truck, UsersRound,
-  DollarSign, Tags, List, Plus, Percent, Minus
+  DollarSign, Tags, List, Plus, Percent, Minus, Calendar
 } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
@@ -30,9 +30,12 @@ const navigationItems: NavItem[] = [
     title: 'الموظفين', 
     icon: UsersRound,
     children: [
-      { title: 'قائمة الموظفين', icon: Users, href: '/employees' },
+      { title: 'إدارة الموظفين', icon: Users, href: '/employees' },
+      { title: 'الحضور والانصراف', icon: FileText, href: '/attendance' },
       { title: 'الخصومات', icon: Minus, href: '/deductions' },
-      { title: 'الرواتب', icon: DollarSign, href: '/salaries' }
+      { title: 'الرواتب', icon: DollarSign, href: '/salaries' },
+      { title: 'الإجازات', icon: FileText, href: '/leaves' },
+      { title: 'تقييم الأداء', icon: BarChart3, href: '/performance' }
     ]
   },
   { title: 'التقارير', icon: BarChart3, href: '/reports' },
