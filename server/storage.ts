@@ -1,5 +1,5 @@
 import { 
-  users, suppliers, clients, products, sales, purchases, employees, deductions, salaries, productCategories, quotes, salesReturns,
+  users, suppliers, clients, products, sales, purchases, employees, deductions, salaries, productCategories, quotes, salesReturns, purchaseReturns,
   type User, type InsertUser,
   type Supplier, type InsertSupplier,
   type Client, type InsertClient,
@@ -11,10 +11,11 @@ import {
   type Salary, type InsertSalary,
   type ProductCategory, type InsertProductCategory,
   type Quote, type InsertQuote,
-  type SalesReturn, type InsertSalesReturn
+  type SalesReturn, type InsertSalesReturn,
+  type PurchaseReturn, type InsertPurchaseReturn
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, desc } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -499,6 +500,40 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(salesReturns)
       .where(eq(salesReturns.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Purchase Returns methods
+  async getPurchaseReturn(id: number): Promise<PurchaseReturn | undefined> {
+    const [purchaseReturn] = await db.select().from(purchaseReturns).where(eq(purchaseReturns.id, id));
+    return purchaseReturn || undefined;
+  }
+
+  async getAllPurchaseReturns(): Promise<PurchaseReturn[]> {
+    return await db.select().from(purchaseReturns).orderBy(desc(purchaseReturns.createdAt));
+  }
+
+  async createPurchaseReturn(insertPurchaseReturn: InsertPurchaseReturn): Promise<PurchaseReturn> {
+    const [purchaseReturn] = await db
+      .insert(purchaseReturns)
+      .values(insertPurchaseReturn)
+      .returning();
+    return purchaseReturn;
+  }
+
+  async updatePurchaseReturn(id: number, updateData: Partial<InsertPurchaseReturn>): Promise<PurchaseReturn | undefined> {
+    const [purchaseReturn] = await db
+      .update(purchaseReturns)
+      .set(updateData)
+      .where(eq(purchaseReturns.id, id))
+      .returning();
+    return purchaseReturn || undefined;
+  }
+
+  async deletePurchaseReturn(id: number): Promise<boolean> {
+    const result = await db
+      .delete(purchaseReturns)
+      .where(eq(purchaseReturns.id, id));
     return (result.rowCount ?? 0) > 0;
   }
 }
