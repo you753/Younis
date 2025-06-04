@@ -1,7 +1,7 @@
 import Sidebar from './Sidebar';
 import Header from './Header';
 import NotificationBar from '../NotificationBar';
-import VoiceAssistant from '../VoiceAssistant';
+import AIChat from '../AIChat';
 import Calculator from '../Calculator';
 
 interface LayoutProps {
@@ -27,7 +27,7 @@ export default function Layout({ children }: LayoutProps) {
       {/* الأدوات العائمة في الزاوية اليسرى */}
       <div className="fixed left-6 bottom-6 z-50 flex flex-col gap-4">
         <Calculator />
-        <VoiceAssistant />
+        <AIChat />
       </div>
     </div>
   );

@@ -367,6 +367,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Voice Assistant - Audio transcription and analysis
   app.post("/api/voice/transcribe", uploadMiddleware, transcribeAudio);
 
+  // AI Chat
+  app.post("/api/ai/chat", handleAIChat);
+
   const httpServer = createServer(app);
   return httpServer;
 }
