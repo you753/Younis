@@ -37,7 +37,21 @@ export default function ProductBarcodes() {
   };
 
   const generateBarcodeImage = (barcode: string) => {
-    const svgContent = `<svg width="200" height="80" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="60" fill="white"/><text x="100" y="40" text-anchor="middle" font-family="Arial" font-size="14">${barcode}</text></svg>`;
+    // Create a proper barcode representation
+    const width = 200;
+    const height = 60;
+    const barWidth = 2;
+    const bars = barcode.split('').map((_, i) => i % 2 === 0 ? 'black' : 'white');
+    
+    const svgContent = `
+      <svg width="${width}" height="${height + 20}" xmlns="http://www.w3.org/2000/svg">
+        <rect width="${width}" height="${height + 20}" fill="white"/>
+        ${bars.map((color, i) => 
+          `<rect x="${i * barWidth}" y="5" width="${barWidth}" height="${height - 10}" fill="${color}"/>`
+        ).join('')}
+        <text x="${width/2}" y="${height + 15}" text-anchor="middle" font-family="Arial" font-size="12" fill="black">${barcode}</text>
+      </svg>
+    `;
     return `data:image/svg+xml;base64,${btoa(svgContent)}`;
   };
 

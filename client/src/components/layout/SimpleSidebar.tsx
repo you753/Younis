@@ -24,8 +24,8 @@ const navigationItems: NavItem[] = [
     title: 'الموردين والعملاء',
     icon: Users,
     children: [
-      { title: 'الموردين', icon: Truck, href: '/suppliers' },
-      { title: 'العملاء', icon: UserCheck, href: '/clients' }
+      { title: 'قائمة الموردين', icon: Truck, href: '/suppliers' },
+      { title: 'قائمة العملاء', icon: UserCheck, href: '/clients' }
     ]
   },
   {
@@ -55,7 +55,16 @@ const navigationItems: NavItem[] = [
       { title: 'حساب الضرائب', icon: Calculator, href: '/tax-calculator' }
     ]
   },
-  { title: 'المخزون', icon: Warehouse, href: '/inventory' },
+  {
+    title: 'إدارة المخزون',
+    icon: Warehouse,
+    children: [
+      { title: 'حالة المخزون', icon: List, href: '/inventory' },
+      { title: 'جرد المخزون', icon: Plus, href: '/inventory-count' },
+      { title: 'حركة المخزون', icon: BarChart3, href: '/inventory-movement' },
+      { title: 'تحويل المخزون', icon: Truck, href: '/inventory-transfer' }
+    ]
+  },
   { title: 'الموظفين', icon: Users, href: '/employees' },
   { title: 'الخصومات', icon: Minus, href: '/deductions' },
   { title: 'الرواتب', icon: DollarSign, href: '/salaries' },

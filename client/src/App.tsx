@@ -18,6 +18,8 @@ import Purchases from "@/pages/Purchases";
 import PurchaseReturns from "@/pages/PurchaseReturns";
 import Inventory from "@/pages/Inventory";
 import InventoryCount from "@/pages/InventoryCount";
+import InventoryMovement from "@/pages/InventoryMovement";
+import InventoryTransfer from "@/pages/InventoryTransfer";
 import Accounts from "@/pages/Accounts";
 import Reports from "@/pages/Reports";
 import Settings from "@/pages/Settings";
@@ -57,9 +59,9 @@ function Router() {
         
         {/* إدارة المخزون */}
         <Route path="/inventory" component={Inventory} />
-        <Route path="/inventory/count" component={InventoryCount} />
-        <Route path="/inventory/movement" component={Inventory} />
-        <Route path="/inventory/transfer" component={Inventory} />
+        <Route path="/inventory-count" component={InventoryCount} />
+        <Route path="/inventory-movement" component={InventoryMovement} />
+        <Route path="/inventory-transfer" component={InventoryTransfer} />
         
         {/* الحسابات */}
         <Route path="/accounts" component={Accounts} />
