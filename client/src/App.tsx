@@ -90,6 +90,7 @@ function App() {
       <TooltipProvider>
         <Toaster />
         <Router />
+        <AIChat />
       </TooltipProvider>
     </QueryClientProvider>
   );
