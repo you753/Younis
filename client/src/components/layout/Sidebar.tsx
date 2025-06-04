@@ -38,7 +38,19 @@ const navigationItems: NavItem[] = [
       { title: 'تقييم الأداء', icon: BarChart3, href: '/performance' }
     ]
   },
-  { title: 'التقارير', icon: BarChart3, href: '/reports' },
+  { 
+    title: 'التقارير', 
+    icon: BarChart3,
+    children: [
+      { title: 'تقارير المبيعات', icon: BarChart3, href: '/reports/sales' },
+      { title: 'تقارير المشتريات', icon: ShoppingCart, href: '/reports/purchases' },
+      { title: 'تقارير المخزون', icon: Warehouse, href: '/reports/inventory' },
+      { title: 'تقارير العملاء', icon: UserCheck, href: '/reports/clients' },
+      { title: 'تقارير الموردين', icon: Truck, href: '/reports/suppliers' },
+      { title: 'التقارير المالية', icon: DollarSign, href: '/reports/financial' },
+      { title: 'تقارير الموظفين', icon: Users, href: '/reports/employees' }
+    ]
+  },
   { title: 'الإعدادات', icon: Settings, href: '/settings' }
 ];
 
