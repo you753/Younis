@@ -10,6 +10,8 @@ import {
   type Deduction, type InsertDeduction,
   type Salary, type InsertSalary
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -81,397 +83,375 @@ export interface IStorage {
   }>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User> = new Map();
-  private suppliers: Map<number, Supplier> = new Map();
-  private clients: Map<number, Client> = new Map();
-  private products: Map<number, Product> = new Map();
-  private sales: Map<number, Sale> = new Map();
-  private purchases: Map<number, Purchase> = new Map();
-  private employees: Map<number, Employee> = new Map();
-  private deductions: Map<number, Deduction> = new Map();
-  private salaries: Map<number, Salary> = new Map();
-  private currentId = 1;
-
-  constructor() {
-    // Initialize with default admin user
-    this.createUser({
-      username: "admin",
-      email: "admin@system.com",
-      password: "admin123",
-      role: "admin"
-    });
-
-    // Add sample products with barcodes for testing
-    this.createProduct({
-      name: "لابتوب ديل XPS 13",
-      code: "LAP001",
-      barcode: "1234567890123",
-      category: "إلكترونيات",
-      description: "لابتوب محمول عالي الأداء",
-      purchasePrice: "3500.00",
-      salePrice: "4200.00",
-      quantity: 15,
-      minQuantity: 5
-    });
-
-    this.createProduct({
-      name: "ماوس لاسلكي لوجيتك",
-      code: "MOU001", 
-      barcode: "9876543210987",
-      category: "ملحقات",
-      description: "ماوس لاسلكي بتقنية البلوتوث",
-      purchasePrice: "75.00",
-      salePrice: "120.00",
-      quantity: 50,
-      minQuantity: 10
-    });
-
-    this.createProduct({
-      name: "كيبورد ميكانيكي",
-      code: "KEY001",
-      barcode: "5555666677778",
-      category: "ملحقات",
-      description: "كيبورد ميكانيكي للألعاب",
-      purchasePrice: "250.00",
-      salePrice: "380.00",
-      quantity: 25,
-      minQuantity: 5
-    });
-
-    this.createProduct({
-      name: "شاشة سامسونج 27 بوصة",
-      code: "MON001",
-      barcode: "4444333322221",
-      category: "إلكترونيات",
-      description: "شاشة LED عالية الدقة",
-      purchasePrice: "800.00",
-      salePrice: "1150.00",
-      quantity: 8,
-      minQuantity: 3
-    });
-
-    this.createProduct({
-      name: "سماعات بلوتوث",
-      code: "AUD001",
-      barcode: "7777888899990",
-      category: "صوتيات",
-      description: "سماعات لاسلكية عالية الجودة",
-      purchasePrice: "150.00",
-      salePrice: "220.00",
-      quantity: 30,
-      minQuantity: 8
-    });
-  }
-
-  private nextId(): number {
-    return this.currentId++;
-  }
-
-  // Users
+export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.username === username);
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
   }
 
   async getAllUsers(): Promise<User[]> {
-    return Array.from(this.users.values());
+    return await db.select().from(users);
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.nextId();
-    const user: User = {
-      ...insertUser,
-      id,
-      createdAt: new Date()
-    };
-    this.users.set(id, user);
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
     return user;
   }
 
   async updateUser(id: number, updateData: Partial<InsertUser>): Promise<User | undefined> {
-    const user = this.users.get(id);
-    if (!user) return undefined;
-    
-    const updatedUser = { ...user, ...updateData };
-    this.users.set(id, updatedUser);
-    return updatedUser;
+    const [user] = await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, id))
+      .returning();
+    return user || undefined;
   }
 
   async deleteUser(id: number): Promise<boolean> {
-    return this.users.delete(id);
+    const result = await db.delete(users).where(eq(users.id, id));
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Suppliers
   async getSupplier(id: number): Promise<Supplier | undefined> {
-    return this.suppliers.get(id);
+    const [supplier] = await db.select().from(suppliers).where(eq(suppliers.id, id));
+    return supplier || undefined;
   }
 
   async getAllSuppliers(): Promise<Supplier[]> {
-    return Array.from(this.suppliers.values());
+    return await db.select().from(suppliers);
   }
 
   async createSupplier(insertSupplier: InsertSupplier): Promise<Supplier> {
-    const id = this.nextId();
-    const supplier: Supplier = {
-      ...insertSupplier,
-      id,
-      balance: "0",
-      createdAt: new Date()
-    };
-    this.suppliers.set(id, supplier);
+    const [supplier] = await db
+      .insert(suppliers)
+      .values(insertSupplier)
+      .returning();
     return supplier;
   }
 
   async updateSupplier(id: number, updateData: Partial<InsertSupplier>): Promise<Supplier | undefined> {
-    const supplier = this.suppliers.get(id);
-    if (!supplier) return undefined;
-    
-    const updatedSupplier = { ...supplier, ...updateData };
-    this.suppliers.set(id, updatedSupplier);
-    return updatedSupplier;
+    const [supplier] = await db
+      .update(suppliers)
+      .set(updateData)
+      .where(eq(suppliers.id, id))
+      .returning();
+    return supplier || undefined;
   }
 
   async deleteSupplier(id: number): Promise<boolean> {
-    return this.suppliers.delete(id);
+    const result = await db.delete(suppliers).where(eq(suppliers.id, id));
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Clients
   async getClient(id: number): Promise<Client | undefined> {
-    return this.clients.get(id);
+    const [client] = await db.select().from(clients).where(eq(clients.id, id));
+    return client || undefined;
   }
 
   async getAllClients(): Promise<Client[]> {
-    return Array.from(this.clients.values());
+    return await db.select().from(clients);
   }
 
   async createClient(insertClient: InsertClient): Promise<Client> {
-    const id = this.nextId();
-    const client: Client = {
-      ...insertClient,
-      id,
-      balance: "0",
-      createdAt: new Date()
-    };
-    this.clients.set(id, client);
+    const [client] = await db
+      .insert(clients)
+      .values(insertClient)
+      .returning();
     return client;
   }
 
   async updateClient(id: number, updateData: Partial<InsertClient>): Promise<Client | undefined> {
-    const client = this.clients.get(id);
-    if (!client) return undefined;
-    
-    const updatedClient = { ...client, ...updateData };
-    this.clients.set(id, updatedClient);
-    return updatedClient;
+    const [client] = await db
+      .update(clients)
+      .set(updateData)
+      .where(eq(clients.id, id))
+      .returning();
+    return client || undefined;
   }
 
   async deleteClient(id: number): Promise<boolean> {
-    return this.clients.delete(id);
+    const result = await db.delete(clients).where(eq(clients.id, id));
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Products
   async getProduct(id: number): Promise<Product | undefined> {
-    return this.products.get(id);
+    const [product] = await db.select().from(products).where(eq(products.id, id));
+    return product || undefined;
   }
 
   async getAllProducts(): Promise<Product[]> {
-    return Array.from(this.products.values());
+    return await db.select().from(products);
   }
 
   async createProduct(insertProduct: InsertProduct): Promise<Product> {
-    const id = this.nextId();
-    const product: Product = {
-      ...insertProduct,
-      id,
-      quantity: insertProduct.quantity || 0,
-      minQuantity: insertProduct.minQuantity || 0,
-      createdAt: new Date()
-    };
-    this.products.set(id, product);
+    const [product] = await db
+      .insert(products)
+      .values(insertProduct)
+      .returning();
     return product;
   }
 
   async updateProduct(id: number, updateData: Partial<InsertProduct>): Promise<Product | undefined> {
-    const product = this.products.get(id);
-    if (!product) return undefined;
-    
-    const updatedProduct = { ...product, ...updateData };
-    this.products.set(id, updatedProduct);
-    return updatedProduct;
+    const [product] = await db
+      .update(products)
+      .set(updateData)
+      .where(eq(products.id, id))
+      .returning();
+    return product || undefined;
   }
 
   async deleteProduct(id: number): Promise<boolean> {
-    return this.products.delete(id);
+    const result = await db.delete(products).where(eq(products.id, id));
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Sales
   async getSale(id: number): Promise<Sale | undefined> {
-    return this.sales.get(id);
+    const [sale] = await db.select().from(sales).where(eq(sales.id, id));
+    return sale || undefined;
   }
 
   async getAllSales(): Promise<Sale[]> {
-    return Array.from(this.sales.values());
+    return await db.select().from(sales);
   }
 
   async createSale(insertSale: InsertSale): Promise<Sale> {
-    const id = this.nextId();
-    const sale: Sale = {
-      ...insertSale,
-      id,
-      date: new Date()
-    };
-    this.sales.set(id, sale);
+    const [sale] = await db
+      .insert(sales)
+      .values(insertSale)
+      .returning();
     return sale;
   }
 
   // Purchases
   async getPurchase(id: number): Promise<Purchase | undefined> {
-    return this.purchases.get(id);
+    const [purchase] = await db.select().from(purchases).where(eq(purchases.id, id));
+    return purchase || undefined;
   }
 
   async getAllPurchases(): Promise<Purchase[]> {
-    return Array.from(this.purchases.values());
+    return await db.select().from(purchases);
   }
 
   async createPurchase(insertPurchase: InsertPurchase): Promise<Purchase> {
-    const id = this.nextId();
-    const purchase: Purchase = {
-      ...insertPurchase,
-      id,
-      date: new Date()
-    };
-    this.purchases.set(id, purchase);
+    const [purchase] = await db
+      .insert(purchases)
+      .values(insertPurchase)
+      .returning();
     return purchase;
   }
 
   // Employees
   async getEmployee(id: number): Promise<Employee | undefined> {
-    return this.employees.get(id);
+    const [employee] = await db.select().from(employees).where(eq(employees.id, id));
+    return employee || undefined;
   }
 
   async getAllEmployees(): Promise<Employee[]> {
-    return Array.from(this.employees.values());
+    return await db.select().from(employees);
   }
 
   async createEmployee(insertEmployee: InsertEmployee): Promise<Employee> {
-    const id = this.nextId();
-    const employee: Employee = {
-      ...insertEmployee,
-      id,
-      createdAt: new Date()
-    };
-    this.employees.set(id, employee);
+    const [employee] = await db
+      .insert(employees)
+      .values(insertEmployee)
+      .returning();
     return employee;
   }
 
   async updateEmployee(id: number, updateData: Partial<InsertEmployee>): Promise<Employee | undefined> {
-    const employee = this.employees.get(id);
-    if (!employee) return undefined;
-    
-    const updatedEmployee = { ...employee, ...updateData };
-    this.employees.set(id, updatedEmployee);
-    return updatedEmployee;
+    const [employee] = await db
+      .update(employees)
+      .set(updateData)
+      .where(eq(employees.id, id))
+      .returning();
+    return employee || undefined;
   }
 
   async deleteEmployee(id: number): Promise<boolean> {
-    return this.employees.delete(id);
+    const result = await db.delete(employees).where(eq(employees.id, id));
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Deductions
   async getDeduction(id: number): Promise<Deduction | undefined> {
-    return this.deductions.get(id);
+    const [deduction] = await db.select().from(deductions).where(eq(deductions.id, id));
+    return deduction || undefined;
   }
 
   async getAllDeductions(): Promise<Deduction[]> {
-    return Array.from(this.deductions.values());
+    return await db.select().from(deductions);
   }
 
   async createDeduction(insertDeduction: InsertDeduction): Promise<Deduction> {
-    const id = this.nextId();
-    const deduction: Deduction = {
-      ...insertDeduction,
-      id,
-      createdAt: new Date()
-    };
-    this.deductions.set(id, deduction);
+    const [deduction] = await db
+      .insert(deductions)
+      .values(insertDeduction)
+      .returning();
     return deduction;
   }
 
   async updateDeduction(id: number, updateData: Partial<InsertDeduction>): Promise<Deduction | undefined> {
-    const deduction = this.deductions.get(id);
-    if (!deduction) return undefined;
-    
-    const updatedDeduction = { ...deduction, ...updateData };
-    this.deductions.set(id, updatedDeduction);
-    return updatedDeduction;
+    const [deduction] = await db
+      .update(deductions)
+      .set(updateData)
+      .where(eq(deductions.id, id))
+      .returning();
+    return deduction || undefined;
   }
 
   async deleteDeduction(id: number): Promise<boolean> {
-    return this.deductions.delete(id);
+    const result = await db.delete(deductions).where(eq(deductions.id, id));
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Salaries
   async getSalary(id: number): Promise<Salary | undefined> {
-    return this.salaries.get(id);
+    const [salary] = await db.select().from(salaries).where(eq(salaries.id, id));
+    return salary || undefined;
   }
 
   async getAllSalaries(): Promise<Salary[]> {
-    return Array.from(this.salaries.values());
+    return await db.select().from(salaries);
   }
 
   async createSalary(insertSalary: InsertSalary): Promise<Salary> {
-    const id = this.nextId();
-    const salary: Salary = {
-      ...insertSalary,
-      id,
-      createdAt: new Date()
-    };
-    this.salaries.set(id, salary);
+    const [salary] = await db
+      .insert(salaries)
+      .values(insertSalary)
+      .returning();
     return salary;
   }
 
   async updateSalary(id: number, updateData: Partial<InsertSalary>): Promise<Salary | undefined> {
-    const salary = this.salaries.get(id);
-    if (!salary) return undefined;
-    
-    const updatedSalary = { ...salary, ...updateData };
-    this.salaries.set(id, updatedSalary);
-    return updatedSalary;
+    const [salary] = await db
+      .update(salaries)
+      .set(updateData)
+      .where(eq(salaries.id, id))
+      .returning();
+    return salary || undefined;
   }
 
   async deleteSalary(id: number): Promise<boolean> {
-    return this.salaries.delete(id);
+    const result = await db.delete(salaries).where(eq(salaries.id, id));
+    return (result.rowCount ?? 0) > 0;
   }
 
-  // Dashboard stats
   async getDashboardStats(): Promise<{
     totalClients: number;
     totalSales: string;
     totalPurchases: string;
     inventoryValue: string;
   }> {
-    const totalClients = this.clients.size;
-    
-    const totalSalesAmount = Array.from(this.sales.values())
-      .reduce((sum, sale) => sum + parseFloat(sale.total), 0);
-    
-    const totalPurchasesAmount = Array.from(this.purchases.values())
-      .reduce((sum, purchase) => sum + parseFloat(purchase.total), 0);
-    
-    const inventoryValue = Array.from(this.products.values())
-      .reduce((sum, product) => sum + (parseFloat(product.salePrice) * (product.quantity || 0)), 0);
+    const [clientsCount] = await db.select({ count: sql<number>`count(*)` }).from(clients);
+    const [salesSum] = await db.select({ sum: sql<string>`coalesce(sum(${sales.total}), '0')` }).from(sales);
+    const [purchasesSum] = await db.select({ sum: sql<string>`coalesce(sum(${purchases.total}), '0')` }).from(purchases);
+    const [inventoryValue] = await db.select({ 
+      value: sql<string>`coalesce(sum(${products.quantity} * ${products.purchasePrice}::numeric), '0')` 
+    }).from(products);
 
     return {
-      totalClients,
-      totalSales: totalSalesAmount.toFixed(2),
-      totalPurchases: totalPurchasesAmount.toFixed(2),
-      inventoryValue: inventoryValue.toFixed(2)
+      totalClients: clientsCount.count || 0,
+      totalSales: salesSum.sum || "0.00",
+      totalPurchases: purchasesSum.sum || "0.00",
+      inventoryValue: inventoryValue.value || "0.00"
     };
   }
 }
 
-export const storage = new MemStorage();
+// Initialize database with sample data
+async function initializeDatabaseWithSampleData() {
+  try {
+    // Check if admin user already exists
+    const existingAdmin = await db.select().from(users).where(eq(users.username, "admin")).limit(1);
+    
+    if (existingAdmin.length === 0) {
+      // Create admin user
+      await db.insert(users).values({
+        username: "admin",
+        email: "admin@system.com",
+        password: "admin123",
+        role: "admin"
+      });
+
+      // Add sample products with barcodes
+      await db.insert(products).values([
+        {
+          name: "لابتوب ديل XPS 13",
+          code: "LAP001",
+          barcode: "1234567890123",
+          category: "إلكترونيات",
+          description: "لابتوب محمول عالي الأداء",
+          purchasePrice: "3500.00",
+          salePrice: "4200.00",
+          quantity: 15,
+          minQuantity: 5
+        },
+        {
+          name: "ماوس لاسلكي لوجيتك",
+          code: "MOU001", 
+          barcode: "9876543210987",
+          category: "ملحقات",
+          description: "ماوس لاسلكي بتقنية البلوتوث",
+          purchasePrice: "75.00",
+          salePrice: "120.00",
+          quantity: 50,
+          minQuantity: 10
+        },
+        {
+          name: "كيبورد ميكانيكي",
+          code: "KEY001",
+          barcode: "5555666677778",
+          category: "ملحقات",
+          description: "كيبورد ميكانيكي للألعاب",
+          purchasePrice: "250.00",
+          salePrice: "380.00",
+          quantity: 25,
+          minQuantity: 5
+        },
+        {
+          name: "شاشة سامسونج 27 بوصة",
+          code: "MON001",
+          barcode: "4444333322221",
+          category: "إلكترونيات",
+          description: "شاشة LED عالية الدقة",
+          purchasePrice: "800.00",
+          salePrice: "1150.00",
+          quantity: 8,
+          minQuantity: 3
+        },
+        {
+          name: "سماعات بلوتوث",
+          code: "AUD001",
+          barcode: "7777888899990",
+          category: "صوتيات",
+          description: "سماعات لاسلكية عالية الجودة",
+          purchasePrice: "150.00",
+          salePrice: "220.00",
+          quantity: 30,
+          minQuantity: 8
+        }
+      ]);
+      
+      console.log("Database initialized with sample data");
+    }
+  } catch (error) {
+    console.log("Database initialization skipped (data may already exist)");
+  }
+}
+
+// Initialize the database when the module loads
+initializeDatabaseWithSampleData();
+
+export const storage = new DatabaseStorage();
