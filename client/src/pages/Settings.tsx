@@ -158,12 +158,7 @@ export default function Settings() {
               الشركة
             </TabsTrigger>
           )}
-          {canAccessSettings('users') && (
-            <TabsTrigger value="users" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              المستخدمين
-            </TabsTrigger>
-          )}
+
           {canAccessSettings('system') && (
             <TabsTrigger value="system" className="flex items-center gap-2">
               <Monitor className="h-4 w-4" />
@@ -415,60 +410,7 @@ export default function Settings() {
           </TabsContent>
         )}
 
-        {/* إعدادات المستخدمين */}
-        {canAccessSettings('users') && (
-          <TabsContent value="users" className="space-y-6">
-            <Card>
-            <CardHeader>
-              <CardTitle className="text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                إعدادات المستخدمين
-              </CardTitle>
-              <CardDescription>إدارة صلاحيات وإعدادات المستخدمين</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                    <h4 className="font-medium text-blue-900 dark:text-blue-100">إحصائيات المستخدمين</h4>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-slate-600 dark:text-slate-400">إجمالي المستخدمين:</span>
-                      <span className="font-semibold text-blue-700 dark:text-blue-300 mr-2">5</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-600 dark:text-slate-400">المستخدمين النشطين:</span>
-                      <span className="font-semibold text-green-600 dark:text-green-400 mr-2">3</span>
-                    </div>
-                  </div>
-                </div>
 
-                <div className="space-y-3">
-                  <h4 className="font-medium text-slate-900 dark:text-slate-100">الإعدادات الأساسية</h4>
-                  
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="text-sm font-medium">تسجيل نشاط المستخدمين</Label>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">تتبع عمليات تسجيل الدخول والخروج</p>
-                    </div>
-                    <Switch checked={true} />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="text-sm font-medium">إشعارات النظام</Label>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">إرسال تنبيهات للمستخدمين</p>
-                    </div>
-                    <Switch checked={settings.notifications} onCheckedChange={(checked) => updateSetting('notifications', checked)} />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          </TabsContent>
-        )}
 
         {/* إعدادات النظام */}
         {canAccessSettings('system') && (
