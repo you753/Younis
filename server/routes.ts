@@ -311,11 +311,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/suppliers", async (req, res) => {
     try {
+      console.log("بيانات المورد الواردة:", req.body);
       const validatedData = insertSupplierSchema.parse(req.body);
+      console.log("البيانات بعد التحقق:", validatedData);
       const supplier = await storage.createSupplier(validatedData);
       res.status(201).json(supplier);
     } catch (error) {
-      res.status(400).json({ message: "Invalid supplier data" });
+      console.error("خطأ في إضافة المورد:", error);
+      res.status(400).json({ message: "بيانات المورد غير صحيحة", error: error.message });
     }
   });
 
