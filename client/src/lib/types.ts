@@ -65,5 +65,6 @@ export interface AppState {
     name: string;
     email: string;
     role: string;
+    permissions?: string[];
   };
 }

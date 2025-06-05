@@ -11,6 +11,8 @@ interface AppStore extends AppState {
   updateSetting: (key: keyof AppSettings, value: any) => void;
   updateSettings: (settings: Partial<AppSettings>) => void;
   applySettingsEffects: () => void;
+  hasPermission: (permission: string) => boolean;
+  canAccessSettings: (section: string) => boolean;
 }
 
 export const useAppStore = create<AppStore>((set, get) => ({
@@ -53,7 +55,22 @@ export const useAppStore = create<AppStore>((set, get) => ({
   user: {
     name: 'المدير',
     email: 'admin@system.com',
-    role: 'admin'
+    role: 'admin',
+    permissions: [
+      'view_dashboard',
+      'manage_sales',
+      'manage_purchases',
+      'manage_products',
+      'manage_clients',
+      'manage_suppliers',
+      'manage_employees',
+      'view_reports',
+      'manage_settings',
+      'system_admin',
+      'user_management',
+      'backup_restore',
+      'security_settings'
+    ]
   },
 
   setCurrentPage: (page: string) => set({ currentPage: page }),
@@ -134,5 +151,28 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
   applySettingsEffects: () => {
     // تم تبسيط الوظيفة لمنع المشاكل
+  },
+
+  hasPermission: (permission: string) => {
+    const state = get();
+    return state.user.permissions?.includes(permission) || state.user.role === 'admin';
+  },
+
+  canAccessSettings: (section: string) => {
+    const state = get();
+    const permissionMap: Record<string, string[]> = {
+      'general': ['manage_settings'],
+      'company': ['manage_settings'],
+      'users': ['user_management', 'system_admin'],
+      'system': ['system_admin'],
+      'security': ['security_settings', 'system_admin'],
+      'backup': ['backup_restore', 'system_admin'],
+      'printing': ['manage_settings'],
+      'taxes': ['manage_settings']
+    };
+
+    const requiredPermissions = permissionMap[section] || ['system_admin'];
+    return requiredPermissions.some(permission => state.user.permissions?.includes(permission)) 
+           || state.user.role === 'admin';
   }
 }));
