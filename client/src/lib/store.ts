@@ -212,8 +212,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         });
       }
       
-      // إشعار تطبيق الإعدادات
-      state.showNotification('تم تطبيق الإعدادات بنجاح', 'success');
+      // تم إزالة الإشعار لتجنب التداخل
     }
     
     // حفظ الإعدادات في LocalStorage

@@ -152,11 +152,8 @@ export function useNotificationSystem() {
   }, [settings.notifications]);
 
   const sendNotification = (notification: SystemNotification) => {
-    // إظهار الإشعار في واجهة النظام
-    const notificationType = notification.priority === 'critical' ? 'error' : 
-                           notification.priority === 'high' ? 'warning' : 
-                           notification.type === 'financial' ? 'warning' : 'info';
-    showNotification(notification.message, notificationType);
+    // تجنب الحلقة اللانهائية - عدم عرض إشعار داخلي
+    // showNotification(notification.message, notificationType);
 
     // إرسال إشعار المتصفح إذا كان مدعوماً ومسموحاً
     if ('Notification' in window && Notification.permission === 'granted') {
