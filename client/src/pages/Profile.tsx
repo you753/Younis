@@ -100,6 +100,55 @@ export default function Profile() {
     updateProfileMutation.mutate(data);
   };
 
+  // رفع الصورة الشخصية
+  const avatarMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('avatar', file);
+      
+      const response = await fetch('/api/auth/upload-avatar', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('فشل في رفع الصورة');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      success('تم رفع الصورة الشخصية بنجاح');
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+    },
+    onError: (error: Error) => {
+      error(`خطأ في رفع الصورة: ${error.message}`);
+    },
+  });
+
+  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // التحقق من نوع الملف
+      if (!file.type.startsWith('image/')) {
+        error('يرجى اختيار ملف صورة صحيح');
+        return;
+      }
+      
+      // التحقق من حجم الملف (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        error('حجم الملف يجب أن يكون أقل من 5 ميجابايت');
+        return;
+      }
+      
+      avatarMutation.mutate(file);
+    }
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
   const handleEdit = () => {
     setIsEditing(true);
   };
