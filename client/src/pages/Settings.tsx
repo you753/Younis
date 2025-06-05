@@ -3,165 +3,307 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
-import { Settings as SettingsIcon, Save, Database, Bell, Shield, Palette } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Settings as SettingsIcon, Save, Database, Building, Users, Lock, HardDrive } from 'lucide-react';
 import { useEffect } from 'react';
+import { useLocation } from 'wouter';
 
 export default function Settings() {
   const { setCurrentPage } = useAppStore();
+  const [location] = useLocation();
 
   useEffect(() => {
     setCurrentPage('إعدادات النظام');
   }, [setCurrentPage]);
 
-  return (
+  // معالجة المحتوى بناء على المسار
+  const getCurrentSection = () => {
+    if (location.includes('/settings/company')) return 'company';
+    if (location.includes('/settings/users')) return 'users';
+    if (location.includes('/settings/system')) return 'system';
+    if (location.includes('/settings/backup')) return 'backup';
+    if (location.includes('/settings/security')) return 'security';
+    return 'general';
+  };
+
+  const currentSection = getCurrentSection();
+
+  const renderGeneralSettings = () => (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <SettingsIcon className="h-5 w-5" />
+            الإعدادات العامة
+          </CardTitle>
+          <CardDescription>إعدادات أساسية لتشغيل النظام</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="appName">اسم التطبيق</Label>
+              <Input id="appName" defaultValue="المحاسب الأعظم" />
+            </div>
+            <div>
+              <Label htmlFor="version">إصدار النظام</Label>
+              <Input id="version" defaultValue="1.0.0" readOnly />
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor="notifications">تفعيل الإشعارات</Label>
+              <p className="text-sm text-gray-500">استقبال إشعارات النظام</p>
+            </div>
+            <Switch id="notifications" defaultChecked />
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor="autoSave">الحفظ التلقائي</Label>
+              <p className="text-sm text-gray-500">حفظ البيانات تلقائياً كل 5 دقائق</p>
+            </div>
+            <Switch id="autoSave" defaultChecked />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderCompanySettings = () => (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Building className="h-5 w-5" />
+            معلومات الشركة
+          </CardTitle>
+          <CardDescription>بيانات الشركة الأساسية والتجارية</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="companyName">اسم الشركة</Label>
+              <Input id="companyName" defaultValue="المحاسب الأعظم" />
+            </div>
+            <div>
+              <Label htmlFor="companyEmail">البريد الإلكتروني</Label>
+              <Input id="companyEmail" type="email" defaultValue="info@almohaseb.com" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="companyPhone">رقم الهاتف</Label>
+              <Input id="companyPhone" defaultValue="+966 11 123 4567" />
+            </div>
+            <div>
+              <Label htmlFor="taxNumber">الرقم الضريبي</Label>
+              <Input id="taxNumber" defaultValue="300002471110003" />
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="address">العنوان</Label>
+            <Input id="address" defaultValue="الرياض، المملكة العربية السعودية" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="currency">العملة الافتراضية</Label>
+              <Input id="currency" defaultValue="ريال سعودي (ر.س)" />
+            </div>
+            <div>
+              <Label htmlFor="fiscalYear">السنة المالية</Label>
+              <Input id="fiscalYear" defaultValue="2025" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderUsersSettings = () => (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            إعدادات المستخدمين
+          </CardTitle>
+          <CardDescription>إدارة صلاحيات وإعدادات المستخدمين</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor="userRegistration">تسجيل مستخدمين جدد</Label>
+              <p className="text-sm text-gray-500">السماح بإنشاء حسابات جديدة</p>
+            </div>
+            <Switch id="userRegistration" />
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor="emailVerification">تأكيد البريد الإلكتروني</Label>
+              <p className="text-sm text-gray-500">إجبار المستخدمين على تأكيد البريد</p>
+            </div>
+            <Switch id="emailVerification" defaultChecked />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="sessionTimeout">انتهاء الجلسة (بالدقائق)</Label>
+              <Input id="sessionTimeout" type="number" defaultValue="60" />
+            </div>
+            <div>
+              <Label htmlFor="maxUsers">الحد الأقصى للمستخدمين</Label>
+              <Input id="maxUsers" type="number" defaultValue="10" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderSystemSettings = () => (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <HardDrive className="h-5 w-5" />
+            إعدادات النظام
+          </CardTitle>
+          <CardDescription>إعدادات تقنية ومتقدمة للنظام</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor="debugMode">وضع التطوير</Label>
+              <p className="text-sm text-gray-500">تفعيل سجلات التطوير المفصلة</p>
+            </div>
+            <Switch id="debugMode" />
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor="maintenanceMode">وضع الصيانة</Label>
+              <p className="text-sm text-gray-500">تعطيل النظام مؤقتاً للصيانة</p>
+            </div>
+            <Switch id="maintenanceMode" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="maxFileSize">الحد الأقصى لحجم الملف (MB)</Label>
+              <Input id="maxFileSize" type="number" defaultValue="10" />
+            </div>
+            <div>
+              <Label htmlFor="logRetention">الاحتفاظ بالسجلات (أيام)</Label>
+              <Input id="logRetention" type="number" defaultValue="30" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderBackupSettings = () => (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Database className="h-5 w-5" />
+            النسخ الاحتياطي
+          </CardTitle>
+          <CardDescription>إعدادات النسخ الاحتياطي والاستعادة</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor="autoBackup">النسخ الاحتياطي التلقائي</Label>
+              <p className="text-sm text-gray-500">إنشاء نسخة احتياطية يومياً</p>
+            </div>
+            <Switch id="autoBackup" defaultChecked />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="backupTime">وقت النسخ الاحتياطي</Label>
+              <Input id="backupTime" type="time" defaultValue="02:00" />
+            </div>
+            <div>
+              <Label htmlFor="backupRetention">الاحتفاظ بالنسخ (أيام)</Label>
+              <Input id="backupRetention" type="number" defaultValue="30" />
+            </div>
+          </div>
+          <div className="flex gap-4">
+            <Button className="btn-accounting-primary">
+              <Database className="ml-2 h-4 w-4" />
+              إنشاء نسخة احتياطية الآن
+            </Button>
+            <Button variant="outline">
+              <Database className="ml-2 h-4 w-4" />
+              استعادة من نسخة احتياطية
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderSecuritySettings = () => (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Lock className="h-5 w-5" />
+            الأمان والصلاحيات
+          </CardTitle>
+          <CardDescription>إعدادات الأمان وحماية النظام</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor="twoFactor">المصادقة الثنائية</Label>
+              <p className="text-sm text-gray-500">تفعيل المصادقة بخطوتين</p>
+            </div>
+            <Switch id="twoFactor" />
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor="forcePasswordChange">تغيير كلمة المرور دورياً</Label>
+              <p className="text-sm text-gray-500">إجبار المستخدمين على تغيير كلمة المرور كل 90 يوم</p>
+            </div>
+            <Switch id="forcePasswordChange" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="minPasswordLength">الحد الأدنى لطول كلمة المرور</Label>
+              <Input id="minPasswordLength" type="number" defaultValue="8" />
+            </div>
+            <div>
+              <Label htmlFor="maxLoginAttempts">محاولات تسجيل الدخول</Label>
+              <Input id="maxLoginAttempts" type="number" defaultValue="5" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6 p-6">
       {/* Page Header */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">إعدادات النظام</h2>
         <p className="text-gray-600">تخصيص وإدارة إعدادات نظام المحاسبة</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Settings Navigation */}
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <h3 className="font-semibold text-gray-900 mb-4">أقسام الإعدادات</h3>
-            <div className="space-y-2">
-              <Button variant="ghost" className="w-full justify-start bg-blue-50 text-blue-700">
-                <SettingsIcon className="ml-2 h-4 w-4" />
-                إعدادات عامة
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <Database className="ml-2 h-4 w-4" />
-                قاعدة البيانات
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <Bell className="ml-2 h-4 w-4" />
-                الإشعارات
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <Shield className="ml-2 h-4 w-4" />
-                الأمان
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <Palette className="ml-2 h-4 w-4" />
-                المظهر
-              </Button>
-            </div>
-          </div>
-        </div>
+      {/* Settings Content based on current section */}
+      {currentSection === 'general' && renderGeneralSettings()}
+      {currentSection === 'company' && renderCompanySettings()}
+      {currentSection === 'users' && renderUsersSettings()}
+      {currentSection === 'system' && renderSystemSettings()}
+      {currentSection === 'backup' && renderBackupSettings()}
+      {currentSection === 'security' && renderSecuritySettings()}
 
-        {/* Settings Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Company Information */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">معلومات الشركة</h3>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="companyName">اسم الشركة</Label>
-                  <Input id="companyName" defaultValue="بوابة سوق البدو" />
-                </div>
-                <div>
-                  <Label htmlFor="companyEmail">البريد الإلكتروني</Label>
-                  <Input id="companyEmail" type="email" defaultValue="info@souqalbado.com" />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="companyPhone">رقم الهاتف</Label>
-                  <Input id="companyPhone" defaultValue="+966 50 123 4567" />
-                </div>
-                <div>
-                  <Label htmlFor="taxNumber">الرقم الضريبي</Label>
-                  <Input id="taxNumber" defaultValue="123456789" />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="companyAddress">العنوان</Label>
-                <Input id="companyAddress" defaultValue="الرياض، المملكة العربية السعودية" />
-              </div>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* System Preferences */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">تفضيلات النظام</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="notifications">تفعيل الإشعارات</Label>
-                  <p className="text-sm text-gray-500">إرسال إشعارات للعمليات المهمة</p>
-                </div>
-                <Switch id="notifications" defaultChecked />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="autoBackup">النسخ الاحتياطي التلقائي</Label>
-                  <p className="text-sm text-gray-500">إنشاء نسخة احتياطية يومياً</p>
-                </div>
-                <Switch id="autoBackup" defaultChecked />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="lowStockAlert">تنبيهات المخزون المنخفض</Label>
-                  <p className="text-sm text-gray-500">تنبيه عند انخفاض المخزون</p>
-                </div>
-                <Switch id="lowStockAlert" defaultChecked />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="darkMode">الوضع الليلي</Label>
-                  <p className="text-sm text-gray-500">تغيير مظهر النظام للوضع الداكن</p>
-                </div>
-                <Switch id="darkMode" />
-              </div>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Currency and Regional Settings */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">إعدادات العملة والمنطقة</h3>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="currency">العملة الافتراضية</Label>
-                  <Input id="currency" defaultValue="ريال سعودي (ر.س)" readOnly />
-                </div>
-                <div>
-                  <Label htmlFor="language">اللغة</Label>
-                  <Input id="language" defaultValue="العربية" readOnly />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="dateFormat">تنسيق التاريخ</Label>
-                  <Input id="dateFormat" defaultValue="DD/MM/YYYY" />
-                </div>
-                <div>
-                  <Label htmlFor="timeZone">المنطقة الزمنية</Label>
-                  <Input id="timeZone" defaultValue="Asia/Riyadh" readOnly />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Save Button */}
-          <div className="flex justify-end">
-            <Button className="btn-accounting-primary">
-              <Save className="ml-2 h-4 w-4" />
-              حفظ الإعدادات
-            </Button>
-          </div>
-        </div>
+      {/* Save Button */}
+      <div className="flex justify-end space-x-4">
+        <Button variant="outline">إلغاء</Button>
+        <Button className="btn-accounting-primary">
+          <Save className="ml-2 h-4 w-4" />
+          حفظ الإعدادات
+        </Button>
       </div>
     </div>
   );
