@@ -118,10 +118,9 @@ export default function Employees() {
   });
 
   const deleteEmployeeMutation = useMutation({
-    mutationFn: (id: number) => apiRequest({
-      url: `/api/employees/${id}`,
+    mutationFn: (id: number) => apiRequest(`/api/employees/${id}`, {
       method: 'DELETE',
-    }),
+    }, {}),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/employees'] });
       toast({
@@ -639,12 +638,19 @@ export default function Employees() {
       default:
         return (
           <div className="space-y-6">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">إدارة الموظفين</h2>
-              <p className="text-gray-600">إضافة وإدارة معلومات الموظفين ومتابعة أدائهم</p>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">إدارة الموظفين</h2>
+                <p className="text-gray-600">إضافة وإدارة معلومات الموظفين ومتابعة أدائهم</p>
+              </div>
+              <Button 
+                onClick={() => setShowForm(true)} 
+                className="btn-accounting-primary"
+              >
+                <Plus className="ml-2 h-4 w-4" />
+                إضافة موظف
+              </Button>
             </div>
-            
-            <EmployeeForm />
             
             <Card>
               <CardHeader>
@@ -692,6 +698,17 @@ export default function Employees() {
                 </Table>
               </CardContent>
             </Card>
+
+            {/* Employee Form Dialog */}
+            <EmployeeForm 
+              open={showForm}
+              onOpenChange={setShowForm}
+              editingEmployee={editingEmployee}
+              onSuccess={() => {
+                setShowForm(false);
+                setEditingEmployee(null);
+              }}
+            />
           </div>
         );
     }
