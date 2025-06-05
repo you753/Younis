@@ -52,12 +52,12 @@ export default function SalesReports() {
       // رأس التقرير
       doc.setFontSize(20);
       doc.setTextColor(0, 50, 120);
-      doc.text('Sales Report - تقرير المبيعات', 105, 30, { align: 'center' });
+      doc.text('Sales Report', 105, 30, { align: 'center' });
       
       // معلومات الشركة
       doc.setFontSize(14);
       doc.setTextColor(60, 60, 60);
-      doc.text('Al-Mohaseb Al-Azam - المحاسب الأعظم', 105, 45, { align: 'center' });
+      doc.text('Al-Mohaseb Al-Azam Accounting System', 105, 45, { align: 'center' });
       
       // تاريخ التقرير
       doc.setFontSize(10);
@@ -119,7 +119,11 @@ export default function SalesReports() {
         
         doc.text(`#${sale.id}`, 25, yPosition);
         doc.text(new Date(sale.date).toLocaleDateString(), 60, yPosition);
-        doc.text(client?.name || 'Cash Client', 95, yPosition);
+        // تحويل النص العربي إلى ترميز آمن أو استخدام نسخة مبسطة
+        const clientName = client?.name || 'Cash Client';
+        const safeClientName = clientName.replace(/[\u0600-\u06FF]/g, '?').length > 5 ? 
+          `Client-${sale.clientId || 'Cash'}` : clientName;
+        doc.text(safeClientName, 95, yPosition);
         doc.text(`${parseFloat(sale.total).toFixed(2)} SAR`, 140, yPosition);
         doc.text('Completed', 170, yPosition);
         
