@@ -119,25 +119,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { username, password } = req.body;
       
+      console.log(`تسجيل دخول: اسم المستخدم="${username}", كلمة المرور="${password}"`);
+      
       if (!username || !password) {
         return res.status(400).json({ message: "اسم المستخدم وكلمة المرور مطلوبان" });
       }
 
       // البحث عن المستخدم
-      const user = await storage.getUserByUsername(username);
+      const user = await storage.getUserByUsername(username.trim());
+      console.log(`المستخدم الموجود:`, user);
       
       if (!user) {
+        console.log(`المستخدم غير موجود: ${username}`);
         return res.status(401).json({ message: "اسم المستخدم أو كلمة المرور غير صحيحة" });
       }
 
       // التحقق من كلمة المرور (مبسط للتطوير)
+      console.log(`مقارنة كلمة المرور: "${user.password}" === "${password}"`);
       if (user.password !== password) {
+        console.log(`كلمة المرور غير صحيحة`);
         return res.status(401).json({ message: "اسم المستخدم أو كلمة المرور غير صحيحة" });
       }
 
       // حفظ المستخدم في الجلسة
       const authReq = req as AuthenticatedRequest;
       authReq.session.userId = user.id;
+      console.log(`تم حفظ المستخدم في الجلسة: ${user.id}`);
 
       // إزالة كلمة المرور من الاستجابة
       const { password: _, ...safeUser } = user;
