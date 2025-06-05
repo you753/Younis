@@ -1,5 +1,4 @@
 import type { Express } from "express";
-import express from "express";
 import { createServer, type Server } from "http";
 import { z } from "zod";
 import { storage } from "./storage";
@@ -58,7 +57,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.header('Cross-Origin-Resource-Policy', 'cross-origin');
     next();
   });
-  app.use('/uploads', require('express').static(path.join(process.cwd(), 'uploads')));
+  
+  // خدمة الملفات الثابتة
+  app.get('/uploads/:folder/:filename', (req, res) => {
+    const { folder, filename } = req.params;
+    const filePath = path.join(process.cwd(), 'uploads', folder, filename);
+    res.sendFile(filePath);
+  });
 
   // Dashboard
   app.get("/api/dashboard/stats", async (req, res) => {
