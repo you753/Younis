@@ -5,10 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2, Package, AlertTriangle } from 'lucide-react';
 import type { Product } from '@shared/schema';
+import { useLocation } from 'wouter';
 
 export default function ProductsTable() {
   const { success, error } = useNotification();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   const { data: products = [], isLoading } = useQuery<Product[]>({
     queryKey: ['/api/products']
@@ -31,6 +33,10 @@ export default function ProductsTable() {
     if (confirm('هل أنت متأكد من حذف هذا الصنف؟')) {
       deleteProductMutation.mutate(id);
     }
+  };
+
+  const handleEdit = (productId: number) => {
+    setLocation(`/products/edit/${productId}`);
   };
 
   const getCategoryBadge = (category: string | null) => {
@@ -149,7 +155,11 @@ export default function ProductsTable() {
                   {getCategoryBadge(product.category)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2 space-x-reverse">
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleEdit(product.id)}
+                  >
                     <Edit className="h-4 w-4 ml-1" />
                     تعديل
                   </Button>

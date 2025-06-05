@@ -9,12 +9,18 @@ import { useEffect, useState } from 'react';
 export default function Products() {
   const [location, setLocation] = useLocation();
   const { setCurrentPage } = useAppStore();
-  const [currentView, setCurrentView] = useState<'list' | 'add'>('list');
+  const [currentView, setCurrentView] = useState<'list' | 'add' | 'edit'>('list');
+  const [editProductId, setEditProductId] = useState<number | null>(null);
 
   useEffect(() => {
     if (location === '/products/add') {
       setCurrentView('add');
       setCurrentPage('إضافة صنف جديد');
+    } else if (location.startsWith('/products/edit/')) {
+      const productId = parseInt(location.split('/').pop() || '');
+      setEditProductId(productId);
+      setCurrentView('edit');
+      setCurrentPage('تعديل الصنف');
     } else {
       setCurrentView('list');
       setCurrentPage('إدارة الأصناف');
@@ -36,11 +42,14 @@ export default function Products() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              {currentView === 'add' ? 'إضافة صنف جديد' : 'إدارة الأصناف'}
+              {currentView === 'add' ? 'إضافة صنف جديد' : 
+               currentView === 'edit' ? 'تعديل الصنف' : 'إدارة الأصناف'}
             </h2>
             <p className="text-gray-600">
               {currentView === 'add' 
                 ? 'إضافة صنف جديد إلى المخزون مع تحديد الأسعار والكميات'
+                : currentView === 'edit'
+                ? 'تعديل بيانات الصنف الحالي وتحديث معلوماته'
                 : 'عرض وإدارة جميع الأصناف المتاحة في المخزون'
               }
             </p>
@@ -65,6 +74,8 @@ export default function Products() {
       {/* Content Based on Current View */}
       {currentView === 'add' ? (
         <ProductForm />
+      ) : currentView === 'edit' ? (
+        <ProductForm productId={editProductId} />
       ) : (
         <>
           {/* Quick Stats */}
