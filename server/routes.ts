@@ -75,7 +75,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Auth routes for profile
+  // Auth routes
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ message: "اسم المستخدم وكلمة المرور مطلوبان" });
+      }
+
+      // البحث عن المستخدم
+      const user = await storage.getUserByUsername(username);
+      
+      if (!user) {
+        return res.status(401).json({ message: "اسم المستخدم أو كلمة المرور غير صحيحة" });
+      }
+
+      // التحقق من كلمة المرور (مبسط للتطوير)
+      if (user.password !== password) {
+        return res.status(401).json({ message: "اسم المستخدم أو كلمة المرور غير صحيحة" });
+      }
+
+      // إزالة كلمة المرور من الاستجابة
+      const { password: _, ...safeUser } = user;
+      res.json(safeUser);
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ message: "حدث خطأ أثناء تسجيل الدخول" });
+    }
+  });
+
   app.get("/api/auth/me", async (req, res) => {
     try {
       // جلب المستخدم من قاعدة البيانات
