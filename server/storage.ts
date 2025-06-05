@@ -545,13 +545,30 @@ async function initializeDatabaseWithSampleData() {
     const existingAdmin = await db.select().from(users).where(eq(users.username, "admin")).limit(1);
     
     if (existingAdmin.length === 0) {
-      // Create admin user
-      await db.insert(users).values({
-        username: "admin",
-        email: "admin@system.com",
-        password: "admin123",
-        role: "admin"
-      });
+      // Create sample users
+      await db.insert(users).values([
+        {
+          username: "admin",
+          email: "admin@system.com",
+          password: "admin123",
+          fullName: "مدير النظام",
+          role: "admin"
+        },
+        {
+          username: "accountant",
+          email: "accountant@system.com",
+          password: "acc123",
+          fullName: "المحاسب الرئيسي",
+          role: "accountant"
+        },
+        {
+          username: "user",
+          email: "user@system.com",
+          password: "user123",
+          fullName: "مستخدم عادي",
+          role: "user"
+        }
+      ]);
 
       // Add sample products with barcodes
       await db.insert(products).values([
