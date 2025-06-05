@@ -69,7 +69,7 @@ export default function Settings() {
               <Input 
                 id="appName" 
                 value={settings.appName}
-                onChange={(e) => handleSettingChange('appName', e.target.value)}
+                onChange={(e) => updateSetting('appName', e.target.value)}
               />
             </div>
             <div>
@@ -96,7 +96,18 @@ export default function Settings() {
             <Switch 
               id="autoSave" 
               checked={settings.autoSave}
-              onCheckedChange={(checked) => handleSettingChange('autoSave', checked)}
+              onCheckedChange={(checked) => updateSetting('autoSave', checked)}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor="darkMode">الوضع الليلي</Label>
+              <p className="text-sm text-gray-500">تغيير مظهر النظام للوضع الداكن</p>
+            </div>
+            <Switch 
+              id="darkMode" 
+              checked={settings.darkMode}
+              onCheckedChange={(checked) => updateSetting('darkMode', checked)}
             />
           </div>
         </CardContent>
