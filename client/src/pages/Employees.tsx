@@ -118,9 +118,13 @@ export default function Employees() {
   });
 
   const deleteEmployeeMutation = useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/employees/${id}`, {
-      method: 'DELETE',
-    }, {}),
+    mutationFn: async (id: number) => {
+      const response = await fetch(`/api/employees/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Failed to delete employee');
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/employees'] });
       toast({
