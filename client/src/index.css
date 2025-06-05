@@ -294,4 +294,88 @@
     from { transform: translateX(100%); }
     to { transform: translateX(0); }
   }
+
+  /* Mobile responsive utilities */
+  .mobile-optimized {
+    @apply text-sm leading-relaxed;
+  }
+
+  /* Mobile table wrapper */
+  .mobile-table-wrapper {
+    @apply overflow-x-auto -mx-4 sm:mx-0;
+  }
+
+  .mobile-table-wrapper table {
+    @apply min-w-full;
+  }
+
+  /* Mobile card adjustments */
+  .mobile-card {
+    @apply p-3 sm:p-6;
+  }
+
+  .mobile-card-header {
+    @apply p-3 sm:p-6;
+  }
+
+  .mobile-card-content {
+    @apply p-3 sm:p-6;
+  }
+
+  /* Mobile button adjustments */
+  .mobile-button {
+    @apply px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base;
+  }
+
+  /* Mobile spacing utilities */
+  .mobile-spacing {
+    @apply space-y-3 sm:space-y-6;
+  }
+
+  .mobile-gap {
+    @apply gap-3 sm:gap-6;
+  }
+
+  /* Mobile grid adjustments */
+  .mobile-grid {
+    @apply grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+  }
+
+  .mobile-grid-stats {
+    @apply grid-cols-1 sm:grid-cols-2 lg:grid-cols-4;
+  }
+
+  /* Mobile text adjustments */
+  .mobile-title {
+    @apply text-lg sm:text-xl lg:text-2xl xl:text-3xl;
+  }
+
+  .mobile-subtitle {
+    @apply text-sm sm:text-base;
+  }
+
+  /* Touch-friendly interactive elements */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  /* Mobile navigation adjustments */
+  .mobile-nav-item {
+    @apply py-3 px-4 text-base;
+  }
+
+  /* Mobile sidebar adjustments */
+  .mobile-sidebar {
+    @apply w-72 sm:w-80;
+  }
+
+  /* Mobile form adjustments */
+  .mobile-form-field {
+    @apply text-base; /* Prevents zoom on iOS */
+  }
+
+  /* Mobile responsive charts */
+  .mobile-chart {
+    @apply h-48 sm:h-64 lg:h-80;
+  }
 }
