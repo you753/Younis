@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Bell, Search, User, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -26,9 +27,18 @@ export default function TopBar() {
   const [, setLocation] = useLocation();
   
   // جلب بيانات المستخدم الحالي
-  const { data: currentUser } = useQuery<UserType & { fullName?: string; phone?: string; address?: string; bio?: string; profession?: string }>({
+  const { data: currentUser } = useQuery<UserType & { fullName?: string; phone?: string; address?: string; bio?: string; profession?: string; avatar?: string }>({
     queryKey: ['/api/auth/me']
   });
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
   
   // تفعيل نظام الإشعارات
   useNotificationSystem();
@@ -113,9 +123,16 @@ export default function TopBar() {
                   <p className="text-sm font-medium">{currentUser?.fullName || currentUser?.username || 'المستخدم'}</p>
                   <p className="text-xs text-blue-200 dark:text-slate-400">{currentUser?.email || 'admin@company.com'}</p>
                 </div>
-                <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-500 dark:from-blue-500 dark:to-cyan-500 rounded-full flex items-center justify-center">
-                  <User className="h-4 w-4 text-white" />
-                </div>
+                <Avatar className="h-8 w-8">
+                  <AvatarImage 
+                    src={currentUser?.avatar ? currentUser.avatar : undefined} 
+                    alt={currentUser?.username} 
+                  />
+                  <AvatarFallback className="bg-gradient-to-br from-yellow-400 to-orange-500 dark:from-blue-500 dark:to-cyan-500 text-white text-xs">
+                    {currentUser?.fullName ? getInitials(currentUser.fullName) : 
+                     currentUser?.username ? getInitials(currentUser.username) : 'UN'}
+                  </AvatarFallback>
+                </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
