@@ -31,19 +31,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes for profile
   app.get("/api/auth/me", async (req, res) => {
     try {
-      // مؤقتاً سنرجع مستخدم افتراضي - في التطبيق الحقيقي سيتم جلبه من الجلسة
-      const currentUser = {
-        id: 1,
-        username: "admin",
-        email: "admin@almohaseb.com",
-        fullName: "مدير النظام",
-        phone: "0555123456",
-        address: "الرياض، المملكة العربية السعودية",
-        bio: "مدير نظام المحاسب الأعظم",
-        role: "admin",
-        createdAt: new Date().toISOString()
-      };
-      res.json(currentUser);
+      // جلب المستخدم من قاعدة البيانات
+      const currentUser = await storage.getUser(1); // ID المستخدم الحالي
+      if (!currentUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // إزالة كلمة المرور من الاستجابة
+      const { password, ...safeUser } = currentUser;
+      res.json(safeUser);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch user profile" });
     }
@@ -52,20 +48,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/auth/profile", async (req, res) => {
     try {
       const updateData = req.body;
-      // في التطبيق الحقيقي سيتم تحديث المستخدم في قاعدة البيانات
-      const updatedUser = {
-        id: 1,
-        username: updateData.username || "admin",
-        email: updateData.email || "admin@almohaseb.com",
-        fullName: updateData.fullName || "مدير النظام",
-        phone: updateData.phone || "",
-        address: updateData.address || "",
-        bio: updateData.bio || "",
-        role: "admin",
-        createdAt: new Date().toISOString()
-      };
-      res.json(updatedUser);
+      const userId = 1; // ID المستخدم الحالي
+      
+      // تحديث المستخدم في قاعدة البيانات
+      const updatedUser = await storage.updateUser(userId, updateData);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // إزالة كلمة المرور من الاستجابة
+      const { password, ...safeUser } = updatedUser;
+      res.json(safeUser);
     } catch (error) {
+      console.error("Profile update error:", error);
       res.status(500).json({ message: "Failed to update profile" });
     }
   });

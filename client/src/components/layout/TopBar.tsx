@@ -11,17 +11,24 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { useLocation } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
 
 import { useTranslation } from '@/lib/translations';
 import { useAppStore } from '@/lib/store';
 import NotificationsDropdown from '@/components/NotificationsDropdown';
 import { useNotificationSystem } from '@/hooks/useNotificationSystem';
+import type { User as UserType } from '@shared/schema';
 
 export default function TopBar() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const { t, language } = useTranslation();
   const { settings } = useAppStore();
   const [, setLocation] = useLocation();
+  
+  // جلب بيانات المستخدم الحالي
+  const { data: currentUser } = useQuery<UserType & { fullName?: string; phone?: string; address?: string; bio?: string; profession?: string }>({
+    queryKey: ['/api/auth/me']
+  });
   
   // تفعيل نظام الإشعارات
   useNotificationSystem();
