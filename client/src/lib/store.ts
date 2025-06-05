@@ -126,13 +126,18 @@ export const useAppStore = create<AppStore>((set, get) => ({
     const state = get();
     const { settings } = state;
     
-    // تطبيق الوضع الليلي/النهاري
+    // تطبيق الوضع الليلي/النهاري مع تأثيرات بصرية محسنة
     if (settings.darkMode) {
       document.documentElement.classList.add('dark');
-      document.body.style.backgroundColor = '#1a1a1a';
+      document.body.style.backgroundColor = '#0f172a';
+      document.body.style.color = '#f1f5f9';
+      // تطبيق الانتقال السلس
+      document.body.style.transition = 'background-color 0.3s ease, color 0.3s ease';
     } else {
       document.documentElement.classList.remove('dark');
       document.body.style.backgroundColor = '#ffffff';
+      document.body.style.color = '#1e293b';
+      document.body.style.transition = 'background-color 0.3s ease, color 0.3s ease';
     }
     
     // تحديث عنوان الصفحة
@@ -142,23 +147,77 @@ export const useAppStore = create<AppStore>((set, get) => ({
     document.documentElement.lang = settings.language;
     document.documentElement.dir = settings.language === 'ar' ? 'rtl' : 'ltr';
     
+    // إعداد الحفظ التلقائي
+    if (settings.autoSave) {
+      // إعادة تعيين مؤقت الحفظ التلقائي
+      clearInterval((window as any).autoSaveTimer);
+      (window as any).autoSaveTimer = setInterval(() => {
+        // حفظ تلقائي للبيانات المؤقتة
+        const currentData = {
+          timestamp: new Date().toISOString(),
+          settings: settings,
+          lastActivity: Date.now()
+        };
+        localStorage.setItem('autoSave_data', JSON.stringify(currentData));
+        
+        if (settings.notifications) {
+          state.showNotification('تم الحفظ التلقائي', 'info');
+        }
+      }, 5 * 60 * 1000); // كل 5 دقائق
+    } else {
+      clearInterval((window as any).autoSaveTimer);
+    }
+    
     // إعداد مهلة الجلسة
     if (settings.sessionTimeout > 0) {
-      // إعادة تعيين مؤقت انتهاء الجلسة
       clearTimeout((window as any).sessionTimer);
       (window as any).sessionTimer = setTimeout(() => {
         if (settings.notifications) {
-          state.showNotification('انتهت جلستك، يرجى تسجيل الدخول مرة أخرى', 'warning');
+          state.showNotification('انتهت مهلة الجلسة، يرجى تسجيل الدخول مرة أخرى', 'warning');
         }
+        // إعادة توجيه لصفحة تسجيل الدخول بعد 10 ثواني
+        setTimeout(() => {
+          window.location.reload();
+        }, 10000);
       }, settings.sessionTimeout * 60 * 1000);
+    }
+    
+    // إعداد نظام الإشعارات المحسن
+    if (settings.notifications) {
+      // طلب إذن الإشعارات من المتصفح
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            new Notification('المحاسب الأعظم', {
+              body: 'تم تفعيل الإشعارات بنجاح',
+              icon: '/favicon.ico'
+            });
+          }
+        });
+      }
+      
+      // إشعار تطبيق الإعدادات
+      state.showNotification('تم تطبيق الإعدادات بنجاح', 'success');
     }
     
     // حفظ الإعدادات في LocalStorage
     localStorage.setItem('appSettings', JSON.stringify(settings));
     
-    // عرض إشعار النجاح إذا كانت الإشعارات مفعلة
-    if (settings.notifications) {
-      state.showNotification('تم تطبيق الإعدادات بنجاح', 'success');
+    // إعداد مراقب تغيير النافذة للوضع الليلي
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    if (!settings.darkMode) {
+      // إزالة المستمع السابق إذا وجد
+      if ((window as any).darkModeListener) {
+        mediaQuery.removeListener((window as any).darkModeListener);
+      }
+      
+      // إضافة مستمع جديد لتفضيلات النظام
+      (window as any).darkModeListener = (e: MediaQueryListEvent) => {
+        if (e.matches && !state.settings.darkMode) {
+          state.showNotification('تم اكتشاف تفضيل الوضع الليلي في النظام', 'info');
+        }
+      };
+      mediaQuery.addListener((window as any).darkModeListener);
     }
   }
 }));
