@@ -12,9 +12,11 @@ import {
 import { Badge } from '@/components/ui/badge';
 import NotificationsDropdown from '@/components/NotificationsDropdown';
 import { useNotificationSystem } from '@/hooks/useNotificationSystem';
+import { useTranslation } from '@/lib/translations';
 
 export default function TopBar() {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const { t, language } = useTranslation();
   
   // تفعيل نظام الإشعارات
   useNotificationSystem();
@@ -28,7 +30,8 @@ export default function TopBar() {
   }, []);
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('ar-SA', {
+    const locale = language === 'ar' ? 'ar-SA' : 'en-US';
+    return date.toLocaleTimeString(locale, {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit'
@@ -36,7 +39,8 @@ export default function TopBar() {
   };
 
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString('ar-SA', {
+    const locale = language === 'ar' ? 'ar-SA' : 'en-US';
+    return date.toLocaleDateString(locale, {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -51,7 +55,7 @@ export default function TopBar() {
         <div className="flex items-center gap-6">
           <div className="text-white">
             <h2 className="text-xl font-bold bg-gradient-to-r from-yellow-200 to-yellow-100 dark:from-blue-300 dark:to-cyan-300 bg-clip-text text-transparent">
-              مرحباً بك في المحاسب الأعظم ✨
+              {t('welcomeMessage')}
             </h2>
             <div className="flex items-center gap-4 mt-1">
               <p className="text-blue-100 dark:text-slate-300 text-sm">{formatDate(currentTime)}</p>
@@ -68,7 +72,7 @@ export default function TopBar() {
           <div className="relative">
             <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-blue-400 dark:text-slate-400" />
             <Input
-              placeholder="البحث في النظام..."
+              placeholder={t('searchPlaceholder')}
               className="pl-4 pr-10 bg-white/10 dark:bg-slate-800/50 border-white/20 dark:border-slate-600/50 text-white dark:text-slate-200 placeholder:text-blue-200 dark:placeholder:text-slate-400 focus:bg-white/20 dark:focus:bg-slate-700/50 focus:border-white/40 dark:focus:border-slate-500"
             />
           </div>
@@ -84,7 +88,7 @@ export default function TopBar() {
           {/* حالة النظام */}
           <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-white/10 dark:bg-slate-700/50 rounded-full">
             <div className="w-2 h-2 bg-green-400 dark:bg-emerald-400 rounded-full animate-pulse"></div>
-            <span className="text-emerald-100 dark:text-emerald-300 text-xs font-medium">النظام يعمل بشكل طبيعي</span>
+            <span className="text-emerald-100 dark:text-emerald-300 text-xs font-medium">{t('systemRunning')}</span>
           </div>
 
           {/* قائمة المستخدم */}
@@ -96,7 +100,7 @@ export default function TopBar() {
                 className="text-white dark:text-slate-200 hover:bg-white/10 dark:hover:bg-slate-700/50 gap-2"
               >
                 <div className="text-right hidden sm:block">
-                  <p className="text-sm font-medium">المدير العام</p>
+                  <p className="text-sm font-medium">{t('adminUser')}</p>
                   <p className="text-xs text-blue-200 dark:text-slate-400">admin@company.com</p>
                 </div>
                 <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-500 dark:from-blue-500 dark:to-cyan-500 rounded-full flex items-center justify-center">
@@ -107,16 +111,16 @@ export default function TopBar() {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem className="gap-2">
                 <User className="h-4 w-4" />
-                الملف الشخصي
+                {t('profile')}
               </DropdownMenuItem>
               <DropdownMenuItem className="gap-2">
                 <Settings className="h-4 w-4" />
-                الإعدادات
+                {t('settings')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="gap-2 text-red-600">
                 <LogOut className="h-4 w-4" />
-                تسجيل الخروج
+                {t('logout')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
