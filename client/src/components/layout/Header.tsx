@@ -1,9 +1,11 @@
 import { Menu, Bell, User } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
+import { useLocation } from 'wouter';
 
 export default function Header() {
   const { toggleSidebar, user } = useAppStore();
+  const [, setLocation] = useLocation();
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4">
@@ -35,9 +37,12 @@ export default function Header() {
               <p className="text-sm text-gray-600">مرحباً،</p>
               <p className="font-semibold text-gray-900 text-sm">{user.name}</p>
             </div>
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[hsl(var(--accounting-primary))] rounded-full flex items-center justify-center text-white font-semibold">
+            <button 
+              onClick={() => setLocation('/profile')}
+              className="w-8 h-8 sm:w-10 sm:h-10 bg-[hsl(var(--accounting-primary))] rounded-full flex items-center justify-center text-white font-semibold hover:bg-[hsl(var(--accounting-primary))]/90 transition-colors cursor-pointer"
+            >
               <User className="h-4 w-4 sm:h-5 sm:w-5" />
-            </div>
+            </button>
           </div>
         </div>
       </div>

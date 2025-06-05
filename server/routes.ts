@@ -28,6 +28,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Auth routes for profile
+  app.get("/api/auth/me", async (req, res) => {
+    try {
+      // مؤقتاً سنرجع مستخدم افتراضي - في التطبيق الحقيقي سيتم جلبه من الجلسة
+      const currentUser = {
+        id: 1,
+        username: "admin",
+        email: "admin@almohaseb.com",
+        fullName: "مدير النظام",
+        phone: "0555123456",
+        address: "الرياض، المملكة العربية السعودية",
+        bio: "مدير نظام المحاسب الأعظم",
+        role: "admin",
+        createdAt: new Date().toISOString()
+      };
+      res.json(currentUser);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch user profile" });
+    }
+  });
+
+  app.put("/api/auth/profile", async (req, res) => {
+    try {
+      const updateData = req.body;
+      // في التطبيق الحقيقي سيتم تحديث المستخدم في قاعدة البيانات
+      const updatedUser = {
+        id: 1,
+        username: updateData.username || "admin",
+        email: updateData.email || "admin@almohaseb.com",
+        fullName: updateData.fullName || "مدير النظام",
+        phone: updateData.phone || "",
+        address: updateData.address || "",
+        bio: updateData.bio || "",
+        role: "admin",
+        createdAt: new Date().toISOString()
+      };
+      res.json(updatedUser);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
   // Users routes
   app.get("/api/users", async (req, res) => {
     try {
