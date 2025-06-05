@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { z } from "zod";
 import { storage } from "./storage";
@@ -16,8 +17,49 @@ import {
 } from "@shared/schema";
 import { uploadMiddleware, transcribeAudio } from "./voice";
 import { handleAIChat } from "./ai-chat";
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+
+// إعداد رفع الصور
+const avatarStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadsDir = path.join(process.cwd(), 'uploads', 'avatars');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'avatar-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const avatarUpload = multer({
+  storage: avatarStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('يُسمح فقط بملفات الصور (JPEG, JPG, PNG, GIF)'));
+    }
+  }
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // خدمة الملفات المرفوعة
+  app.use('/uploads', (req, res, next) => {
+    res.header('Cross-Origin-Resource-Policy', 'cross-origin');
+    next();
+  });
+  app.use('/uploads', require('express').static(path.join(process.cwd(), 'uploads')));
+
   // Dashboard
   app.get("/api/dashboard/stats", async (req, res) => {
     try {
@@ -63,6 +105,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Profile update error:", error);
       res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
+  // رفع الصورة الشخصية
+  app.post("/api/auth/upload-avatar", avatarUpload.single('avatar'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "لم يتم رفع أي ملف" });
+      }
+
+      const userId = 1; // ID المستخدم الحالي
+      const avatarPath = `/uploads/avatars/${req.file.filename}`;
+      
+      // تحديث مسار الصورة في قاعدة البيانات
+      const updatedUser = await storage.updateUser(userId, { avatar: avatarPath });
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json({ 
+        message: "تم رفع الصورة بنجاح",
+        avatarUrl: avatarPath 
+      });
+    } catch (error) {
+      console.error("Avatar upload error:", error);
+      res.status(500).json({ message: "فشل في رفع الصورة" });
     }
   });
 

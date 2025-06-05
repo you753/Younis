@@ -12,6 +12,7 @@ export const users = pgTable("users", {
   phone: text("phone"),
   address: text("address"),
   bio: text("bio"),
+  avatar: text("avatar"), // مسار الصورة الشخصية
   role: text("role").notNull().default("user"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
