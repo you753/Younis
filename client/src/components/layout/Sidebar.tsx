@@ -90,7 +90,7 @@ const navigationItems: NavItem[] = [
       { title: 'الحضور والانصراف', icon: FileText, href: '/attendance' },
       { title: 'الخصومات', icon: Minus, href: '/deductions' },
       { title: 'الرواتب', icon: DollarSign, href: '/salaries' },
-      { title: 'الإجازات', icon: FileText, href: '/leaves' },
+      { title: 'الإجازات', icon: FileText, href: '/holidays' },
       { title: 'تقييم الأداء', icon: BarChart3, href: '/performance' }
     ]
   },
