@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { BarChart3, Download, Calendar, TrendingUp } from 'lucide-react';
+import { BarChart3, Download, Calendar, TrendingUp, FileText } from 'lucide-react';
 import type { Sale, Client } from '@shared/schema';
+import jsPDF from 'jspdf';
 
 export default function SalesReports() {
   const [dateFrom, setDateFrom] = useState('');
@@ -36,14 +37,129 @@ export default function SalesReports() {
   const totalSales = filteredSales.reduce((sum, sale) => sum + parseFloat(sale.total), 0);
   const averageSale = filteredSales.length > 0 ? totalSales / filteredSales.length : 0;
 
+  const exportToPDF = () => {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    // إعداد الخط للعربية
+    doc.addFont('https://fonts.gstatic.com/s/amiri/v27/J7aRnpd8CGxBHqUpvrIw74NL.woff2', 'Amiri', 'normal');
+    doc.setFont('Amiri');
+    
+    // رأس التقرير
+    doc.setFontSize(24);
+    doc.setTextColor(0, 50, 120);
+    doc.text('تقرير المبيعات', 105, 30, { align: 'center' });
+    
+    // معلومات الشركة
+    doc.setFontSize(16);
+    doc.setTextColor(60, 60, 60);
+    doc.text('المحاسب الأعظم', 105, 45, { align: 'center' });
+    
+    // تاريخ التقرير
+    doc.setFontSize(12);
+    doc.setTextColor(100, 100, 100);
+    const currentDate = new Date().toLocaleDateString('ar-SA');
+    doc.text(`تاريخ التقرير: ${currentDate}`, 180, 60, { align: 'right' });
+    
+    // فترة التقرير
+    if (dateFrom || dateTo) {
+      const fromText = dateFrom ? `من: ${new Date(dateFrom).toLocaleDateString('ar-SA')}` : '';
+      const toText = dateTo ? `إلى: ${new Date(dateTo).toLocaleDateString('ar-SA')}` : '';
+      doc.text(`${fromText} ${toText}`, 180, 70, { align: 'right' });
+    }
+    
+    // خط فاصل
+    doc.setLineWidth(0.5);
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, 80, 190, 80);
+    
+    // الإحصائيات
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text('ملخص المبيعات:', 20, 95);
+    
+    doc.setFontSize(12);
+    doc.text(`إجمالي المبيعات: ${totalSales.toFixed(2)} ر.س`, 30, 105);
+    doc.text(`عدد العمليات: ${filteredSales.length}`, 30, 115);
+    doc.text(`متوسط البيع: ${averageSale.toFixed(2)} ر.س`, 30, 125);
+    
+    // جدول المبيعات
+    let yPosition = 145;
+    doc.setFontSize(14);
+    doc.text('تفاصيل المبيعات:', 20, yPosition);
+    
+    yPosition += 15;
+    
+    // رؤوس الجدول
+    doc.setFillColor(240, 240, 240);
+    doc.rect(20, yPosition - 5, 170, 10, 'F');
+    
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text('رقم الفاتورة', 25, yPosition);
+    doc.text('التاريخ', 60, yPosition);
+    doc.text('العميل', 95, yPosition);
+    doc.text('المبلغ', 140, yPosition);
+    doc.text('الحالة', 170, yPosition);
+    
+    yPosition += 15;
+    
+    // بيانات الجدول
+    filteredSales.forEach((sale, index) => {
+      if (yPosition > 270) {
+        doc.addPage();
+        yPosition = 30;
+      }
+      
+      const client = clients.find(c => c.id === sale.clientId);
+      
+      doc.text(`#${sale.id}`, 25, yPosition);
+      doc.text(new Date(sale.date).toLocaleDateString('ar-SA'), 60, yPosition);
+      doc.text(client?.name || 'عميل محذوف', 95, yPosition);
+      doc.text(`${parseFloat(sale.total).toFixed(2)} ر.س`, 140, yPosition);
+      doc.text('مكتملة', 170, yPosition);
+      
+      yPosition += 10;
+      
+      // خط فاصل خفيف
+      if (index < filteredSales.length - 1) {
+        doc.setDrawColor(230, 230, 230);
+        doc.line(20, yPosition - 2, 190, yPosition - 2);
+      }
+    });
+    
+    // تذييل التقرير
+    const pageHeight = doc.internal.pageSize.height;
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text('تم إنشاء هذا التقرير بواسطة نظام المحاسب الأعظم', 105, pageHeight - 20, { align: 'center' });
+    doc.text(`تاريخ الطباعة: ${currentDate}`, 105, pageHeight - 10, { align: 'center' });
+    
+    // حفظ الملف
+    const fileName = `تقرير_المبيعات_${currentDate.replace(/\//g, '-')}.pdf`;
+    doc.save(fileName);
+  };
+
   return (
     <div className="space-y-6 p-6">
-      <div className="flex items-center gap-3">
-        <BarChart3 className="h-8 w-8 text-blue-600" />
-        <div>
-          <h1 className="text-3xl font-bold">تقارير المبيعات</h1>
-          <p className="text-gray-600">تحليل مفصل لأداء المبيعات والعملاء</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <BarChart3 className="h-8 w-8 text-blue-600" />
+          <div>
+            <h1 className="text-3xl font-bold">تقارير المبيعات</h1>
+            <p className="text-gray-600">تحليل مفصل لأداء المبيعات والعملاء</p>
+          </div>
         </div>
+        <Button 
+          onClick={exportToPDF} 
+          className="btn-accounting-primary flex items-center gap-2"
+        >
+          <FileText className="h-4 w-4" />
+          تصدير PDF
+        </Button>
       </div>
 
       {/* فلاتر التقرير */}

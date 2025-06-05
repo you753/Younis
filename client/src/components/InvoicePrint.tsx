@@ -17,11 +17,11 @@ interface InvoicePrintProps {
 const InvoicePrint = forwardRef<HTMLDivElement, InvoicePrintProps>(
   ({ sale, client, products, companyInfo }, ref) => {
     const defaultCompanyInfo = {
-      name: "شركة التجارة المتقدمة",
+      name: "المحاسب الأعظم",
       address: "الرياض، المملكة العربية السعودية",
       phone: "+966 11 123 4567",
       email: "info@company.com",
-      taxNumber: "123456789012345",
+      taxNumber: "300002471110003",
       ...companyInfo
     };
 
@@ -34,147 +34,135 @@ const InvoicePrint = forwardRef<HTMLDivElement, InvoicePrintProps>(
     const formatDate = (date: string | Date) => {
       return new Date(date).toLocaleDateString('ar-SA', {
         year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+        month: '2-digit',
+        day: '2-digit'
+      });
+    };
+
+    const formatTime = (date: string | Date) => {
+      return new Date(date).toLocaleTimeString('ar-SA', {
+        hour: '2-digit',
+        minute: '2-digit'
       });
     };
 
     return (
       <div ref={ref} className="bg-white p-8 max-w-4xl mx-auto" style={{ fontFamily: 'Arial, sans-serif', direction: 'rtl' }}>
-        {/* Header */}
-        <div className="border-b-2 border-blue-600 pb-6 mb-6">
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-3xl font-bold text-blue-600 mb-2">{defaultCompanyInfo.name}</h1>
-              <div className="text-gray-600 space-y-1">
-                <p>{defaultCompanyInfo.address}</p>
-                <p>هاتف: {defaultCompanyInfo.phone}</p>
-                <p>البريد الإلكتروني: {defaultCompanyInfo.email}</p>
-                <p>الرقم الضريبي: {defaultCompanyInfo.taxNumber}</p>
-              </div>
+        {/* Header - بنفس تصميم الوثيقة المرفقة */}
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-black mb-6">مدفوعات سداد</h1>
+          
+          {/* معلومات الشركة والتاريخ */}
+          <div className="flex justify-between items-start mb-8">
+            <div className="text-right space-y-1">
+              <p className="text-sm">{formatDate(sale.date)} {formatTime(sale.date)}</p>
+              <p className="text-sm font-bold">التاريخ</p>
             </div>
-            <div className="text-left">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">فاتورة مبيعات</h2>
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <p className="font-semibold">رقم الفاتورة: <span className="text-blue-600">#{sale.id}</span></p>
-                <p className="font-semibold">التاريخ: <span className="text-gray-700">{formatDate(sale.date)}</span></p>
-              </div>
+            <div className="text-left space-y-1">
+              <p className="text-lg font-bold">{defaultCompanyInfo.name}</p>
+              <p className="text-sm">إسم العميل</p>
             </div>
+          </div>
+          
+          <div className="text-center mb-6">
+            <p className="text-sm">{defaultCompanyInfo.name}</p>
+            <p className="text-sm">اسم المستخدم: {defaultCompanyInfo.name}</p>
           </div>
         </div>
 
-        {/* Customer Info */}
+        {/* جدول تفاصيل الفاتورة */}
         <div className="mb-8">
-          <h3 className="text-lg font-bold text-gray-800 mb-4 border-b border-gray-300 pb-2">بيانات العميل</h3>
-          <div className="bg-gray-50 p-4 rounded-lg">
-            {client ? (
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p><span className="font-semibold">الاسم:</span> {client.name}</p>
-                  <p><span className="font-semibold">الهاتف:</span> {client.phone || '-'}</p>
-                </div>
-                <div>
-                  <p><span className="font-semibold">البريد الإلكتروني:</span> {client.email || '-'}</p>
-                  <p><span className="font-semibold">العنوان:</span> {client.address || '-'}</p>
-                </div>
-              </div>
-            ) : (
-              <p className="text-gray-600">عميل نقدي</p>
-            )}
-          </div>
-        </div>
-
-        {/* Items Table */}
-        <div className="mb-8">
-          <h3 className="text-lg font-bold text-gray-800 mb-4 border-b border-gray-300 pb-2">تفاصيل الفاتورة</h3>
-          <table className="w-full border-collapse border border-gray-300">
+          <table className="w-full border-collapse text-sm">
             <thead>
-              <tr className="bg-blue-600 text-white">
-                <th className="border border-gray-300 p-3 text-right">م</th>
-                <th className="border border-gray-300 p-3 text-right">اسم الصنف</th>
-                <th className="border border-gray-300 p-3 text-center">الكمية</th>
-                <th className="border border-gray-300 p-3 text-center">السعر</th>
-                <th className="border border-gray-300 p-3 text-center">الإجمالي</th>
+              <tr>
+                <th className="border border-gray-400 px-3 py-2 text-center bg-gray-50">تاريخ الإنشاء</th>
+                <th className="border border-gray-400 px-3 py-2 text-center bg-gray-50">رقم الحساب</th>
+                <th className="border border-gray-400 px-3 py-2 text-center bg-gray-50">المبلغ</th>
+                <th className="border border-gray-400 px-3 py-2 text-center bg-gray-50">رقم الإشتراك</th>
+                <th className="border border-gray-400 px-3 py-2 text-center bg-gray-50">المفوتر</th>
+                <th className="border border-gray-400 px-3 py-2 text-center bg-gray-50">مرجع العملية</th>
               </tr>
             </thead>
             <tbody>
-              {saleItems.map((item, index) => {
-                const product = products.find(p => p.id === item.productId);
-                const itemTotal = item.quantity * item.unitPrice;
-                
-                return (
-                  <tr key={index} className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}>
-                    <td className="border border-gray-300 p-3 text-center">{index + 1}</td>
-                    <td className="border border-gray-300 p-3">{product?.name || item.productName}</td>
-                    <td className="border border-gray-300 p-3 text-center">{item.quantity}</td>
-                    <td className="border border-gray-300 p-3 text-center">{item.unitPrice.toFixed(2)} ر.س</td>
-                    <td className="border border-gray-300 p-3 text-center font-semibold">{itemTotal.toFixed(2)} ر.س</td>
-                  </tr>
-                );
-              })}
+              <tr>
+                <td className="border border-gray-400 px-3 py-2 text-center">{formatDate(sale.date)} {formatTime(sale.date)}</td>
+                <td className="border border-gray-400 px-3 py-2 text-center">{sale.id.toString().padStart(14, '0')}</td>
+                <td className="border border-gray-400 px-3 py-2 text-center font-bold">SAR {parseFloat(sale.total).toFixed(2)}</td>
+                <td className="border border-gray-400 px-3 py-2 text-center">{(sale.id * 123456).toString().padStart(11, '0')}</td>
+                <td className="border border-gray-400 px-3 py-2 text-center">:002 {defaultCompanyInfo.name}</td>
+                <td className="border border-gray-400 px-3 py-2 text-center">{(sale.id * 987654321).toString().padStart(11, '0')}</td>
+              </tr>
             </tbody>
           </table>
-        </div>
-
-        {/* Totals */}
-        <div className="mb-8">
-          <div className="flex justify-end">
-            <div className="w-80 bg-blue-50 p-6 rounded-lg border">
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="font-semibold">المجموع الفرعي:</span>
-                  <span>{subtotal.toFixed(2)} ر.س</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-semibold">ضريبة القيمة المضافة ({(taxRate * 100)}%):</span>
-                  <span>{taxAmount.toFixed(2)} ر.س</span>
-                </div>
-                <div className="border-t border-blue-200 pt-3">
-                  <div className="flex justify-between text-lg font-bold text-blue-600">
-                    <span>المجموع الكلي:</span>
-                    <span>{total.toFixed(2)} ر.س</span>
-                  </div>
-                </div>
+          
+          {/* المرجع والحالة */}
+          <div className="mt-6">
+            <div className="flex justify-between items-center">
+              <div className="text-center">
+                <p className="text-sm font-bold">المرجع</p>
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-bold">الحالة</p>
+              </div>
+            </div>
+            <div className="flex justify-between items-center mt-2">
+              <div className="text-right">
+                <p className="text-sm">رقم المرجع لدفع الفاتورة هو {(sale.id * 107931715).toString().slice(0, 9)}</p>
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-bold text-green-600">تم التنفيذ</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Notes */}
-        {sale.notes && (
+        {/* تفاصيل الأصناف إن وجدت */}
+        {saleItems.length > 0 && (
           <div className="mb-8">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 border-b border-gray-300 pb-2">ملاحظات</h3>
-            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-              <p className="text-gray-700">{sale.notes}</p>
+            <h3 className="text-lg font-bold mb-4 text-center">تفاصيل الأصناف</h3>
+            <table className="w-full border-collapse text-sm">
+              <thead>
+                <tr>
+                  <th className="border border-gray-400 px-3 py-2 text-center bg-gray-50">الصنف</th>
+                  <th className="border border-gray-400 px-3 py-2 text-center bg-gray-50">الكمية</th>
+                  <th className="border border-gray-400 px-3 py-2 text-center bg-gray-50">سعر الوحدة</th>
+                  <th className="border border-gray-400 px-3 py-2 text-center bg-gray-50">المجموع</th>
+                </tr>
+              </thead>
+              <tbody>
+                {saleItems.map((item, index) => {
+                  const product = products.find(p => p.id === item.productId);
+                  return (
+                    <tr key={index}>
+                      <td className="border border-gray-400 px-3 py-2 text-center">{product?.name || `صنف ${item.productId}`}</td>
+                      <td className="border border-gray-400 px-3 py-2 text-center">{item.quantity}</td>
+                      <td className="border border-gray-400 px-3 py-2 text-center">{item.unitPrice.toFixed(2)} ر.س</td>
+                      <td className="border border-gray-400 px-3 py-2 text-center">{(item.quantity * item.unitPrice).toFixed(2)} ر.س</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            
+            {/* ملخص المبالغ */}
+            <div className="mt-6 text-center">
+              <div className="space-y-2 inline-block text-left">
+                <p className="text-sm">المجموع الفرعي: {subtotal.toFixed(2)} ر.س</p>
+                <p className="text-sm">ضريبة القيمة المضافة (15%): {taxAmount.toFixed(2)} ر.س</p>
+                <p className="text-lg font-bold">المجموع الكلي: {total.toFixed(2)} ر.س</p>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Footer */}
-        <div className="border-t-2 border-blue-600 pt-6 mt-8">
-          <div className="text-center text-gray-600">
-            <p className="mb-2">شكراً لتعاملكم معنا</p>
-            <p className="text-sm">هذه فاتورة إلكترونية معتمدة وفقاً للوائح هيئة الزكاة والضريبة والجمارك</p>
+        {/* Footer - معلومات البنك والشركة */}
+        <div className="mt-12 pt-6">
+          <div className="text-center text-xs text-gray-600 space-y-2">
+            <p className="font-bold">{defaultCompanyInfo.name} | شركة مساهمة سعودية | رأس المال 60,000,000,000 ريال سعودي مدفوع بالكامل | الرقم الضريبي {defaultCompanyInfo.taxNumber} | س.ت.4030001588</p>
+            <p>خاضع لإشراف ورقابة البنك المركزي السعودي | مرخص له بموجب الأمر السامي رقم 3737 الصادر بتاريخ 1373/4/20هـ (الموافق 1953/12/26م)</p>
+            <p>برج البنك الأهلي السعودي، طريق الملك فهد حي العقيق 3208 - وحدة رقم 778، الرياض 6676 – 13519، المملكة العربية السعودية</p>
           </div>
         </div>
-
-        {/* Print Styles */}
-        <style dangerouslySetInnerHTML={{
-          __html: `
-            @media print {
-              .no-print {
-                display: none !important;
-              }
-              body {
-                -webkit-print-color-adjust: exact;
-                color-adjust: exact;
-              }
-              .page-break {
-                page-break-before: always;
-              }
-            }
-          `
-        }} />
       </div>
     );
   }
