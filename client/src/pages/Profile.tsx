@@ -22,6 +22,7 @@ const profileSchema = z.object({
   username: z.string().min(2, 'اسم المستخدم يجب أن يكون أكثر من حرفين'),
   email: z.string().email('بريد إلكتروني غير صحيح'),
   fullName: z.string().min(2, 'الاسم الكامل مطلوب'),
+  profession: z.string().optional(),
   phone: z.string().optional(),
   address: z.string().optional(),
   bio: z.string().optional(),
@@ -30,7 +31,7 @@ const profileSchema = z.object({
 type ProfileFormData = z.infer<typeof profileSchema>;
 
 export default function Profile() {
-  const { setCurrentPage } = useAppStore();
+  const { setCurrentPage, setUser } = useAppStore();
   const { success, error } = useNotification();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
@@ -50,6 +51,7 @@ export default function Profile() {
       username: '',
       email: '',
       fullName: '',
+      profession: '',
       phone: '',
       address: '',
       bio: '',
@@ -63,6 +65,7 @@ export default function Profile() {
         username: currentUser.username || '',
         email: currentUser.email || '',
         fullName: currentUser.fullName || '',
+        profession: (currentUser as any).profession || '',
         phone: currentUser.phone || '',
         address: currentUser.address || '',
         bio: currentUser.bio || '',
@@ -75,8 +78,15 @@ export default function Profile() {
       const response = await apiRequest('PUT', '/api/auth/profile', data);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (updatedUser, variables) => {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      
+      // تحديث بيانات المستخدم في الـ store
+      setUser({
+        name: variables.fullName || variables.username,
+        email: variables.email
+      });
+      
       success('تم تحديث الملف الشخصي بنجاح');
       setIsEditing(false);
     },
