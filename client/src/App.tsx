@@ -32,6 +32,7 @@ import Employees from "@/pages/Employees";
 import Deductions from "@/pages/Deductions";
 import Salaries from "@/pages/Salaries";
 import TaxCalculator from "@/pages/TaxCalculator";
+import Profile from "@/pages/Profile";
 
 function Router() {
   return (
@@ -109,6 +110,10 @@ function Router() {
         <Route path="/settings/printing" component={Settings} />
         <Route path="/settings/taxes" component={Settings} />
         <Route path="/settings/backup" component={Settings} />
+        
+        {/* الملف الشخصي */}
+        <Route path="/profile" component={Profile} />
+        
         <Route component={NotFound} />
       </Switch>
     </Layout>
