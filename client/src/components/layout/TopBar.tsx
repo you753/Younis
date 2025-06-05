@@ -10,6 +10,8 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import NotificationsDropdown from '@/components/NotificationsDropdown';
+import { useNotificationSystem } from '@/hooks/useNotificationSystem';
 
 export default function TopBar() {
   const [currentTime, setCurrentTime] = useState(new Date());
