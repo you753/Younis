@@ -29,6 +29,7 @@ import InventoryReports from "@/pages/reports/InventoryReports";
 import FinancialReports from "@/pages/reports/FinancialReports";
 import Settings from "@/pages/Settings";
 import Login from "@/pages/Login";
+import Register from "@/pages/Register";
 import NotFound from "@/pages/not-found";
 import Employees from "@/pages/Employees";
 import Deductions from "@/pages/Deductions";
@@ -54,9 +55,14 @@ function Router() {
     );
   }
 
-  // إذا لم يكن المستخدم مسجل دخول، عرض صفحة تسجيل الدخول
+  // إذا لم يكن المستخدم مسجل دخول، عرض صفحات المصادقة
   if (!isAuthenticated) {
-    return <Login />;
+    return (
+      <Switch>
+        <Route path="/register" component={Register} />
+        <Route path="*" component={Login} />
+      </Switch>
+    );
   }
 
   // إذا كان المستخدم مسجل دخول، عرض النظام الكامل

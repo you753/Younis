@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Eye, EyeOff, LogIn, Shield, Building } from 'lucide-react';
+import { Eye, EyeOff, LogIn, Shield, Building, UserPlus } from 'lucide-react';
 import { useNotification } from '@/hooks/useNotification';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -163,8 +163,21 @@ export default function Login() {
               </form>
             </Form>
 
+            {/* رابط إنشاء حساب جديد */}
+            <div className="mt-6 text-center">
+              <Button
+                variant="link"
+                className="text-blue-600 hover:text-blue-700"
+                onClick={() => setLocation('/register')}
+                disabled={loginMutation.isPending}
+              >
+                <Shield className="h-4 w-4 ml-1" />
+                ليس لديك حساب؟ أنشئ حساباً جديداً
+              </Button>
+            </div>
+
             {/* بيانات تجريبية للاختبار */}
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
               <h4 className="text-sm font-medium text-gray-700 mb-2">بيانات تجريبية للاختبار:</h4>
               <div className="space-y-1 text-xs text-gray-600">
                 <p><strong>المدير:</strong> admin / admin123</p>
