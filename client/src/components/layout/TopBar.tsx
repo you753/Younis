@@ -18,6 +18,7 @@ import { useTranslation } from '@/lib/translations';
 import { useAppStore } from '@/lib/store';
 import NotificationsDropdown from '@/components/NotificationsDropdown';
 import { useNotificationSystem } from '@/hooks/useNotificationSystem';
+import { useAuth } from '@/hooks/useAuth';
 import type { User as UserType } from '@shared/schema';
 
 export default function TopBar() {
@@ -25,6 +26,7 @@ export default function TopBar() {
   const { t, language } = useTranslation();
   const { settings } = useAppStore();
   const [, setLocation] = useLocation();
+  const { logout, user } = useAuth();
   
   // جلب بيانات المستخدم الحالي
   const { data: currentUser } = useQuery<UserType & { fullName?: string; phone?: string; address?: string; bio?: string; profession?: string; avatar?: string }>({

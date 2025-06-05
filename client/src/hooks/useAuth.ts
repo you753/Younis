@@ -59,7 +59,10 @@ export function useAuth() {
   const logout = () => {
     setUser(null);
     setIsAuthenticated(false);
-    setStoreUser(null);
+    setStoreUser({
+      name: '',
+      email: ''
+    });
     
     // مسح البيانات من localStorage
     localStorage.removeItem('user');
