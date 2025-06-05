@@ -48,6 +48,17 @@ export default function Register() {
     }
   });
 
+  // إضافة timestamp لجعل البيانات فريدة
+  const generateUniqueData = () => {
+    const timestamp = Date.now();
+    const randomNum = Math.floor(Math.random() * 1000);
+    return {
+      username: `user_${timestamp}_${randomNum}`,
+      email: `user_${timestamp}_${randomNum}@mohaseb.com`,
+      fullName: `مستخدم جديد ${timestamp}`,
+    };
+  };
+
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterFormData) => {
       const { confirmPassword, ...registerData } = data;
@@ -265,23 +276,43 @@ export default function Register() {
                   />
                 </div>
 
-                <Button 
-                  type="submit" 
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                  disabled={registerMutation.isPending}
-                >
-                  {registerMutation.isPending ? (
-                    <div className="flex items-center gap-2">
-                      <div className="h-4 w-4 animate-spin border border-white border-t-transparent rounded-full" />
-                      جاري إنشاء الحساب...
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <UserPlus className="h-4 w-4" />
-                      إنشاء حساب
-                    </div>
-                  )}
-                </Button>
+                <div className="space-y-3">
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    className="w-full border-blue-600 text-blue-600 hover:bg-blue-50"
+                    onClick={() => {
+                      const uniqueData = generateUniqueData();
+                      form.setValue('username', uniqueData.username);
+                      form.setValue('email', uniqueData.email);
+                      form.setValue('fullName', uniqueData.fullName);
+                      form.setValue('password', '123456');
+                      form.setValue('confirmPassword', '123456');
+                    }}
+                    disabled={registerMutation.isPending}
+                  >
+                    <UserPlus className="h-4 w-4 ml-1" />
+                    إنشاء حساب سريع (بيانات تلقائية)
+                  </Button>
+
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    disabled={registerMutation.isPending}
+                  >
+                    {registerMutation.isPending ? (
+                      <div className="flex items-center gap-2">
+                        <div className="h-4 w-4 animate-spin border border-white border-t-transparent rounded-full" />
+                        جاري إنشاء الحساب...
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <UserPlus className="h-4 w-4" />
+                        إنشاء حساب بالبيانات المدخلة
+                      </div>
+                    )}
+                  </Button>
+                </div>
               </form>
             </Form>
 
