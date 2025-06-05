@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { useLocation } from 'wouter';
 
 import { useTranslation } from '@/lib/translations';
 import { useAppStore } from '@/lib/store';
@@ -20,6 +21,7 @@ export default function TopBar() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const { t, language } = useTranslation();
   const { settings } = useAppStore();
+  const [, setLocation] = useLocation();
   
   // تفعيل نظام الإشعارات
   useNotificationSystem();
@@ -110,9 +112,9 @@ export default function TopBar() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem className="gap-2">
+              <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => setLocation('/profile')}>
                 <User className="h-4 w-4" />
-                {t('profile')}
+                الملف الشخصي
               </DropdownMenuItem>
               <DropdownMenuItem className="gap-2">
                 <Settings className="h-4 w-4" />
