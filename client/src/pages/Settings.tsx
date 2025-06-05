@@ -569,7 +569,7 @@ export default function Settings() {
         {/* إعدادات الأمان */}
         {canAccessSettings('security') && (
           <TabsContent value="security" className="space-y-6">
-          <Card>
+            <Card>
             <CardHeader>
               <CardTitle className="text-blue-600 dark:text-blue-400 flex items-center gap-2">
                 <Shield className="h-5 w-5" />
@@ -639,11 +639,13 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
+        )}
 
         {/* النسخ الاحتياطي */}
-        <TabsContent value="backup" className="space-y-6">
-          <Card>
+        {canAccessSettings('backup') && (
+          <TabsContent value="backup" className="space-y-6">
+            <Card>
             <CardHeader>
               <CardTitle className="text-blue-600 dark:text-blue-400 flex items-center gap-2">
                 <Database className="h-5 w-5" />
@@ -704,11 +706,13 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
+        )}
 
         {/* إعدادات الطباعة */}
-        <TabsContent value="printing" className="space-y-6">
-          <Card>
+        {canAccessSettings('printing') && (
+          <TabsContent value="printing" className="space-y-6">
+            <Card>
             <CardHeader>
               <CardTitle className="text-blue-600 dark:text-blue-400 flex items-center gap-2">
                 <Printer className="h-5 w-5" />
@@ -767,11 +771,13 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
+        )}
 
         {/* إعدادات الضرائب */}
-        <TabsContent value="taxes" className="space-y-6">
-          <Card>
+        {canAccessSettings('taxes') && (
+          <TabsContent value="taxes" className="space-y-6">
+            <Card>
             <CardHeader>
               <CardTitle className="text-blue-600 dark:text-blue-400 flex items-center gap-2">
                 <Calculator className="h-5 w-5" />
@@ -830,7 +836,8 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
