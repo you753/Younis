@@ -69,7 +69,8 @@ export default function Settings() {
               <Input 
                 id="appName" 
                 value={settings.appName}
-                onChange={(e) => updateSetting('appName', e.target.value)}
+                readOnly
+                className="bg-gray-50 dark:bg-gray-800"
               />
             </div>
             <div>
