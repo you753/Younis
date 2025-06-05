@@ -46,100 +46,130 @@ export default function SalesReports() {
         format: 'a4'
       });
 
-      // استخدام الخط الافتراضي فقط
-      doc.setFont('helvetica');
+      // معلومات الشركة في الأعلى
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
       
-      // رأس التقرير
-      doc.setFontSize(20);
-      doc.setTextColor(0, 50, 120);
-      doc.text('Sales Report', 105, 30, { align: 'center' });
+      // الجانب الأيسر - معلومات الشركة بالإنجليزية
+      doc.text('Al-Mohaseb Al-Azam Trading Est.', 20, 20);
+      doc.text('Kingdom Of Saudi Arabia', 20, 28);
+      doc.text('Jeddah District', 20, 36);
+      doc.text('VAT No: 311852766100003', 20, 44);
+      doc.text('Mobile: 0552490756', 20, 52);
       
-      // معلومات الشركة
-      doc.setFontSize(14);
-      doc.setTextColor(60, 60, 60);
-      doc.text('Al-Mohaseb Al-Azam Accounting System', 105, 45, { align: 'center' });
+      // الجانب الأيمن - معلومات الشركة بالعربية (كنص إنجليزي)
+      doc.text('Moassasat Fatima Abdul Al Hazmi', 120, 20);
+      doc.text('Al-Mamlaka Al-Arabiya Al-Saudiya', 120, 28);
+      doc.text('Mantiqat Jeddah', 120, 36);
+      doc.text('Raqam Dariba: 311852766100003', 120, 44);
+      doc.text('Hatif: 0552490756', 120, 52);
+      
+      // العنوان الرئيسي
+      doc.setFontSize(16);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Sales Report - Taqrir Al-Mabiat', 105, 70, { align: 'center' });
       
       // تاريخ التقرير
       doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
       const currentDate = new Date().toLocaleDateString();
-      doc.text(`Report Date: ${currentDate}`, 20, 60);
-      
-      // فترة التقرير
-      if (dateFrom || dateTo) {
-        const fromText = dateFrom ? `From: ${dateFrom}` : '';
-        const toText = dateTo ? `To: ${dateTo}` : '';
-        doc.text(`${fromText} ${toText}`, 20, 70);
-      }
+      doc.text(`Report Period: ${dateFrom || 'All'} - ${dateTo || 'All'}`, 105, 85, { align: 'center' });
       
       // خط فاصل
       doc.setLineWidth(0.5);
-      doc.setDrawColor(200, 200, 200);
-      doc.line(20, 80, 190, 80);
+      doc.setDrawColor(0, 0, 0);
+      doc.line(20, 95, 190, 95);
       
-      // الإحصائيات
-      doc.setFontSize(12);
-      doc.setTextColor(0, 0, 0);
-      doc.text('Sales Summary:', 20, 95);
-      
-      doc.setFontSize(10);
-      doc.text(`Total Sales: ${totalSales.toFixed(2)} SAR`, 30, 105);
-      doc.text(`Number of Transactions: ${filteredSales.length}`, 30, 115);
-      doc.text(`Average Sale: ${averageSale.toFixed(2)} SAR`, 30, 125);
-      
-      // جدول المبيعات
-      let yPosition = 145;
-      doc.setFontSize(12);
-      doc.text('Sales Details:', 20, yPosition);
-      
-      yPosition += 15;
+      // إعداد الجدول
+      let yPosition = 110;
       
       // رؤوس الجدول
       doc.setFillColor(240, 240, 240);
-      doc.rect(20, yPosition - 5, 170, 10, 'F');
+      doc.rect(20, yPosition - 8, 170, 15, 'F');
       
+      // إضافة حدود للجدول
+      doc.setLineWidth(0.3);
+      doc.setDrawColor(0, 0, 0);
+      
+      // رسم الحدود الخارجية للجدول
+      doc.rect(20, yPosition - 8, 170, 15);
+      
+      // الخطوط العمودية لرؤوس الأعمدة
+      const columnWidths = [25, 35, 50, 30, 30];
+      let xPos = 20;
+      columnWidths.forEach((width, index) => {
+        if (index > 0) {
+          doc.line(xPos, yPosition - 8, xPos, yPosition + 7);
+        }
+        xPos += width;
+      });
+      
+      // نص رؤوس الأعمدة
       doc.setFontSize(9);
       doc.setTextColor(0, 0, 0);
-      doc.text('Invoice#', 25, yPosition);
-      doc.text('Date', 60, yPosition);
-      doc.text('Client', 95, yPosition);
-      doc.text('Amount', 140, yPosition);
-      doc.text('Status', 170, yPosition);
+      doc.text('#', 22, yPosition);
+      doc.text('Invoice ID', 25, yPosition);
+      doc.text('Date', 55, yPosition);
+      doc.text('Client Name', 85, yPosition);
+      doc.text('Amount SAR', 135, yPosition);
+      doc.text('Status', 165, yPosition);
       
       yPosition += 15;
       
       // بيانات الجدول
       filteredSales.forEach((sale, index) => {
-        if (yPosition > 270) {
+        if (yPosition > 260) {
           doc.addPage();
           yPosition = 30;
         }
         
         const client = clients.find(c => c.id === sale.clientId);
         
-        doc.text(`#${sale.id}`, 25, yPosition);
-        doc.text(new Date(sale.date).toLocaleDateString(), 60, yPosition);
-        // تحويل النص العربي إلى ترميز آمن أو استخدام نسخة مبسطة
+        // رسم حدود الصف
+        doc.rect(20, yPosition - 8, 170, 12);
+        
+        // الخطوط العمودية
+        let xPos = 20;
+        columnWidths.forEach((width, colIndex) => {
+          if (colIndex > 0) {
+            doc.line(xPos, yPosition - 8, xPos, yPosition + 4);
+          }
+          xPos += width;
+        });
+        
+        // بيانات الصف
+        doc.setFontSize(8);
+        doc.text(`${index + 1}`, 22, yPosition);
+        doc.text(`INV-${sale.id.toString().padStart(4, '0')}`, 25, yPosition);
+        doc.text(new Date(sale.date).toLocaleDateString(), 55, yPosition);
+        
+        // اسم العميل (تحويل النص العربي)
         const clientName = client?.name || 'Cash Client';
-        const safeClientName = clientName.replace(/[\u0600-\u06FF]/g, '?').length > 5 ? 
-          `Client-${sale.clientId || 'Cash'}` : clientName;
-        doc.text(safeClientName, 95, yPosition);
-        doc.text(`${parseFloat(sale.total).toFixed(2)} SAR`, 140, yPosition);
-        doc.text('Completed', 170, yPosition);
+        const displayName = clientName.includes('لين') ? 'Leen Al-Arabia' :
+                           clientName.includes('عميل') ? 'Cash Customer' :
+                           `Client-${sale.clientId || 'CASH'}`;
+        doc.text(displayName, 85, yPosition);
         
-        yPosition += 10;
+        doc.text(`${parseFloat(sale.total).toFixed(2)}`, 135, yPosition);
+        doc.text('Completed', 165, yPosition);
         
-        // خط فاصل خفيف
-        if (index < filteredSales.length - 1) {
-          doc.setDrawColor(230, 230, 230);
-          doc.line(20, yPosition - 2, 190, yPosition - 2);
-        }
+        yPosition += 12;
       });
+      
+      // إجمالي المبيعات
+      yPosition += 10;
+      doc.setFillColor(250, 250, 250);
+      doc.rect(20, yPosition - 8, 170, 12, 'F');
+      doc.rect(20, yPosition - 8, 170, 12);
+      
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Total Sales:', 85, yPosition);
+      doc.text(`${totalSales.toFixed(2)} SAR`, 135, yPosition);
       
       // تذييل التقرير
       const pageHeight = doc.internal.pageSize.height;
       doc.setFontSize(8);
-      doc.setTextColor(150, 150, 150);
+      doc.setTextColor(100, 100, 100);
       doc.text('Generated by Al-Mohaseb Al-Azam System', 105, pageHeight - 20, { align: 'center' });
       doc.text(`Print Date: ${currentDate}`, 105, pageHeight - 10, { align: 'center' });
       
