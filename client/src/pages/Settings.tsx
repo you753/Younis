@@ -432,63 +432,14 @@ export default function Settings() {
               <CardDescription>إدارة صلاحيات وإعدادات المستخدمين</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="maxUsers">الحد الأقصى للمستخدمين</Label>
-                <Select value={systemSettings.maxUsers.toString()} onValueChange={(value) => handleSystemSettingsChange('maxUsers', parseInt(value))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10">10 مستخدمين</SelectItem>
-                    <SelectItem value="25">25 مستخدم</SelectItem>
-                    <SelectItem value="50">50 مستخدم</SelectItem>
-                    <SelectItem value="100">100 مستخدم</SelectItem>
-                    <SelectItem value="unlimited">غير محدود</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="userRegistration" className="text-sm font-medium">السماح بتسجيل المستخدمين الجدد</Label>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">السماح للمستخدمين الجدد بإنشاء حسابات</div>
-                </div>
-                <Switch
-                  id="userRegistration"
-                  checked={settings.userRegistration}
-                  onCheckedChange={(checked) => updateSetting('userRegistration', checked)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="emailVerification" className="text-sm font-medium">التحقق من البريد الإلكتروني</Label>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">طلب تأكيد البريد الإلكتروني عند التسجيل</div>
-                </div>
-                <Switch
-                  id="emailVerification"
-                  checked={settings.emailVerification}
-                  onCheckedChange={(checked) => updateSetting('emailVerification', checked)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="sessionTimeout">مهلة انتهاء الجلسة (بالدقائق)</Label>
-                <Select 
-                  value={settings.sessionTimeout.toString()} 
-                  onValueChange={(value) => updateSetting('sessionTimeout', parseInt(value))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="15">15 دقيقة</SelectItem>
-                    <SelectItem value="30">30 دقيقة</SelectItem>
-                    <SelectItem value="60">60 دقيقة</SelectItem>
-                    <SelectItem value="120">120 دقيقة</SelectItem>
-                    <SelectItem value="0">بدون انتهاء</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="text-center py-8">
+                <Users className="h-16 w-16 mx-auto text-slate-300 dark:text-slate-600 mb-4" />
+                <h3 className="text-lg font-medium text-slate-600 dark:text-slate-400 mb-2">
+                  إدارة المستخدمين المتقدمة
+                </h3>
+                <p className="text-slate-500 dark:text-slate-500 text-sm">
+                  يتم إدارة المستخدمين والصلاحيات من قبل مسؤول النظام
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -578,65 +529,17 @@ export default function Settings() {
               <CardDescription>حماية النظام والبيانات</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="twoFactor" className="text-sm font-medium">المصادقة الثنائية</Label>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">تفعيل التحقق بخطوتين</div>
-                </div>
-                <Switch
-                  id="twoFactor"
-                  checked={settings.twoFactor}
-                  onCheckedChange={(checked) => updateSetting('twoFactor', checked)}
-                />
+              <div className="text-center py-8">
+                <Shield className="h-16 w-16 mx-auto text-slate-300 dark:text-slate-600 mb-4" />
+                <h3 className="text-lg font-medium text-slate-600 dark:text-slate-400 mb-2">
+                  إعدادات الأمان المتقدمة
+                </h3>
+                <p className="text-slate-500 dark:text-slate-500 text-sm">
+                  يتم إدارة إعدادات الأمان من قبل مسؤول النظام
+                </p>
               </div>
 
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="forcePasswordChange" className="text-sm font-medium">إجبار تغيير كلمة المرور</Label>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">إجبار المستخدمين على تغيير كلمة المرور دورياً</div>
-                </div>
-                <Switch
-                  id="forcePasswordChange"
-                  checked={settings.forcePasswordChange}
-                  onCheckedChange={(checked) => updateSetting('forcePasswordChange', checked)}
-                />
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="minPasswordLength">الحد الأدنى لطول كلمة المرور</Label>
-                <Select 
-                  value={settings.minPasswordLength.toString()} 
-                  onValueChange={(value) => updateSetting('minPasswordLength', parseInt(value))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="6">6 أحرف</SelectItem>
-                    <SelectItem value="8">8 أحرف</SelectItem>
-                    <SelectItem value="10">10 أحرف</SelectItem>
-                    <SelectItem value="12">12 حرف</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="logRetention">مدة الاحتفاظ بالسجلات (يوم)</Label>
-                <Select 
-                  value={settings.logRetention.toString()} 
-                  onValueChange={(value) => updateSetting('logRetention', parseInt(value))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="7">أسبوع واحد</SelectItem>
-                    <SelectItem value="30">شهر واحد</SelectItem>
-                    <SelectItem value="90">3 أشهر</SelectItem>
-                    <SelectItem value="365">سنة واحدة</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </CardContent>
           </Card>
           </TabsContent>
