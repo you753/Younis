@@ -13,11 +13,16 @@ import { Badge } from '@/components/ui/badge';
 
 import { useTranslation } from '@/lib/translations';
 import { useAppStore } from '@/lib/store';
+import NotificationsDropdown from '@/components/NotificationsDropdown';
+import { useNotificationSystem } from '@/hooks/useNotificationSystem';
 
 export default function TopBar() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const { t, language } = useTranslation();
   const { settings } = useAppStore();
+  
+  // تفعيل نظام الإشعارات
+  useNotificationSystem();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -79,21 +84,7 @@ export default function TopBar() {
         {/* الإشعارات وإعدادات المستخدم */}
         <div className="flex items-center gap-4">
           {/* الإشعارات */}
-          <div className="relative">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-white dark:text-slate-200 hover:bg-white/10 dark:hover:bg-slate-700/50 relative"
-            >
-              <Bell className="h-5 w-5" />
-              <Badge 
-                variant="destructive" 
-                className="absolute -top-1 -right-1 h-5 w-5 text-xs p-0 flex items-center justify-center bg-red-500 hover:bg-red-600"
-              >
-                0
-              </Badge>
-            </Button>
-          </div>
+          <NotificationsDropdown />
 
           {/* حالة النظام */}
           <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-white/10 dark:bg-slate-700/50 rounded-full">
