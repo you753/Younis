@@ -207,12 +207,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get single product
+  app.get("/api/products/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const product = await storage.getProduct(id);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      res.json(product);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch product" });
+    }
+  });
+
   // Update product (including inventory adjustments)
   app.patch("/api/products/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const updateData = req.body;
       const product = await storage.updateProduct(id, updateData);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      res.json(product);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to update product" });
+    }
+  });
+
+  // Update product with full replacement
+  app.put("/api/products/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertProductSchema.parse(req.body);
+      const product = await storage.updateProduct(id, validatedData);
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
       }

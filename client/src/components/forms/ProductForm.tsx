@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { insertProductSchema, type InsertProduct } from '@shared/schema';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { insertProductSchema, type InsertProduct, type Product } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
 import { useNotification } from '@/hooks/useNotification';
 import { Button } from '@/components/ui/button';
@@ -10,10 +10,29 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Package, ScanBarcode } from 'lucide-react';
+import { useLocation } from 'wouter';
+import { useEffect } from 'react';
 
-export default function ProductForm() {
+interface ProductFormProps {
+  productId?: number | null;
+}
+
+export default function ProductForm({ productId }: ProductFormProps) {
   const { success, error } = useNotification();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
+
+  // Fetch product data if editing
+  const { data: productData, isLoading: isLoadingProduct } = useQuery<Product>({
+    queryKey: ['/api/products', productId],
+    queryFn: async () => {
+      if (!productId) return null;
+      const response = await fetch(`/api/products/${productId}`);
+      if (!response.ok) throw new Error('Failed to fetch product');
+      return response.json();
+    },
+    enabled: !!productId
+  });
 
   const form = useForm<InsertProduct>({
     resolver: zodResolver(insertProductSchema),
@@ -30,6 +49,23 @@ export default function ProductForm() {
     }
   });
 
+  // Update form when product data is loaded
+  useEffect(() => {
+    if (productData && productId) {
+      form.reset({
+        name: productData.name || '',
+        code: productData.code || '',
+        barcode: productData.barcode || '',
+        description: productData.description || '',
+        category: productData.category || '',
+        purchasePrice: productData.purchasePrice || '0',
+        salePrice: productData.salePrice || '0',
+        quantity: productData.quantity || 0,
+        minQuantity: productData.minQuantity || 0
+      });
+    }
+  }, [productData, productId, form]);
+
   const createProductMutation = useMutation({
     mutationFn: async (data: InsertProduct) => {
       const response = await apiRequest('POST', '/api/products', data);
@@ -39,19 +75,55 @@ export default function ProductForm() {
       queryClient.invalidateQueries({ queryKey: ['/api/products'] });
       success('تم إضافة الصنف بنجاح');
       form.reset();
+      setLocation('/products');
     },
     onError: () => {
       error('حدث خطأ أثناء إضافة الصنف');
     }
   });
 
+  const updateProductMutation = useMutation({
+    mutationFn: async (data: InsertProduct) => {
+      const response = await apiRequest('PUT', `/api/products/${productId}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+      success('تم تحديث الصنف بنجاح');
+      setLocation('/products');
+    },
+    onError: () => {
+      error('حدث خطأ أثناء تحديث الصنف');
+    }
+  });
+
   const onSubmit = (data: InsertProduct) => {
-    createProductMutation.mutate(data);
+    if (productId) {
+      updateProductMutation.mutate(data);
+    } else {
+      createProductMutation.mutate(data);
+    }
   };
+
+  if (isLoadingProduct && productId) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+        <div className="animate-pulse space-y-4">
+          <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+          <div className="space-y-2">
+            <div className="h-4 bg-gray-200 rounded"></div>
+            <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">إضافة صنف جديد</h3>
+      <h3 className="text-lg font-semibold text-gray-800 mb-4">
+        {productId ? 'تعديل الصنف' : 'إضافة صنف جديد'}
+      </h3>
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
