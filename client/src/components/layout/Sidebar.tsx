@@ -123,7 +123,7 @@ const navigationItems: NavItem[] = [
 
 export default function Sidebar() {
   const [location] = useLocation();
-  const { sidebarCollapsed, toggleSidebar } = useAppStore();
+  const { sidebarCollapsed, toggleSidebar, settings } = useAppStore();
   const [expandedItems, setExpandedItems] = useState<string[]>(['الموردين', 'العملاء', 'الأصناف', 'المشتريات', 'المبيعات', 'المخزون', 'الموظفين', 'التقارير']);
 
   const toggleExpanded = (title: string) => {
@@ -257,7 +257,7 @@ export default function Sidebar() {
         <div className="p-6 border-b border-white/20">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold">بوابة سوق البدو</h1>
+              <h1 className="text-xl font-bold">{settings.companyName || 'المحاسب الأعظم'}</h1>
               <p className="text-blue-200 text-sm mt-1">نظام المحاسبة الاحترافي</p>
             </div>
             <Button
