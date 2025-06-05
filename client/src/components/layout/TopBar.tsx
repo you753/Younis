@@ -147,7 +147,13 @@ export default function TopBar() {
                 {t('settings')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="gap-2 text-red-600">
+              <DropdownMenuItem 
+                className="gap-2 text-red-600 cursor-pointer"
+                onClick={() => {
+                  logout();
+                  window.location.reload(); // إعادة تحميل الصفحة للعودة لصفحة تسجيل الدخول
+                }}
+              >
                 <LogOut className="h-4 w-4" />
                 {t('logout')}
               </DropdownMenuItem>
