@@ -135,6 +135,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "اسم المستخدم أو كلمة المرور غير صحيحة" });
       }
 
+      // حفظ المستخدم في الجلسة
+      const authReq = req as AuthenticatedRequest;
+      authReq.session.userId = user.id;
+
       // إزالة كلمة المرور من الاستجابة
       const { password: _, ...safeUser } = user;
       res.json(safeUser);
