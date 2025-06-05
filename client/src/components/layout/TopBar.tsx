@@ -110,8 +110,8 @@ export default function TopBar() {
                 className="text-white dark:text-slate-200 hover:bg-white/10 dark:hover:bg-slate-700/50 gap-2"
               >
                 <div className="text-right hidden sm:block">
-                  <p className="text-sm font-medium">{t('adminUser')}</p>
-                  <p className="text-xs text-blue-200 dark:text-slate-400">admin@company.com</p>
+                  <p className="text-sm font-medium">{currentUser?.fullName || currentUser?.username || 'المستخدم'}</p>
+                  <p className="text-xs text-blue-200 dark:text-slate-400">{currentUser?.email || 'admin@company.com'}</p>
                 </div>
                 <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-500 dark:from-blue-500 dark:to-cyan-500 rounded-full flex items-center justify-center">
                   <User className="h-4 w-4 text-white" />
