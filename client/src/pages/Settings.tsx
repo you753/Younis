@@ -5,16 +5,74 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Settings as SettingsIcon, Save, Database, Building, Users, Lock, HardDrive } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Settings() {
   const { setCurrentPage } = useAppStore();
   const [location] = useLocation();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [settings, setSettings] = useState({
+    appName: 'المحاسب الأعظم',
+    companyName: 'المحاسب الأعظم',
+    companyEmail: 'info@almohaseb.com',
+    companyPhone: '+966 11 123 4567',
+    taxNumber: '300002471110003',
+    address: 'الرياض، المملكة العربية السعودية',
+    currency: 'ريال سعودي (ر.س)',
+    fiscalYear: '2025',
+    notifications: true,
+    autoSave: true,
+    userRegistration: false,
+    emailVerification: true,
+    sessionTimeout: 60,
+    maxUsers: 10,
+    debugMode: false,
+    maintenanceMode: false,
+    maxFileSize: 10,
+    logRetention: 30,
+    autoBackup: true,
+    backupTime: '02:00',
+    backupRetention: 30,
+    twoFactor: false,
+    forcePasswordChange: false,
+    minPasswordLength: 8,
+    maxLoginAttempts: 5
+  });
 
   useEffect(() => {
     setCurrentPage('إعدادات النظام');
   }, [setCurrentPage]);
+
+  const handleSaveSettings = async () => {
+    setIsLoading(true);
+    try {
+      // محاكاة حفظ الإعدادات
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast({
+        title: "تم حفظ الإعدادات",
+        description: "تم حفظ جميع الإعدادات بنجاح",
+      });
+    } catch (error) {
+      toast({
+        title: "خطأ في حفظ الإعدادات",
+        description: "حدث خطأ أثناء حفظ الإعدادات. حاول مرة أخرى.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSettingChange = (key: string, value: any) => {
+    setSettings(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
 
   // معالجة المحتوى بناء على المسار
   const getCurrentSection = () => {
@@ -42,7 +100,11 @@ export default function Settings() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="appName">اسم التطبيق</Label>
-              <Input id="appName" defaultValue="المحاسب الأعظم" />
+              <Input 
+                id="appName" 
+                value={settings.appName}
+                onChange={(e) => handleSettingChange('appName', e.target.value)}
+              />
             </div>
             <div>
               <Label htmlFor="version">إصدار النظام</Label>
@@ -54,14 +116,22 @@ export default function Settings() {
               <Label htmlFor="notifications">تفعيل الإشعارات</Label>
               <p className="text-sm text-gray-500">استقبال إشعارات النظام</p>
             </div>
-            <Switch id="notifications" defaultChecked />
+            <Switch 
+              id="notifications" 
+              checked={settings.notifications}
+              onCheckedChange={(checked) => handleSettingChange('notifications', checked)}
+            />
           </div>
           <div className="flex items-center justify-between">
             <div>
               <Label htmlFor="autoSave">الحفظ التلقائي</Label>
               <p className="text-sm text-gray-500">حفظ البيانات تلقائياً كل 5 دقائق</p>
             </div>
-            <Switch id="autoSave" defaultChecked />
+            <Switch 
+              id="autoSave" 
+              checked={settings.autoSave}
+              onCheckedChange={(checked) => handleSettingChange('autoSave', checked)}
+            />
           </div>
         </CardContent>
       </Card>
@@ -299,10 +369,14 @@ export default function Settings() {
 
       {/* Save Button */}
       <div className="flex justify-end space-x-4">
-        <Button variant="outline">إلغاء</Button>
-        <Button className="btn-accounting-primary">
+        <Button variant="outline" disabled={isLoading}>إلغاء</Button>
+        <Button 
+          className="btn-accounting-primary" 
+          onClick={handleSaveSettings}
+          disabled={isLoading}
+        >
           <Save className="ml-2 h-4 w-4" />
-          حفظ الإعدادات
+          {isLoading ? 'جاري الحفظ...' : 'حفظ الإعدادات'}
         </Button>
       </div>
     </div>
