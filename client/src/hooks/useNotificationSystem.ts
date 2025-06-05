@@ -1,219 +1,305 @@
-import { useEffect } from 'react';
-import { useAppStore } from '@/lib/store';
+import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useAppStore } from '@/lib/store';
 
-export interface SystemNotification {
+interface SystemNotification {
   id: string;
-  type: 'inventory' | 'financial' | 'sales' | 'system' | 'warning' | 'success';
+  type: 'low_stock' | 'out_of_stock' | 'loss' | 'profit' | 'new_sale' | 'system' | 'payment_due';
   title: string;
   message: string;
-  priority: 'low' | 'medium' | 'high' | 'critical';
   timestamp: Date;
+  priority: 'low' | 'medium' | 'high';
   read: boolean;
-  actionUrl?: string;
+  data?: any;
+}
+
+interface StockAlert {
+  productId: number;
+  productName: string;
+  currentStock: number;
+  minStock: number;
+}
+
+interface FinancialAlert {
+  type: 'loss' | 'profit';
+  amount: number;
+  description: string;
+  date: string;
 }
 
 export function useNotificationSystem() {
-  const { settings, showNotification } = useAppStore();
+  const { settings } = useAppStore();
+  const [notifications, setNotifications] = useState<SystemNotification[]>([]);
+  const [permissionGranted, setPermissionGranted] = useState(false);
+  const lastCheckRef = useRef<Date>(new Date());
 
-  // استعلام البيانات للتحقق من الحالات التي تستدعي إشعارات
+  // طلب إذن الإشعارات من المتصفح
+  useEffect(() => {
+    if (settings.notifications && 'Notification' in window) {
+      if (Notification.permission === 'default') {
+        Notification.requestPermission().then(permission => {
+          setPermissionGranted(permission === 'granted');
+          if (permission === 'granted') {
+            showBrowserNotification('المحاسب الأعظم', 'تم تفعيل إشعارات النظام بنجاح', 'system');
+          }
+        });
+      } else {
+        setPermissionGranted(Notification.permission === 'granted');
+      }
+    }
+  }, [settings.notifications]);
+
+  // مراقبة المخزون
   const { data: products } = useQuery({
     queryKey: ['/api/products'],
     enabled: settings.notifications,
     refetchInterval: 30000, // كل 30 ثانية
   });
 
+  // مراقبة المبيعات الجديدة
   const { data: sales } = useQuery({
     queryKey: ['/api/sales'],
+    enabled: settings.notifications,
+    refetchInterval: 15000, // كل 15 ثانية
+  });
+
+  // مراقبة البيانات المالية
+  const { data: dashboardStats } = useQuery({
+    queryKey: ['/api/dashboard/stats'],
     enabled: settings.notifications,
     refetchInterval: 60000, // كل دقيقة
   });
 
-  const { data: dashboardStats } = useQuery({
-    queryKey: ['/api/dashboard/stats'],
-    enabled: settings.notifications,
-    refetchInterval: 120000, // كل دقيقتين
-  });
-
-  // فحص المخزون المنخفض
+  // فحص نفاذ المخزون
   useEffect(() => {
-    if (!settings.notifications || !products) return;
-
-    const lowStockProducts = Array.isArray(products) ? products.filter((product: any) => 
-      product.quantity <= (product.minQuantity || 5)
-    ) : [];
-
-    lowStockProducts.forEach((product: any) => {
-      const notification: SystemNotification = {
-        id: `low-stock-${product.id}`,
-        type: 'inventory',
-        title: 'تحذير: مخزون منخفض',
-        message: `المنتج "${product.name}" وصل لحد الحد الأدنى (${product.quantity} متبقي)`,
-        priority: product.quantity === 0 ? 'critical' : 'high',
-        timestamp: new Date(),
-        read: false,
-        actionUrl: '/inventory'
-      };
-
-      sendNotification(notification);
-    });
-  }, [products, settings.notifications]);
-
-  // فحص الخسائر والمؤشرات المالية
-  useEffect(() => {
-    if (!settings.notifications || !sales || !dashboardStats) return;
-
-    // فحص إجمالي المبيعات اليومية
-    const today = new Date().toISOString().split('T')[0];
-    const todaySales = Array.isArray(sales) ? sales.filter((sale: any) => 
-      sale.date.startsWith(today)
-    ) : [];
-
-    const todayTotal = todaySales.reduce((sum: number, sale: any) => 
-      sum + parseFloat(sale.total), 0
-    );
-
-    // إشعار إذا كانت مبيعات اليوم أقل من المتوقع
-    const expectedDailyTarget = 1000; // يمكن جعله قابل للتخصيص
-    if (todayTotal < expectedDailyTarget * 0.5) {
-      const notification: SystemNotification = {
-        id: `low-sales-${today}`,
-        type: 'financial',
-        title: 'تنبيه: مبيعات منخفضة',
-        message: `مبيعات اليوم (${todayTotal.toFixed(2)} ر.س) أقل من المتوقع`,
-        priority: 'medium',
-        timestamp: new Date(),
-        read: false,
-        actionUrl: '/sales'
-      };
-
-      sendNotification(notification);
-    }
-
-    // فحص إجمالي الخسائر
-    const totalSales = (dashboardStats as any)?.totalSales ? parseFloat((dashboardStats as any).totalSales.replace(/[^\d.-]/g, '')) : 0;
-    const totalPurchases = (dashboardStats as any)?.totalPurchases ? parseFloat((dashboardStats as any).totalPurchases.replace(/[^\d.-]/g, '')) : 0;
-    const profit = totalSales - totalPurchases;
-
-    if (profit < 0) {
-      const notification: SystemNotification = {
-        id: `negative-profit`,
-        type: 'financial',
-        title: 'تحذير: خسائر مالية',
-        message: `إجمالي الخسائر: ${Math.abs(profit).toFixed(2)} ر.س`,
-        priority: 'critical',
-        timestamp: new Date(),
-        read: false,
-        actionUrl: '/reports'
-      };
-
-      sendNotification(notification);
-    }
-  }, [sales, dashboardStats, settings.notifications]);
-
-  // إشعارات المهام اليومية
-  useEffect(() => {
-    if (!settings.notifications) return;
-
-    const now = new Date();
-    const hour = now.getHours();
-
-    // إشعار بداية اليوم
-    if (hour === 9 && now.getMinutes() === 0) {
-      const notification: SystemNotification = {
-        id: `daily-start-${now.toDateString()}`,
-        type: 'system',
-        title: 'بداية يوم عمل جديد',
-        message: 'تحقق من المهام اليومية والتقارير',
-        priority: 'low',
-        timestamp: new Date(),
-        read: false,
-        actionUrl: '/dashboard'
-      };
-
-      sendNotification(notification);
-    }
-
-    // إشعار نهاية اليوم
-    if (hour === 18 && now.getMinutes() === 0) {
-      const notification: SystemNotification = {
-        id: `daily-end-${now.toDateString()}`,
-        type: 'system',
-        title: 'نهاية يوم العمل',
-        message: 'راجع تقرير المبيعات اليومي وأغلق الصندوق',
-        priority: 'medium',
-        timestamp: new Date(),
-        read: false,
-        actionUrl: '/reports'
-      };
-
-      sendNotification(notification);
-    }
-  }, [settings.notifications]);
-
-  const sendNotification = (notification: SystemNotification) => {
-    // تجنب الحلقة اللانهائية - عدم عرض إشعار داخلي
-    // showNotification(notification.message, notificationType);
-
-    // إرسال إشعار المتصفح إذا كان مدعوماً ومسموحاً
-    if ('Notification' in window && Notification.permission === 'granted') {
-      const browserNotification = new Notification(notification.title, {
-        body: notification.message,
-        icon: '/favicon.ico',
-        badge: '/favicon.ico',
-        tag: notification.id,
-        requireInteraction: notification.priority === 'critical',
-        silent: notification.priority === 'low'
+    if (products && Array.isArray(products) && settings.notifications) {
+      const lowStockProducts = products.filter((product: any) => {
+        const minStock = product.minStock || 10;
+        return product.stock <= minStock && product.stock > 0;
       });
 
-      // إغلاق الإشعار تلقائياً بعد 5 ثواني (إلا إذا كان حرجاً)
-      if (notification.priority !== 'critical') {
-        setTimeout(() => browserNotification.close(), 5000);
+      const outOfStockProducts = products.filter((product: any) => {
+        return product.stock <= 0;
+      });
+
+      // إشعارات المخزون المنخفض
+      lowStockProducts.forEach((product: any) => {
+        const existingNotification = notifications.find(
+          n => n.type === 'low_stock' && n.data?.productId === product.id
+        );
+
+        if (!existingNotification) {
+          const notification: SystemNotification = {
+            id: `low_stock_${product.id}_${Date.now()}`,
+            type: 'low_stock',
+            title: 'تحذير: مخزون منخفض',
+            message: `المنتج "${product.name}" أوشك على النفاد. الكمية المتبقية: ${product.stock}`,
+            timestamp: new Date(),
+            priority: 'medium',
+            read: false,
+            data: { productId: product.id, productName: product.name, stock: product.stock }
+          };
+
+          addNotification(notification);
+          showBrowserNotification(notification.title, notification.message, 'low_stock');
+        }
+      });
+
+      // إشعارات المخزون المنتهي
+      outOfStockProducts.forEach((product: any) => {
+        const existingNotification = notifications.find(
+          n => n.type === 'out_of_stock' && n.data?.productId === product.id
+        );
+
+        if (!existingNotification) {
+          const notification: SystemNotification = {
+            id: `out_of_stock_${product.id}_${Date.now()}`,
+            type: 'out_of_stock',
+            title: 'تحذير: نفاذ المخزون',
+            message: `المنتج "${product.name}" نفذ من المخزون تماماً!`,
+            timestamp: new Date(),
+            priority: 'high',
+            read: false,
+            data: { productId: product.id, productName: product.name }
+          };
+
+          addNotification(notification);
+          showBrowserNotification(notification.title, notification.message, 'out_of_stock');
+        }
+      });
+    }
+  }, [products, settings.notifications]);
+
+  // فحص المبيعات الجديدة
+  useEffect(() => {
+    if (sales && Array.isArray(sales) && settings.notifications) {
+      const recentSales = sales.filter((sale: any) => {
+        const saleDate = new Date(sale.date);
+        return saleDate > lastCheckRef.current;
+      });
+
+      recentSales.forEach((sale: any) => {
+        const notification: SystemNotification = {
+          id: `new_sale_${sale.id}_${Date.now()}`,
+          type: 'new_sale',
+          title: 'مبيعة جديدة',
+          message: `تم إتمام مبيعة بقيمة ${sale.total} ر.س`,
+          timestamp: new Date(),
+          priority: 'low',
+          read: false,
+          data: { saleId: sale.id, amount: sale.total }
+        };
+
+        addNotification(notification);
+        showBrowserNotification(notification.title, notification.message, 'new_sale');
+      });
+
+      lastCheckRef.current = new Date();
+    }
+  }, [sales, settings.notifications]);
+
+  // مراقبة الخسائر والأرباح
+  useEffect(() => {
+    if (dashboardStats && settings.notifications) {
+      const totalSales = parseFloat((dashboardStats as any)?.totalSales || '0');
+      const totalPurchases = parseFloat((dashboardStats as any)?.totalPurchases || '0');
+      const profit = totalSales - totalPurchases;
+
+      // إشعار عند تحقيق ربح كبير
+      if (profit > 10000) {
+        const existingNotification = notifications.find(
+          n => n.type === 'profit' && new Date(n.timestamp).toDateString() === new Date().toDateString()
+        );
+
+        if (!existingNotification) {
+          const notification: SystemNotification = {
+            id: `profit_${Date.now()}`,
+            type: 'profit',
+            title: 'تحقيق أرباح ممتازة',
+            message: `تم تحقيق ربح إجمالي قدره ${profit.toFixed(2)} ر.س اليوم`,
+            timestamp: new Date(),
+            priority: 'medium',
+            read: false,
+            data: { profit: profit }
+          };
+
+          addNotification(notification);
+          showBrowserNotification(notification.title, notification.message, 'profit');
+        }
       }
 
-      // التنقل للصفحة المناسبة عند النقر
-      browserNotification.onclick = () => {
-        window.focus();
-        if (notification.actionUrl) {
-          window.location.hash = notification.actionUrl;
+      // إشعار عند الخسائر
+      if (profit < -1000) {
+        const existingNotification = notifications.find(
+          n => n.type === 'loss' && new Date(n.timestamp).toDateString() === new Date().toDateString()
+        );
+
+        if (!existingNotification) {
+          const notification: SystemNotification = {
+            id: `loss_${Date.now()}`,
+            type: 'loss',
+            title: 'تحذير: خسائر مالية',
+            message: `تم تسجيل خسارة بقيمة ${Math.abs(profit).toFixed(2)} ر.س اليوم`,
+            timestamp: new Date(),
+            priority: 'high',
+            read: false,
+            data: { loss: Math.abs(profit) }
+          };
+
+          addNotification(notification);
+          showBrowserNotification(notification.title, notification.message, 'loss');
         }
-        browserNotification.close();
+      }
+    }
+  }, [dashboardStats, settings.notifications]);
+
+  // إضافة إشعار جديد
+  const addNotification = (notification: SystemNotification) => {
+    setNotifications(prev => [notification, ...prev].slice(0, 50)); // الاحتفاظ بآخر 50 إشعار
+    
+    // حفظ في localStorage
+    const savedNotifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+    const updatedNotifications = [notification, ...savedNotifications].slice(0, 50);
+    localStorage.setItem('notifications', JSON.stringify(updatedNotifications));
+  };
+
+  // عرض إشعار المتصفح
+  const showBrowserNotification = (title: string, body: string, type: string) => {
+    if (permissionGranted && settings.notifications) {
+      const notification = new Notification(title, {
+        body,
+        icon: '/favicon.ico',
+        badge: '/favicon.ico',
+        tag: type,
+        requireInteraction: type === 'out_of_stock' || type === 'loss', // يتطلب تفاعل للإشعارات المهمة
+        silent: false
+      });
+
+      // إغلاق الإشعار تلقائياً بعد 10 ثوان للإشعارات العادية
+      if (type !== 'out_of_stock' && type !== 'loss') {
+        setTimeout(() => {
+          notification.close();
+        }, 10000);
+      }
+
+      // التفاعل مع الإشعار
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+        
+        // توجيه المستخدم لصفحة ذات صلة
+        if (type === 'low_stock' || type === 'out_of_stock') {
+          window.location.href = '/inventory';
+        } else if (type === 'new_sale') {
+          window.location.href = '/sales';
+        } else if (type === 'loss' || type === 'profit') {
+          window.location.href = '/reports/financial';
+        }
       };
     }
+  };
 
-    // حفظ الإشعار في localStorage للمراجعة لاحقاً
-    const existingNotifications = JSON.parse(
-      localStorage.getItem('systemNotifications') || '[]'
+  // تحميل الإشعارات المحفوظة عند البدء
+  useEffect(() => {
+    const savedNotifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+    setNotifications(savedNotifications);
+  }, []);
+
+  // وضع علامة كمقروء
+  const markAsRead = (notificationId: string) => {
+    setNotifications(prev => 
+      prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
     );
     
-    const updatedNotifications = [
-      notification,
-      ...existingNotifications.slice(0, 49) // الاحتفاظ بآخر 50 إشعار
-    ];
-    
-    localStorage.setItem('systemNotifications', JSON.stringify(updatedNotifications));
-  };
-
-  const getStoredNotifications = (): SystemNotification[] => {
-    return JSON.parse(localStorage.getItem('systemNotifications') || '[]');
-  };
-
-  const markNotificationAsRead = (notificationId: string) => {
-    const notifications = getStoredNotifications();
-    const updatedNotifications = notifications.map(n =>
+    const savedNotifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+    const updatedNotifications = savedNotifications.map((n: SystemNotification) => 
       n.id === notificationId ? { ...n, read: true } : n
     );
-    localStorage.setItem('systemNotifications', JSON.stringify(updatedNotifications));
+    localStorage.setItem('notifications', JSON.stringify(updatedNotifications));
   };
 
+  // مسح جميع الإشعارات
   const clearAllNotifications = () => {
-    localStorage.removeItem('systemNotifications');
+    setNotifications([]);
+    localStorage.removeItem('notifications');
   };
+
+  // مسح الإشعارات المقروءة
+  const clearReadNotifications = () => {
+    const unreadNotifications = notifications.filter(n => !n.read);
+    setNotifications(unreadNotifications);
+    localStorage.setItem('notifications', JSON.stringify(unreadNotifications));
+  };
+
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   return {
-    sendNotification,
-    getStoredNotifications,
-    markNotificationAsRead,
-    clearAllNotifications
+    notifications,
+    unreadCount,
+    addNotification,
+    markAsRead,
+    clearAllNotifications,
+    clearReadNotifications,
+    permissionGranted
   };
 }
