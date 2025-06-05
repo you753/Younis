@@ -110,6 +110,7 @@ export default function Profile() {
         username: currentUser.username || '',
         email: currentUser.email || '',
         fullName: currentUser.fullName || '',
+        profession: (currentUser as any).profession || '',
         phone: currentUser.phone || '',
         address: currentUser.address || '',
         bio: currentUser.bio || '',
@@ -286,6 +287,24 @@ export default function Profile() {
                       )}
                     />
                   </div>
+
+                  <FormField
+                    control={form.control}
+                    name="profession"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>المهنة</FormLabel>
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            disabled={!isEditing}
+                            placeholder="أدخل مهنتك"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <FormField
                     control={form.control}
