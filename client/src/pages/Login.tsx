@@ -23,7 +23,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [, setLocation] = useLocation();
   const { success, error } = useNotification();
-  const { setUser } = useAppStore();
+  const { login } = useAuth();
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -52,10 +52,7 @@ export default function Login() {
     },
     onSuccess: (userData) => {
       success('تم تسجيل الدخول بنجاح');
-      setUser({
-        name: userData.fullName || userData.username,
-        email: userData.email
-      });
+      login(userData);
       setLocation('/');
     },
     onError: (errorMsg: Error) => {

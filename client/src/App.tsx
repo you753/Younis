@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Layout from "@/components/layout/Layout";
+import { useAuth } from "@/hooks/useAuth";
 import Dashboard from "@/pages/Dashboard";
 import Users from "@/pages/Users";
 import Suppliers from "@/pages/Suppliers";
@@ -36,6 +37,29 @@ import TaxCalculator from "@/pages/TaxCalculator";
 import Profile from "@/pages/Profile";
 
 function Router() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  // عرض شاشة التحميل أثناء التحقق من المصادقة
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl mb-4">
+            <div className="h-8 w-8 animate-spin border-2 border-white border-t-transparent rounded-full" />
+          </div>
+          <h1 className="text-xl font-bold text-gray-900 mb-2">المحاسب الأعظم</h1>
+          <p className="text-gray-600">جاري التحقق من الصلاحيات...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // إذا لم يكن المستخدم مسجل دخول، عرض صفحة تسجيل الدخول
+  if (!isAuthenticated) {
+    return <Login />;
+  }
+
+  // إذا كان المستخدم مسجل دخول، عرض النظام الكامل
   return (
     <Layout>
       <Switch>
