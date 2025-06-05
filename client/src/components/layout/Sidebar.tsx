@@ -127,11 +127,15 @@ export default function Sidebar() {
   const [expandedItems, setExpandedItems] = useState<string[]>(['الموردين', 'العملاء', 'الأصناف', 'المشتريات', 'المبيعات', 'المخزون', 'الموظفين', 'التقارير']);
 
   const toggleExpanded = (title: string) => {
-    setExpandedItems(prev => 
-      prev.includes(title) 
-        ? prev.filter(item => item !== title)
-        : [...prev, title]
-    );
+    setExpandedItems(prev => {
+      if (prev.includes(title)) {
+        // إغلاق القائمة إذا كانت مفتوحة
+        return prev.filter(item => item !== title);
+      } else {
+        // إغلاق جميع القوائم الأخرى وفتح القائمة الجديدة فقط
+        return [title];
+      }
+    });
   };
 
   const isActive = (href?: string) => {
