@@ -197,8 +197,9 @@ export default function Settings() {
         </TabsList>
 
         {/* الإعدادات العامة */}
-        <TabsContent value="general" className="space-y-6">
-          <Card>
+        {canAccessSettings('general') && (
+          <TabsContent value="general" className="space-y-6">
+            <Card>
             <CardHeader>
               <CardTitle className="text-blue-600 dark:text-blue-400">الإعدادات العامة</CardTitle>
               <CardDescription>الإعدادات الأساسية للنظام</CardDescription>
@@ -262,11 +263,13 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
+        )}
 
         {/* معلومات الشركة */}
-        <TabsContent value="company" className="space-y-6">
-          <Card>
+        {canAccessSettings('company') && (
+          <TabsContent value="company" className="space-y-6">
+            <Card>
             <CardHeader>
               <CardTitle className="text-blue-600 dark:text-blue-400 flex items-center gap-2">
                 <Building2 className="h-5 w-5" />
@@ -414,11 +417,13 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
+        )}
 
         {/* إعدادات المستخدمين */}
-        <TabsContent value="users" className="space-y-6">
-          <Card>
+        {canAccessSettings('users') && (
+          <TabsContent value="users" className="space-y-6">
+            <Card>
             <CardHeader>
               <CardTitle className="text-blue-600 dark:text-blue-400 flex items-center gap-2">
                 <Users className="h-5 w-5" />
@@ -487,11 +492,13 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
+        )}
 
         {/* إعدادات النظام */}
-        <TabsContent value="system" className="space-y-6">
-          <Card>
+        {canAccessSettings('system') && (
+          <TabsContent value="system" className="space-y-6">
+            <Card>
             <CardHeader>
               <CardTitle className="text-blue-600 dark:text-blue-400 flex items-center gap-2">
                 <Monitor className="h-5 w-5" />
@@ -556,10 +563,12 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
+        )}
 
         {/* إعدادات الأمان */}
-        <TabsContent value="security" className="space-y-6">
+        {canAccessSettings('security') && (
+          <TabsContent value="security" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="text-blue-600 dark:text-blue-400 flex items-center gap-2">
