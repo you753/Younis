@@ -140,7 +140,7 @@ export default function TopBar() {
                 <User className="h-4 w-4" />
                 الملف الشخصي
               </DropdownMenuItem>
-              <DropdownMenuItem className="gap-2">
+              <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => setLocation('/settings')}>
                 <Settings className="h-4 w-4" />
                 {t('settings')}
               </DropdownMenuItem>

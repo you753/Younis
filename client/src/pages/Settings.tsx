@@ -1,686 +1,454 @@
 import { useState, useEffect } from 'react';
-import { useLocation } from 'wouter';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAppStore } from '@/lib/store';
-import { useTranslation } from '@/lib/translations';
 import { 
-  Building2, Phone, Mail, MapPin, CreditCard, Globe, FileText, Save, 
-  Settings as SettingsIcon, Users, Shield, Database, Printer, 
-  Calculator, Clock, Monitor, HardDrive, Download, Upload
+  Settings as SettingsIcon, 
+  Bell, 
+  Globe, 
+  Shield, 
+  Database, 
+  Palette,
+  Save,
+  RefreshCw,
+  Monitor,
+  Moon,
+  Sun
 } from 'lucide-react';
+import { useAppStore } from '@/lib/store';
+import { useNotification } from '@/hooks/useNotification';
+
+const settingsSchema = z.object({
+  companyName: z.string().min(2, 'اسم الشركة يجب أن يكون أكثر من حرفين'),
+  companyAddress: z.string().optional(),
+  companyPhone: z.string().optional(),
+  companyEmail: z.string().email().optional().or(z.literal('')),
+  taxNumber: z.string().optional(),
+  currency: z.string().min(1, 'العملة مطلوبة'),
+  language: z.string().min(1, 'اللغة مطلوبة'),
+  theme: z.string().min(1, 'المظهر مطلوب'),
+  notifications: z.boolean(),
+  emailNotifications: z.boolean(),
+  lowStockAlerts: z.boolean(),
+  autoBackup: z.boolean(),
+});
+
+type SettingsFormData = z.infer<typeof settingsSchema>;
 
 export default function Settings() {
-  const { settings, updateSetting, canAccessSettings, user } = useAppStore();
-  const { t } = useTranslation();
-  const [location] = useLocation();
-
-  // معلومات الشركة
-  const [companyInfo, setCompanyInfo] = useState({
-    name: 'المحاسب الأعظم للأنظمة المالية',
-    commercialRecord: '1010123456',
-    taxNumber: '310123456700003',
-    phone: '+966 11 234 5678',
-    mobile: '+966 50 123 4567',
-    email: 'info@almohasebalaazam.com',
-    website: 'www.almohasebalaazam.com',
-    address: 'طريق الملك فهد، الرياض 12345، المملكة العربية السعودية',
-    city: 'الرياض',
-    postalCode: '12345',
-    country: 'المملكة العربية السعودية',
-    bankName: 'البنك الأهلي السعودي',
-    bankAccount: 'SA03 1000 0012 3456 7890 1234',
-    iban: 'SA03 1000 0012 3456 7890 1234',
-    swiftCode: 'NCBKSARI',
-    capital: '10,000,000',
-    currency: 'ريال سعودي',
-    established: '2020',
-    employees: '150+',
-    branches: '5',
-    description: 'شركة رائدة في مجال الأنظمة المحاسبية والمالية، نقدم حلولاً متكاملة للشركات والمؤسسات لإدارة أعمالها المالية بكفاءة عالية.'
-  });
-
-  // إعدادات النظام
-  const [systemSettings, setSystemSettings] = useState({
-    enableMaintenance: false,
-    debugMode: false,
-    performanceMode: true,
-    cacheEnabled: true,
-    logLevel: 'info',
-    maxUsers: 100,
-    sessionTimeout: 60,
-    autoUpdate: true,
-    backupFrequency: 'daily',
-    dataRetention: 365
-  });
-
-  // إعدادات الأمان
-  const [securitySettings, setSecuritySettings] = useState({
-    twoFactorAuth: false,
-    passwordPolicy: true,
-    loginAttempts: 3,
-    sessionSecurity: true,
-    encryptionEnabled: true,
-    auditLog: true,
-    ipWhitelist: false,
-    sslRequired: true
-  });
-
-  // إعدادات الطباعة
-  const [printSettings, setPrintSettings] = useState({
-    defaultPrinter: 'system',
-    paperSize: 'A4',
-    orientation: 'portrait',
-    margins: '2cm',
-    logoPosition: 'top-right',
-    footerText: 'تم الإنشاء بواسطة المحاسب الأعظم',
-    printColors: true,
-    watermark: false
-  });
-
-  // تحديد التبويب النشط بناءً على URL
-  const getActiveTab = () => {
-    if (location.includes('/company')) return 'company';
-    if (location.includes('/users')) return 'users';
-    if (location.includes('/system')) return 'system';
-    if (location.includes('/security')) return 'security';
-    if (location.includes('/backup')) return 'backup';
-    if (location.includes('/printing')) return 'printing';
-    if (location.includes('/taxes')) return 'taxes';
-    return 'general';
-  };
-
-  const [activeTab, setActiveTab] = useState(getActiveTab());
+  const { setCurrentPage } = useAppStore();
+  const { success, error } = useNotification();
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    setActiveTab(getActiveTab());
-  }, [location]);
+    setCurrentPage('الإعدادات');
+  }, [setCurrentPage]);
 
-  const handleCompanyInfoChange = (field: string, value: string) => {
-    setCompanyInfo(prev => ({ ...prev, [field]: value }));
-    if (field === 'name') {
-      updateSetting('companyName', value);
+  const form = useForm<SettingsFormData>({
+    resolver: zodResolver(settingsSchema),
+    defaultValues: {
+      companyName: 'شركة المحاسب الأعظم',
+      companyAddress: '',
+      companyPhone: '',
+      companyEmail: '',
+      taxNumber: '',
+      currency: 'SAR',
+      language: 'ar',
+      theme: 'light',
+      notifications: true,
+      emailNotifications: false,
+      lowStockAlerts: true,
+      autoBackup: true,
+    }
+  });
+
+  const onSubmit = async (data: SettingsFormData) => {
+    setIsSaving(true);
+    try {
+      // محاكاة حفظ الإعدادات
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      success('تم حفظ الإعدادات بنجاح');
+    } catch (err) {
+      error('حدث خطأ أثناء حفظ الإعدادات');
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const handleSystemSettingsChange = (field: string, value: any) => {
-    setSystemSettings(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleSecuritySettingsChange = (field: string, value: any) => {
-    setSecuritySettings(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handlePrintSettingsChange = (field: string, value: any) => {
-    setPrintSettings(prev => ({ ...prev, [field]: value }));
-  };
-
-  const saveSettings = () => {
-    localStorage.setItem('companyInfo', JSON.stringify(companyInfo));
-    localStorage.setItem('systemSettings', JSON.stringify(systemSettings));
-    localStorage.setItem('securitySettings', JSON.stringify(securitySettings));
-    localStorage.setItem('printSettings', JSON.stringify(printSettings));
-    alert('تم حفظ جميع الإعدادات بنجاح');
-  };
-
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
+      {/* رأس الصفحة */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">الإعدادات</h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-2">إدارة وتخصيص إعدادات النظام</p>
+          <h2 className="text-2xl font-bold text-gray-900">الإعدادات</h2>
+          <p className="text-gray-600">إدارة إعدادات النظام والشركة</p>
         </div>
-        <Button onClick={saveSettings} className="bg-blue-600 hover:bg-blue-700">
-          <Save className="h-4 w-4 mr-2" />
-          حفظ جميع الإعدادات
+        
+        <Button 
+          onClick={form.handleSubmit(onSubmit)} 
+          disabled={isSaving}
+          className="btn-accounting-primary"
+        >
+          {isSaving ? (
+            <RefreshCw className="ml-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Save className="ml-2 h-4 w-4" />
+          )}
+          حفظ الإعدادات
         </Button>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className={`grid w-full ${canAccessSettings('system') ? 'grid-cols-4 lg:grid-cols-8' : 'grid-cols-2 lg:grid-cols-4'}`}>
-          {canAccessSettings('general') && (
-            <TabsTrigger value="general" className="flex items-center gap-2">
-              <SettingsIcon className="h-4 w-4" />
-              عام
-            </TabsTrigger>
-          )}
-          {canAccessSettings('company') && (
-            <TabsTrigger value="company" className="flex items-center gap-2">
-              <Building2 className="h-4 w-4" />
-              الشركة
-            </TabsTrigger>
-          )}
-
-          {canAccessSettings('system') && (
-            <TabsTrigger value="system" className="flex items-center gap-2">
-              <Monitor className="h-4 w-4" />
-              النظام
-            </TabsTrigger>
-          )}
-
-          {canAccessSettings('backup') && (
-            <TabsTrigger value="backup" className="flex items-center gap-2">
-              <Database className="h-4 w-4" />
-              النسخ الاحتياطي
-            </TabsTrigger>
-          )}
-          {canAccessSettings('printing') && (
-            <TabsTrigger value="printing" className="flex items-center gap-2">
-              <Printer className="h-4 w-4" />
-              الطباعة
-            </TabsTrigger>
-          )}
-          {canAccessSettings('taxes') && (
-            <TabsTrigger value="taxes" className="flex items-center gap-2">
-              <Calculator className="h-4 w-4" />
-              الضرائب
-            </TabsTrigger>
-          )}
+      <Tabs defaultValue="company" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="company" className="gap-2">
+            <SettingsIcon className="h-4 w-4" />
+            بيانات الشركة
+          </TabsTrigger>
+          <TabsTrigger value="system" className="gap-2">
+            <Monitor className="h-4 w-4" />
+            النظام
+          </TabsTrigger>
+          <TabsTrigger value="notifications" className="gap-2">
+            <Bell className="h-4 w-4" />
+            الإشعارات
+          </TabsTrigger>
+          <TabsTrigger value="security" className="gap-2">
+            <Shield className="h-4 w-4" />
+            الأمان
+          </TabsTrigger>
         </TabsList>
 
-        {/* الإعدادات العامة */}
-        {canAccessSettings('general') && (
-          <TabsContent value="general" className="space-y-6">
-            <Card>
-            <CardHeader>
-              <CardTitle className="text-blue-600 dark:text-blue-400">الإعدادات العامة</CardTitle>
-              <CardDescription>الإعدادات الأساسية للنظام</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="appName" className="text-sm font-medium">اسم التطبيق</Label>
-                <div className="px-3 py-2 bg-slate-100 dark:bg-slate-800 border rounded-md text-slate-700 dark:text-slate-300">
-                  {settings.appName}
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400">اسم التطبيق ثابت ولا يمكن تغييره</p>
-              </div>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            
+            {/* بيانات الشركة */}
+            <TabsContent value="company" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <SettingsIcon className="h-5 w-5" />
+                    معلومات الشركة
+                  </CardTitle>
+                  <CardDescription>
+                    البيانات الأساسية للشركة التي ستظهر في الفواتير والتقارير
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="companyName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>اسم الشركة *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="اسم الشركة" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              <div className="space-y-2">
-                <Label htmlFor="language" className="text-sm font-medium">لغة النظام</Label>
-                <Select value={settings.language} onValueChange={(value) => updateSetting('language', value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ar">العربية</SelectItem>
-                    <SelectItem value="en">English</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                    <FormField
+                      control={form.control}
+                      name="taxNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>الرقم الضريبي</FormLabel>
+                          <FormControl>
+                            <Input placeholder="الرقم الضريبي" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="darkMode" className="text-sm font-medium">الوضع الليلي</Label>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">تفعيل المظهر الداكن للنظام</div>
-                </div>
-                <Switch
-                  id="darkMode"
-                  checked={settings.darkMode}
-                  onCheckedChange={(checked) => updateSetting('darkMode', checked)}
-                />
-              </div>
+                    <FormField
+                      control={form.control}
+                      name="companyPhone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>رقم الهاتف</FormLabel>
+                          <FormControl>
+                            <Input placeholder="رقم هاتف الشركة" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="notifications" className="text-sm font-medium">الإشعارات</Label>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">تفعيل إشعارات النظام</div>
-                </div>
-                <Switch
-                  id="notifications"
-                  checked={settings.notifications}
-                  onCheckedChange={(checked) => updateSetting('notifications', checked)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="autoSave" className="text-sm font-medium">الحفظ التلقائي</Label>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">حفظ البيانات تلقائياً كل 5 دقائق</div>
-                </div>
-                <Switch
-                  id="autoSave"
-                  checked={settings.autoSave}
-                  onCheckedChange={(checked) => updateSetting('autoSave', checked)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-          </TabsContent>
-        )}
-
-        {/* معلومات الشركة */}
-        {canAccessSettings('company') && (
-          <TabsContent value="company" className="space-y-6">
-            <Card>
-            <CardHeader>
-              <CardTitle className="text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                <Building2 className="h-5 w-5" />
-                معلومات الشركة
-              </CardTitle>
-              <CardDescription>إدارة وتحديث معلومات الشركة والبيانات الأساسية</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-8">
-              {/* المعلومات الأساسية */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <Building2 className="h-4 w-4 text-blue-600" />
-                  <Label className="text-base font-semibold">المعلومات الأساسية</Label>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="companyName">اسم الشركة</Label>
-                    <Input
-                      id="companyName"
-                      value={companyInfo.name}
-                      onChange={(e) => handleCompanyInfoChange('name', e.target.value)}
-                      className="font-medium"
+                    <FormField
+                      control={form.control}
+                      name="companyEmail"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>البريد الإلكتروني</FormLabel>
+                          <FormControl>
+                            <Input placeholder="البريد الإلكتروني للشركة" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="commercialRecord">السجل التجاري</Label>
-                    <Input
-                      id="commercialRecord"
-                      value={companyInfo.commercialRecord}
-                      onChange={(e) => handleCompanyInfoChange('commercialRecord', e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="taxNumber">الرقم الضريبي</Label>
-                    <Input
-                      id="taxNumber"
-                      value={companyInfo.taxNumber}
-                      onChange={(e) => handleCompanyInfoChange('taxNumber', e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="established">سنة التأسيس</Label>
-                    <Input
-                      id="established"
-                      value={companyInfo.established}
-                      onChange={(e) => handleCompanyInfoChange('established', e.target.value)}
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="description">وصف الشركة</Label>
-                  <Textarea
-                    id="description"
-                    value={companyInfo.description}
-                    onChange={(e) => handleCompanyInfoChange('description', e.target.value)}
-                    rows={3}
-                    className="resize-none"
+
+                  <FormField
+                    control={form.control}
+                    name="companyAddress"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>عنوان الشركة</FormLabel>
+                        <FormControl>
+                          <Input placeholder="العنوان الكامل للشركة" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-              </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-              <Separator />
+            {/* إعدادات النظام */}
+            <TabsContent value="system" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Monitor className="h-5 w-5" />
+                    إعدادات النظام
+                  </CardTitle>
+                  <CardDescription>
+                    تخصيص مظهر وسلوك النظام
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="language"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>اللغة</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="اختر اللغة" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="ar">العربية</SelectItem>
+                              <SelectItem value="en">English</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              {/* معلومات الاتصال */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <Phone className="h-4 w-4 text-blue-600" />
-                  <Label className="text-base font-semibold">معلومات الاتصال</Label>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">الهاتف الثابت</Label>
-                    <Input
-                      id="phone"
-                      value={companyInfo.phone}
-                      onChange={(e) => handleCompanyInfoChange('phone', e.target.value)}
+                    <FormField
+                      control={form.control}
+                      name="currency"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>العملة</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="اختر العملة" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="SAR">ريال سعودي (SAR)</SelectItem>
+                              <SelectItem value="USD">دولار أمريكي (USD)</SelectItem>
+                              <SelectItem value="EUR">يورو (EUR)</SelectItem>
+                              <SelectItem value="AED">درهم إماراتي (AED)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="theme"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>المظهر</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="اختر المظهر" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="light">فاتح</SelectItem>
+                              <SelectItem value="dark">داكن</SelectItem>
+                              <SelectItem value="auto">تلقائي</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                   </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* إعدادات الإشعارات */}
+            <TabsContent value="notifications" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Bell className="h-5 w-5" />
+                    إعدادات الإشعارات
+                  </CardTitle>
+                  <CardDescription>
+                    إدارة الإشعارات والتنبيهات
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="notifications"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base">الإشعارات</FormLabel>
+                            <FormControl>
+                              <p className="text-sm text-muted-foreground">
+                                تفعيل الإشعارات العامة للنظام
+                              </p>
+                            </FormControl>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="emailNotifications"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base">إشعارات البريد الإلكتروني</FormLabel>
+                            <FormControl>
+                              <p className="text-sm text-muted-foreground">
+                                إرسال الإشعارات عبر البريد الإلكتروني
+                              </p>
+                            </FormControl>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="lowStockAlerts"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base">تنبيهات نفاد المخزون</FormLabel>
+                            <FormControl>
+                              <p className="text-sm text-muted-foreground">
+                                تنبيه عند انخفاض كمية المنتجات
+                              </p>
+                            </FormControl>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* إعدادات الأمان */}
+            <TabsContent value="security" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5" />
+                    إعدادات الأمان والنسخ الاحتياطي
+                  </CardTitle>
+                  <CardDescription>
+                    إدارة أمان النظام والنسخ الاحتياطي
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="autoBackup"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">النسخ الاحتياطي التلقائي</FormLabel>
+                          <FormControl>
+                            <p className="text-sm text-muted-foreground">
+                              إنشاء نسخة احتياطية يومية من البيانات
+                            </p>
+                          </FormControl>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <Separator />
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="mobile">الهاتف المحمول</Label>
-                    <Input
-                      id="mobile"
-                      value={companyInfo.mobile}
-                      onChange={(e) => handleCompanyInfoChange('mobile', e.target.value)}
-                    />
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-medium">إدارة البيانات</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Button variant="outline" className="gap-2">
+                        <Database className="h-4 w-4" />
+                        إنشاء نسخة احتياطية
+                      </Button>
+                      <Button variant="outline" className="gap-2">
+                        <RefreshCw className="h-4 w-4" />
+                        استعادة البيانات
+                      </Button>
+                    </div>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="email">البريد الإلكتروني</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={companyInfo.email}
-                      onChange={(e) => handleCompanyInfoChange('email', e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="website">الموقع الإلكتروني</Label>
-                    <Input
-                      id="website"
-                      value={companyInfo.website}
-                      onChange={(e) => handleCompanyInfoChange('website', e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-              <Separator />
-
-              {/* المعلومات المصرفية */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <CreditCard className="h-4 w-4 text-blue-600" />
-                  <Label className="text-base font-semibold">المعلومات المصرفية</Label>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="bankName">اسم البنك</Label>
-                    <Input
-                      id="bankName"
-                      value={companyInfo.bankName}
-                      onChange={(e) => handleCompanyInfoChange('bankName', e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="iban">رقم IBAN</Label>
-                    <Input
-                      id="iban"
-                      value={companyInfo.iban}
-                      onChange={(e) => handleCompanyInfoChange('iban', e.target.value)}
-                      className="font-mono"
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          </TabsContent>
-        )}
-
-
-
-        {/* إعدادات النظام */}
-        {canAccessSettings('system') && (
-          <TabsContent value="system" className="space-y-6">
-            <Card>
-            <CardHeader>
-              <CardTitle className="text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                <Monitor className="h-5 w-5" />
-                إعدادات النظام
-              </CardTitle>
-              <CardDescription>إعدادات الأداء والصيانة</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="maintenanceMode" className="text-sm font-medium">وضع الصيانة</Label>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">تعطيل النظام مؤقتاً للصيانة</div>
-                </div>
-                <Switch
-                  id="maintenanceMode"
-                  checked={settings.maintenanceMode}
-                  onCheckedChange={(checked) => updateSetting('maintenanceMode', checked)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="debugMode" className="text-sm font-medium">وضع التشخيص</Label>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">تفعيل سجلات التشخيص التفصيلية</div>
-                </div>
-                <Switch
-                  id="debugMode"
-                  checked={settings.debugMode}
-                  onCheckedChange={(checked) => updateSetting('debugMode', checked)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="performanceMode" className="text-sm font-medium">الوضع عالي الأداء</Label>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">تحسين الأداء للأنظمة القوية</div>
-                </div>
-                <Switch
-                  id="performanceMode"
-                  checked={systemSettings.performanceMode}
-                  onCheckedChange={(checked) => handleSystemSettingsChange('performanceMode', checked)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="maxFileSize">الحد الأقصى لحجم الملف (MB)</Label>
-                <Select 
-                  value={settings.maxFileSize.toString()} 
-                  onValueChange={(value) => updateSetting('maxFileSize', parseInt(value))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="5">5 MB</SelectItem>
-                    <SelectItem value="10">10 MB</SelectItem>
-                    <SelectItem value="25">25 MB</SelectItem>
-                    <SelectItem value="50">50 MB</SelectItem>
-                    <SelectItem value="100">100 MB</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-          </TabsContent>
-        )}
-
-
-
-        {/* النسخ الاحتياطي */}
-        {canAccessSettings('backup') && (
-          <TabsContent value="backup" className="space-y-6">
-            <Card>
-            <CardHeader>
-              <CardTitle className="text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                <Database className="h-5 w-5" />
-                النسخ الاحتياطي
-              </CardTitle>
-              <CardDescription>إدارة النسخ الاحتياطية واستعادة البيانات</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="autoBackup" className="text-sm font-medium">النسخ الاحتياطي التلقائي</Label>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">إنشاء نسخ احتياطية تلقائية</div>
-                </div>
-                <Switch
-                  id="autoBackup"
-                  checked={settings.autoBackup}
-                  onCheckedChange={(checked) => updateSetting('autoBackup', checked)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="backupTime">وقت النسخ الاحتياطي</Label>
-                <Input
-                  id="backupTime"
-                  type="time"
-                  value={settings.backupTime}
-                  onChange={(e) => updateSetting('backupTime', e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="backupRetention">مدة الاحتفاظ بالنسخ (يوم)</Label>
-                <Select 
-                  value={settings.backupRetention.toString()} 
-                  onValueChange={(value) => updateSetting('backupRetention', parseInt(value))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="7">أسبوع واحد</SelectItem>
-                    <SelectItem value="30">شهر واحد</SelectItem>
-                    <SelectItem value="90">3 أشهر</SelectItem>
-                    <SelectItem value="365">سنة واحدة</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex gap-4">
-                <Button className="flex items-center gap-2">
-                  <Download className="h-4 w-4" />
-                  إنشاء نسخة احتياطية الآن
-                </Button>
-                <Button variant="outline" className="flex items-center gap-2">
-                  <Upload className="h-4 w-4" />
-                  استعادة من نسخة احتياطية
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-          </TabsContent>
-        )}
-
-        {/* إعدادات الطباعة */}
-        {canAccessSettings('printing') && (
-          <TabsContent value="printing" className="space-y-6">
-            <Card>
-            <CardHeader>
-              <CardTitle className="text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                <Printer className="h-5 w-5" />
-                إعدادات الطباعة
-              </CardTitle>
-              <CardDescription>تخصيص إعدادات الطباعة والتقارير</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="paperSize">حجم الورق</Label>
-                <Select value={printSettings.paperSize} onValueChange={(value) => handlePrintSettingsChange('paperSize', value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="A4">A4</SelectItem>
-                    <SelectItem value="A3">A3</SelectItem>
-                    <SelectItem value="Letter">Letter</SelectItem>
-                    <SelectItem value="Legal">Legal</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="orientation">اتجاه الطباعة</Label>
-                <Select value={printSettings.orientation} onValueChange={(value) => handlePrintSettingsChange('orientation', value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="portrait">عمودي</SelectItem>
-                    <SelectItem value="landscape">أفقي</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="footerText">نص تذييل الصفحة</Label>
-                <Input
-                  id="footerText"
-                  value={printSettings.footerText}
-                  onChange={(e) => handlePrintSettingsChange('footerText', e.target.value)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="printColors" className="text-sm font-medium">الطباعة الملونة</Label>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">استخدام الألوان في الطباعة</div>
-                </div>
-                <Switch
-                  id="printColors"
-                  checked={printSettings.printColors}
-                  onCheckedChange={(checked) => handlePrintSettingsChange('printColors', checked)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-          </TabsContent>
-        )}
-
-        {/* إعدادات الضرائب */}
-        {canAccessSettings('taxes') && (
-          <TabsContent value="taxes" className="space-y-6">
-            <Card>
-            <CardHeader>
-              <CardTitle className="text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                <Calculator className="h-5 w-5" />
-                إعدادات الضرائب
-              </CardTitle>
-              <CardDescription>تكوين نظام الضرائب والرسوم</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="vatRate">معدل ضريبة القيمة المضافة (%)</Label>
-                <Input
-                  id="vatRate"
-                  type="number"
-                  defaultValue="15"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="taxNumber">الرقم الضريبي للشركة</Label>
-                <Input
-                  id="taxNumber"
-                  value={settings.taxNumber}
-                  onChange={(e) => updateSetting('taxNumber', e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="fiscalYear">السنة المالية</Label>
-                <Select value={settings.fiscalYear} onValueChange={(value) => updateSetting('fiscalYear', value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="2024">2024</SelectItem>
-                    <SelectItem value="2025">2025</SelectItem>
-                    <SelectItem value="2026">2026</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="currency">العملة الأساسية</Label>
-                <Select value={settings.currency} onValueChange={(value) => updateSetting('currency', value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ريال سعودي (ر.س)">ريال سعودي (ر.س)</SelectItem>
-                    <SelectItem value="درهم إماراتي (د.إ)">درهم إماراتي (د.إ)</SelectItem>
-                    <SelectItem value="دولار أمريكي ($)">دولار أمريكي ($)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-          </TabsContent>
-        )}
+          </form>
+        </Form>
       </Tabs>
     </div>
   );
