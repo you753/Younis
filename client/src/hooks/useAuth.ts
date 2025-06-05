@@ -19,25 +19,27 @@ export function useAuth() {
     checkAuthStatus();
   }, []);
 
-  const checkAuthStatus = () => {
-    // التحقق من وجود بيانات المستخدم في localStorage
-    const storedUser = localStorage.getItem('user');
-    const authToken = localStorage.getItem('authToken');
-    
-    if (storedUser && authToken) {
-      try {
-        const userData = JSON.parse(storedUser);
+  const checkAuthStatus = async () => {
+    try {
+      const response = await fetch('/api/auth/me', {
+        credentials: 'include' // مهم لإرسال الكوكيز
+      });
+      
+      if (response.ok) {
+        const userData = await response.json();
         setUser(userData);
         setIsAuthenticated(true);
         setStoreUser({
           name: userData.fullName || userData.username,
           email: userData.email
         });
-      } catch (error) {
-        // إذا كانت البيانات تالفة، امسحها
-        localStorage.removeItem('user');
-        localStorage.removeItem('authToken');
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
       }
+    } catch (error) {
+      setUser(null);
+      setIsAuthenticated(false);
     }
     
     setIsLoading(false);
@@ -50,23 +52,24 @@ export function useAuth() {
       name: userData.fullName || userData.username,
       email: userData.email
     });
-    
-    // حفظ بيانات المستخدم في localStorage
-    localStorage.setItem('user', JSON.stringify(userData));
-    localStorage.setItem('authToken', 'authenticated'); // يمكن تطويره لاحقاً
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+    
     setUser(null);
     setIsAuthenticated(false);
     setStoreUser({
       name: '',
       email: ''
     });
-    
-    // مسح البيانات من localStorage
-    localStorage.removeItem('user');
-    localStorage.removeItem('authToken');
   };
 
   return {

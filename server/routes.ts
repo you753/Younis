@@ -148,7 +148,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // التحقق من حالة المصادقة
   app.get("/api/auth/me", async (req, res) => {
+    try {
+      const authReq = req as AuthenticatedRequest;
+      const userId = authReq.session.userId;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "غير مسجل دخول" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(401).json({ message: "مستخدم غير موجود" });
+      }
+
+      // إزالة كلمة المرور من الاستجابة
+      const { password: _, ...safeUser } = user;
+      res.json(safeUser);
+    } catch (error) {
+      console.error("Auth check error:", error);
+      res.status(500).json({ message: "خطأ في التحقق من المصادقة" });
+    }
+  });
+
+  app.post("/api/auth/logout", async (req, res) => {
+    try {
+      const authReq = req as AuthenticatedRequest;
+      authReq.session.destroy(() => {
+        res.json({ message: "تم تسجيل الخروج بنجاح" });
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+      res.status(500).json({ message: "خطأ في تسجيل الخروج" });
+    }
+  });
+
+  app.get("/api/auth/status", async (req, res) => {
     try {
       // جلب المستخدم من قاعدة البيانات
       const currentUser = await storage.getUser(1); // ID المستخدم الحالي
