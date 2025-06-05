@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { User, Mail, Phone, MapPin, Shield, Calendar, Edit3, Save, X } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Shield, Calendar, Edit3, Save, X, Camera, Upload } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import type { User as UserType } from '@shared/schema';
 
@@ -35,13 +35,14 @@ export default function Profile() {
   const { success, error } = useNotification();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setCurrentPage('الملف الشخصي');
   }, [setCurrentPage]);
 
   // جلب بيانات المستخدم الحالي
-  const { data: currentUser, isLoading } = useQuery<UserType & { fullName?: string; phone?: string; address?: string; bio?: string }>({
+  const { data: currentUser, isLoading } = useQuery<UserType & { fullName?: string; phone?: string; address?: string; bio?: string; profession?: string; avatar?: string }>({
     queryKey: ['/api/auth/me']
   });
 
