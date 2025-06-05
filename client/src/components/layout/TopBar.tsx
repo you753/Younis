@@ -131,14 +131,14 @@ export default function TopBar() {
       <div className="bg-black/10 dark:bg-slate-900/50 px-6 py-2 border-t border-white/10 dark:border-slate-700/50">
         <div className="flex items-center justify-between text-xs text-emerald-100 dark:text-slate-400">
           <div className="flex items-center gap-4">
-            <span>نسخة النظام: 2.1.0</span>
+            <span>{t('systemVersion')}</span>
             <span>•</span>
-            <span>آخر تحديث: اليوم</span>
+            <span>{t('lastUpdate')}</span>
           </div>
           <div className="flex items-center gap-4">
-            <span>المنطقة الزمنية: GMT+3</span>
+            <span>{t('timezone')}</span>
             <span>•</span>
-            <span>العملة: ريال سعودي</span>
+            <span>{t('currency')}</span>
           </div>
         </div>
       </div>
