@@ -103,13 +103,39 @@ export default function Settings() {
           <div className="flex items-center justify-between">
             <div>
               <Label htmlFor="darkMode">الوضع الليلي</Label>
-              <p className="text-sm text-gray-500">تغيير مظهر النظام للوضع الداكن</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">تغيير مظهر النظام للوضع الداكن مع انتقال سلس</p>
             </div>
             <Switch 
               id="darkMode" 
               checked={settings.darkMode}
               onCheckedChange={(checked) => updateSetting('darkMode', checked)}
             />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="sessionTimeout">مهلة الجلسة (بالدقائق)</Label>
+              <Input 
+                id="sessionTimeout" 
+                type="number"
+                min="5"
+                max="1440"
+                value={settings.sessionTimeout}
+                onChange={(e) => updateSetting('sessionTimeout', parseInt(e.target.value) || 60)}
+              />
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">مدة عدم النشاط قبل انتهاء الجلسة</p>
+            </div>
+            <div>
+              <Label htmlFor="language">لغة النظام</Label>
+              <select 
+                id="language"
+                value={settings.language}
+                onChange={(e) => updateSetting('language', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              >
+                <option value="ar">العربية</option>
+                <option value="en">English</option>
+              </select>
+            </div>
           </div>
         </CardContent>
       </Card>
