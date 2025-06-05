@@ -164,17 +164,17 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-6 bg-gray-50 min-h-screen p-6">
+    <div className="space-y-4 sm:space-y-6 bg-gray-50 min-h-screen p-3 sm:p-6">
       {/* Enhanced Header */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4 space-x-reverse">
-            <div className="bg-blue-100 p-3 rounded-lg">
-              <BarChart3 className="h-8 w-8 text-blue-600" />
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+          <div className="flex items-center space-x-3 sm:space-x-4 space-x-reverse">
+            <div className="bg-blue-100 p-2 sm:p-3 rounded-lg">
+              <BarChart3 className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">لوحة التحكم الرئيسية</h1>
-              <p className="text-gray-600 mt-1">نظرة شاملة على أداء نشاطك التجاري</p>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">لوحة التحكم الرئيسية</h1>
+              <p className="text-sm sm:text-base text-gray-600 mt-1">نظرة شاملة على أداء نشاطك التجاري</p>
             </div>
           </div>
           
@@ -205,7 +205,7 @@ export default function Dashboard() {
       </div>
 
       {/* Enhanced KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-blue-100">إجمالي المبيعات</CardTitle>
@@ -266,7 +266,7 @@ export default function Dashboard() {
       </div>
 
       {/* Enhanced Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Sales Trend Chart */}
         <Card>
           <CardHeader>
