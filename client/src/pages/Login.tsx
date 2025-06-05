@@ -64,40 +64,7 @@ export default function Login() {
     loginMutation.mutate(data);
   };
 
-  // إنشاء حساب تجريبي سريع
-  const createQuickAccount = async () => {
-    const timestamp = Date.now();
-    const randomNum = Math.floor(Math.random() * 1000);
-    const quickUserData = {
-      username: `user_${timestamp}_${randomNum}`,
-      email: `user_${timestamp}_${randomNum}@mohaseb.com`,
-      fullName: `مستخدم تجريبي ${randomNum}`,
-      password: '123456',
-      role: 'user'
-    };
 
-    try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(quickUserData),
-      });
-      
-      if (response.ok) {
-        const userData = await response.json();
-        success('تم إنشاء الحساب والدخول بنجاح');
-        login(userData);
-        setLocation('/');
-      } else {
-        const errorData = await response.json();
-        error(errorData.message || 'فشل في إنشاء الحساب');
-      }
-    } catch (err) {
-      error('حدث خطأ في الشبكة');
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
@@ -198,27 +165,16 @@ export default function Login() {
               </form>
             </Form>
 
-            {/* أزرار إنشاء الحساب */}
-            <div className="mt-6 space-y-3">
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full border-green-600 text-green-600 hover:bg-green-50"
-                onClick={createQuickAccount}
-                disabled={loginMutation.isPending}
-              >
-                <UserPlus className="h-4 w-4 ml-1" />
-                إنشاء حساب جديد والدخول مباشرة
-              </Button>
-              
+            {/* رابط إنشاء حساب جديد */}
+            <div className="mt-6 text-center">
               <Button
                 variant="link"
-                className="w-full text-blue-600 hover:text-blue-700"
+                className="text-blue-600 hover:text-blue-700"
                 onClick={() => setLocation('/register')}
                 disabled={loginMutation.isPending}
               >
                 <Shield className="h-4 w-4 ml-1" />
-                إنشاء حساب بتفاصيل مخصصة
+                ليس لديك حساب؟ أنشئ حساباً جديداً
               </Button>
             </div>
 
