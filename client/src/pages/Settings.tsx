@@ -1,389 +1,170 @@
-import { useAppStore } from '@/lib/store';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Settings as SettingsIcon, Save, Database, Building, Users, Lock, HardDrive } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { useLocation } from 'wouter';
-import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAppStore } from '@/lib/store';
 import { useTranslation } from '@/lib/translations';
 
 export default function Settings() {
-  const { setCurrentPage, settings, updateSetting, updateSettings } = useAppStore();
-  const [location] = useLocation();
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const { t, language } = useTranslation();
-
-  useEffect(() => {
-    setCurrentPage(t('settingsTitle'));
-  }, [setCurrentPage, t]);
-
-  const handleSaveSettings = async () => {
-    setIsLoading(true);
-    try {
-      // حفظ الإعدادات في قاعدة البيانات هنا
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      toast({
-        title: "تم حفظ الإعدادات",
-        description: "تم حفظ جميع الإعدادات وتطبيقها على النظام",
-      });
-    } catch (error) {
-      toast({
-        title: "خطأ في حفظ الإعدادات",
-        description: "حدث خطأ أثناء حفظ الإعدادات. حاول مرة أخرى.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // معالجة المحتوى بناء على المسار
-  const getCurrentSection = () => {
-    if (location.includes('/settings/company')) return 'company';
-    if (location.includes('/settings/users')) return 'users';
-    if (location.includes('/settings/system')) return 'system';
-    if (location.includes('/settings/backup')) return 'backup';
-    if (location.includes('/settings/security')) return 'security';
-    return 'general';
-  };
-
-  const currentSection = getCurrentSection();
-
-  const renderGeneralSettings = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <SettingsIcon className="h-5 w-5" />
-            الإعدادات العامة
-          </CardTitle>
-          <CardDescription>إعدادات أساسية لتشغيل النظام</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="appName">اسم التطبيق</Label>
-              <Input 
-                id="appName" 
-                value={settings.appName}
-                readOnly
-                className="bg-gray-50 dark:bg-gray-800"
-              />
-            </div>
-            <div>
-              <Label htmlFor="version">إصدار النظام</Label>
-              <Input id="version" defaultValue="1.0.0" readOnly />
-            </div>
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="notifications">تفعيل الإشعارات</Label>
-              <p className="text-sm text-gray-500">استقبال إشعارات النظام</p>
-            </div>
-            <Switch 
-              id="notifications" 
-              checked={settings.notifications}
-              onCheckedChange={(checked) => updateSetting('notifications', checked)}
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="autoSave">الحفظ التلقائي</Label>
-              <p className="text-sm text-gray-500">حفظ البيانات تلقائياً كل 5 دقائق</p>
-            </div>
-            <Switch 
-              id="autoSave" 
-              checked={settings.autoSave}
-              onCheckedChange={(checked) => updateSetting('autoSave', checked)}
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="darkMode">الوضع الليلي</Label>
-              <p className="text-sm text-gray-500 dark:text-gray-400">تغيير مظهر النظام للوضع الداكن مع انتقال سلس</p>
-            </div>
-            <Switch 
-              id="darkMode" 
-              checked={settings.darkMode}
-              onCheckedChange={(checked) => updateSetting('darkMode', checked)}
-            />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="sessionTimeout">مهلة الجلسة (بالدقائق)</Label>
-              <Input 
-                id="sessionTimeout" 
-                type="number"
-                min="5"
-                max="1440"
-                value={settings.sessionTimeout}
-                onChange={(e) => updateSetting('sessionTimeout', parseInt(e.target.value) || 60)}
-              />
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">مدة عدم النشاط قبل انتهاء الجلسة</p>
-            </div>
-            <div>
-              <Label htmlFor="language">لغة النظام</Label>
-              <select 
-                id="language"
-                value={settings.language}
-                onChange={(e) => updateSetting('language', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-              >
-                <option value="ar">العربية</option>
-                <option value="en">English</option>
-              </select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  const renderCompanySettings = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building className="h-5 w-5" />
-            معلومات الشركة
-          </CardTitle>
-          <CardDescription>بيانات الشركة الأساسية والتجارية</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="companyName">اسم الشركة</Label>
-              <Input id="companyName" defaultValue="المحاسب الأعظم" />
-            </div>
-            <div>
-              <Label htmlFor="companyEmail">البريد الإلكتروني</Label>
-              <Input id="companyEmail" type="email" defaultValue="info@almohaseb.com" />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="companyPhone">رقم الهاتف</Label>
-              <Input id="companyPhone" defaultValue="+966 11 123 4567" />
-            </div>
-            <div>
-              <Label htmlFor="taxNumber">الرقم الضريبي</Label>
-              <Input id="taxNumber" defaultValue="300002471110003" />
-            </div>
-          </div>
-          <div>
-            <Label htmlFor="address">العنوان</Label>
-            <Input id="address" defaultValue="الرياض، المملكة العربية السعودية" />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="currency">العملة الافتراضية</Label>
-              <Input id="currency" defaultValue="ريال سعودي (ر.س)" />
-            </div>
-            <div>
-              <Label htmlFor="fiscalYear">السنة المالية</Label>
-              <Input id="fiscalYear" defaultValue="2025" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  const renderUsersSettings = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            إعدادات المستخدمين
-          </CardTitle>
-          <CardDescription>إدارة صلاحيات وإعدادات المستخدمين</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="userRegistration">تسجيل مستخدمين جدد</Label>
-              <p className="text-sm text-gray-500">السماح بإنشاء حسابات جديدة</p>
-            </div>
-            <Switch id="userRegistration" />
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="emailVerification">تأكيد البريد الإلكتروني</Label>
-              <p className="text-sm text-gray-500">إجبار المستخدمين على تأكيد البريد</p>
-            </div>
-            <Switch id="emailVerification" defaultChecked />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="sessionTimeout">انتهاء الجلسة (بالدقائق)</Label>
-              <Input id="sessionTimeout" type="number" defaultValue="60" />
-            </div>
-            <div>
-              <Label htmlFor="maxUsers">الحد الأقصى للمستخدمين</Label>
-              <Input id="maxUsers" type="number" defaultValue="10" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  const renderSystemSettings = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <HardDrive className="h-5 w-5" />
-            إعدادات النظام
-          </CardTitle>
-          <CardDescription>إعدادات تقنية ومتقدمة للنظام</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="debugMode">وضع التطوير</Label>
-              <p className="text-sm text-gray-500">تفعيل سجلات التطوير المفصلة</p>
-            </div>
-            <Switch id="debugMode" />
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="maintenanceMode">وضع الصيانة</Label>
-              <p className="text-sm text-gray-500">تعطيل النظام مؤقتاً للصيانة</p>
-            </div>
-            <Switch id="maintenanceMode" />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="maxFileSize">الحد الأقصى لحجم الملف (MB)</Label>
-              <Input id="maxFileSize" type="number" defaultValue="10" />
-            </div>
-            <div>
-              <Label htmlFor="logRetention">الاحتفاظ بالسجلات (أيام)</Label>
-              <Input id="logRetention" type="number" defaultValue="30" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  const renderBackupSettings = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Database className="h-5 w-5" />
-            النسخ الاحتياطي
-          </CardTitle>
-          <CardDescription>إعدادات النسخ الاحتياطي والاستعادة</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="autoBackup">النسخ الاحتياطي التلقائي</Label>
-              <p className="text-sm text-gray-500">إنشاء نسخة احتياطية يومياً</p>
-            </div>
-            <Switch id="autoBackup" defaultChecked />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="backupTime">وقت النسخ الاحتياطي</Label>
-              <Input id="backupTime" type="time" defaultValue="02:00" />
-            </div>
-            <div>
-              <Label htmlFor="backupRetention">الاحتفاظ بالنسخ (أيام)</Label>
-              <Input id="backupRetention" type="number" defaultValue="30" />
-            </div>
-          </div>
-          <div className="flex gap-4">
-            <Button className="btn-accounting-primary">
-              <Database className="ml-2 h-4 w-4" />
-              إنشاء نسخة احتياطية الآن
-            </Button>
-            <Button variant="outline">
-              <Database className="ml-2 h-4 w-4" />
-              استعادة من نسخة احتياطية
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  const renderSecuritySettings = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Lock className="h-5 w-5" />
-            الأمان والصلاحيات
-          </CardTitle>
-          <CardDescription>إعدادات الأمان وحماية النظام</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="twoFactor">المصادقة الثنائية</Label>
-              <p className="text-sm text-gray-500">تفعيل المصادقة بخطوتين</p>
-            </div>
-            <Switch id="twoFactor" />
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="forcePasswordChange">تغيير كلمة المرور دورياً</Label>
-              <p className="text-sm text-gray-500">إجبار المستخدمين على تغيير كلمة المرور كل 90 يوم</p>
-            </div>
-            <Switch id="forcePasswordChange" />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="minPasswordLength">الحد الأدنى لطول كلمة المرور</Label>
-              <Input id="minPasswordLength" type="number" defaultValue="8" />
-            </div>
-            <div>
-              <Label htmlFor="maxLoginAttempts">محاولات تسجيل الدخول</Label>
-              <Input id="maxLoginAttempts" type="number" defaultValue="5" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+  const { settings, updateSetting } = useAppStore();
+  const { t } = useTranslation();
 
   return (
-    <div className="space-y-6 p-6">
-      {/* Page Header */}
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">إعدادات النظام</h2>
-        <p className="text-gray-600">تخصيص وإدارة إعدادات نظام المحاسبة</p>
+    <div className="p-6 space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">{t('settings')}</h1>
+        <p className="text-slate-600 dark:text-slate-400 mt-2">{t('manageSettings')}</p>
       </div>
 
-      {/* Settings Content based on current section */}
-      {currentSection === 'general' && renderGeneralSettings()}
-      {currentSection === 'company' && renderCompanySettings()}
-      {currentSection === 'users' && renderUsersSettings()}
-      {currentSection === 'system' && renderSystemSettings()}
-      {currentSection === 'backup' && renderBackupSettings()}
-      {currentSection === 'security' && renderSecuritySettings()}
+      <div className="grid gap-6">
+        {/* الإعدادات العامة */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-blue-600 dark:text-blue-400">{t('generalSettings')}</CardTitle>
+            <CardDescription>{t('generalSettingsDesc')}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* اسم التطبيق */}
+            <div className="space-y-2">
+              <Label htmlFor="appName" className="text-sm font-medium">{t('applicationName')}</Label>
+              <div className="px-3 py-2 bg-slate-100 dark:bg-slate-800 border rounded-md text-slate-700 dark:text-slate-300">
+                {settings.appName}
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{t('appNameFixed')}</p>
+            </div>
 
-      {/* Save Button */}
-      <div className="flex justify-end space-x-4">
-        <Button variant="outline" disabled={isLoading}>إلغاء</Button>
-        <Button 
-          className="btn-accounting-primary" 
-          onClick={handleSaveSettings}
-          disabled={isLoading}
-        >
-          <Save className="ml-2 h-4 w-4" />
-          {isLoading ? 'جاري الحفظ...' : 'حفظ الإعدادات'}
-        </Button>
+            {/* لغة النظام */}
+            <div className="space-y-2">
+              <Label htmlFor="language" className="text-sm font-medium">{t('systemLanguage')}</Label>
+              <Select value={settings.language} onValueChange={(value) => updateSetting('language', value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ar">العربية</SelectItem>
+                  <SelectItem value="en">English</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* الوضع الليلي */}
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="darkMode" className="text-sm font-medium">{t('darkMode')}</Label>
+                <div className="text-xs text-slate-500 dark:text-slate-400">{t('darkModeDesc')}</div>
+              </div>
+              <Switch
+                id="darkMode"
+                checked={settings.darkMode}
+                onCheckedChange={(checked) => updateSetting('darkMode', checked)}
+              />
+            </div>
+
+            {/* الإشعارات */}
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="notifications" className="text-sm font-medium">{t('notifications')}</Label>
+                <div className="text-xs text-slate-500 dark:text-slate-400">{t('notificationsDesc')}</div>
+              </div>
+              <Switch
+                id="notifications"
+                checked={settings.notifications}
+                onCheckedChange={(checked) => updateSetting('notifications', checked)}
+              />
+            </div>
+
+            {/* الحفظ التلقائي */}
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="autoSave" className="text-sm font-medium">{t('autoSave')}</Label>
+                <div className="text-xs text-slate-500 dark:text-slate-400">{t('autoSaveDesc')}</div>
+              </div>
+              <Switch
+                id="autoSave"
+                checked={settings.autoSave}
+                onCheckedChange={(checked) => updateSetting('autoSave', checked)}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* إعدادات الأمان */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-blue-600 dark:text-blue-400">{t('securitySettings')}</CardTitle>
+            <CardDescription>{t('securitySettingsDesc')}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* مهلة الجلسة */}
+            <div className="space-y-2">
+              <Label htmlFor="sessionTimeout" className="text-sm font-medium">{t('sessionTimeout')}</Label>
+              <Select 
+                value={settings.sessionTimeout.toString()} 
+                onValueChange={(value) => updateSetting('sessionTimeout', parseInt(value))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="15">15 {t('minutes')}</SelectItem>
+                  <SelectItem value="30">30 {t('minutes')}</SelectItem>
+                  <SelectItem value="60">60 {t('minutes')}</SelectItem>
+                  <SelectItem value="120">120 {t('minutes')}</SelectItem>
+                  <SelectItem value="0">{t('noTimeout')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* تسجيل النشاط */}
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="activityLogging" className="text-sm font-medium">{t('activityLogging')}</Label>
+                <div className="text-xs text-slate-500 dark:text-slate-400">{t('activityLoggingDesc')}</div>
+              </div>
+              <Switch
+                id="activityLogging"
+                checked={settings.activityLogging}
+                onCheckedChange={(checked) => updateSetting('activityLogging', checked)}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* إعدادات النظام */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-blue-600 dark:text-blue-400">{t('systemSettings')}</CardTitle>
+            <CardDescription>{t('systemSettingsDesc')}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* الإعدادات المتقدمة */}
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="advancedMode" className="text-sm font-medium">{t('advancedMode')}</Label>
+                <div className="text-xs text-slate-500 dark:text-slate-400">{t('advancedModeDesc')}</div>
+              </div>
+              <Switch
+                id="advancedMode"
+                checked={settings.advancedMode}
+                onCheckedChange={(checked) => updateSetting('advancedMode', checked)}
+              />
+            </div>
+
+            {/* وضع المطور */}
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="developerMode" className="text-sm font-medium">{t('developerMode')}</Label>
+                <div className="text-xs text-slate-500 dark:text-slate-400">{t('developerModeDesc')}</div>
+              </div>
+              <Switch
+                id="developerMode"
+                checked={settings.developerMode}
+                onCheckedChange={(checked) => updateSetting('developerMode', checked)}
+              />
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
