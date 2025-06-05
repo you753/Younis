@@ -53,7 +53,7 @@ export default function TopBar() {
         <div className="flex items-center gap-6">
           <div className="text-white">
             <h2 className="text-xl font-bold bg-gradient-to-r from-yellow-200 to-yellow-100 dark:from-blue-300 dark:to-cyan-300 bg-clip-text text-transparent">
-              {language === 'ar' ? `مرحباً بك في ${settings.companyName || 'المحاسب الأعظم'}` : `Welcome to ${settings.companyName || 'Al-Mohaseb Al-Azam'}`}
+              {language === 'ar' ? 'مرحباً بك في المحاسب الأعظم' : 'Welcome to Al-Mohaseb Al-Azam'}
             </h2>
             <div className="flex items-center gap-4 mt-1">
               <p className="text-blue-100 dark:text-slate-300 text-sm">{formatDate(currentTime)}</p>
