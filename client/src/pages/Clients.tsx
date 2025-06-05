@@ -35,6 +35,7 @@ export default function Clients() {
   const [location] = useLocation();
   const { setCurrentPage } = useAppStore();
   const [showGroupForm, setShowGroupForm] = useState(false);
+  const [showCashClientForm, setShowCashClientForm] = useState(false);
   const [editingGroup, setEditingGroup] = useState<any>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -85,7 +86,7 @@ export default function Clients() {
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">العملاء النقديين</h2>
                 <p className="text-gray-600">إدارة العملاء الذين يدفعون نقداً فقط</p>
               </div>
-              <Button className="btn-accounting-primary">
+              <Button onClick={() => setShowCashClientForm(true)} className="btn-accounting-primary">
                 <Plus className="ml-2 h-4 w-4" />
                 إضافة عميل نقدي
               </Button>
@@ -191,6 +192,38 @@ export default function Clients() {
                 </Table>
               </CardContent>
             </Card>
+
+            {/* Cash Client Form Dialog */}
+            <Dialog open={showCashClientForm} onOpenChange={setShowCashClientForm}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>إضافة عميل نقدي جديد</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">اسم العميل</label>
+                    <Input placeholder="أدخل اسم العميل" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">رقم الهاتف</label>
+                    <Input placeholder="أدخل رقم الهاتف" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">العنوان</label>
+                    <Textarea placeholder="أدخل العنوان (اختياري)" />
+                  </div>
+                  <div className="flex gap-2 pt-4">
+                    <Button className="flex-1">
+                      <Save className="h-4 w-4 ml-1" />
+                      حفظ العميل
+                    </Button>
+                    <Button type="button" variant="outline" onClick={() => setShowCashClientForm(false)} className="flex-1">
+                      إلغاء
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         );
 
