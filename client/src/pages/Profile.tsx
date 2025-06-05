@@ -121,8 +121,8 @@ export default function Profile() {
       success('تم رفع الصورة الشخصية بنجاح');
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
     },
-    onError: (error: Error) => {
-      error(`خطأ في رفع الصورة: ${error.message}`);
+    onError: (errorMsg: Error) => {
+      error(`خطأ في رفع الصورة: ${errorMsg.message}`);
     },
   });
 
@@ -245,14 +245,43 @@ export default function Profile() {
         <div className="lg:col-span-1">
           <Card>
             <CardHeader className="text-center">
-              <div className="flex justify-center mb-4">
-                <Avatar className="h-24 w-24">
-                  <AvatarImage src="#" alt={currentUser?.username} />
-                  <AvatarFallback className="text-lg font-semibold bg-accounting-primary text-white">
-                    {currentUser?.fullName ? getInitials(currentUser.fullName) : 
-                     currentUser?.username ? getInitials(currentUser.username) : 'UN'}
-                  </AvatarFallback>
-                </Avatar>
+              <div className="flex justify-center mb-4 relative">
+                <div className="relative">
+                  <Avatar className="h-24 w-24">
+                    <AvatarImage 
+                      src={currentUser?.avatar ? currentUser.avatar : undefined} 
+                      alt={currentUser?.username} 
+                    />
+                    <AvatarFallback className="text-lg font-semibold bg-accounting-primary text-white">
+                      {currentUser?.fullName ? getInitials(currentUser.fullName) : 
+                       currentUser?.username ? getInitials(currentUser.username) : 'UN'}
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  {/* زر تحديث الصورة الشخصية */}
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0 bg-white border-2 border-gray-200 hover:bg-gray-50"
+                    onClick={triggerFileInput}
+                    disabled={avatarMutation.isPending}
+                  >
+                    {avatarMutation.isPending ? (
+                      <div className="h-3 w-3 animate-spin border border-gray-400 border-t-transparent rounded-full" />
+                    ) : (
+                      <Camera className="h-3 w-3 text-gray-600" />
+                    )}
+                  </Button>
+                  
+                  {/* Input مخفي لرفع الصورة */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarChange}
+                    className="hidden"
+                  />
+                </div>
               </div>
               <CardTitle className="text-xl">{currentUser?.fullName || currentUser?.username}</CardTitle>
               <CardDescription className="flex items-center justify-center gap-2">
