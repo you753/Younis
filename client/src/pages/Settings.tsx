@@ -8,16 +8,18 @@ import { Settings as SettingsIcon, Save, Database, Building, Users, Lock, HardDr
 import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/lib/translations';
 
 export default function Settings() {
   const { setCurrentPage, settings, updateSetting, updateSettings } = useAppStore();
   const [location] = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const { t, language } = useTranslation();
 
   useEffect(() => {
-    setCurrentPage('إعدادات النظام');
-  }, [setCurrentPage]);
+    setCurrentPage(t('settingsTitle'));
+  }, [setCurrentPage, t]);
 
   const handleSaveSettings = async () => {
     setIsLoading(true);

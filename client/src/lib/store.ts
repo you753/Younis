@@ -143,9 +143,25 @@ export const useAppStore = create<AppStore>((set, get) => ({
     // تحديث عنوان الصفحة
     document.title = settings.appName;
     
-    // تطبيق إعدادات اللغة
+    // تطبيق إعدادات اللغة والاتجاه
     document.documentElement.lang = settings.language;
     document.documentElement.dir = settings.language === 'ar' ? 'rtl' : 'ltr';
+    
+    // تطبيق الخطوط المناسبة للغة
+    if (settings.language === 'ar') {
+      document.body.style.fontFamily = "'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+    } else {
+      document.body.style.fontFamily = "'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+    }
+    
+    // تطبيق تحديث classes للغة
+    if (settings.language === 'en') {
+      document.body.classList.add('english-layout');
+      document.body.classList.remove('arabic-layout');
+    } else {
+      document.body.classList.add('arabic-layout');
+      document.body.classList.remove('english-layout');
+    }
     
     // إعداد الحفظ التلقائي
     if (settings.autoSave) {
