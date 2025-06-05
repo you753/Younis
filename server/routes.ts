@@ -76,6 +76,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Auth routes
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const { username, email, fullName, password, role } = req.body;
+      
+      if (!username || !email || !fullName || !password) {
+        return res.status(400).json({ message: "جميع الحقول مطلوبة" });
+      }
+
+      // التحقق من عدم وجود مستخدم بنفس اسم المستخدم أو البريد الإلكتروني
+      const existingUserByUsername = await storage.getUserByUsername(username);
+      if (existingUserByUsername) {
+        return res.status(409).json({ message: "اسم المستخدم موجود بالفعل" });
+      }
+
+      const existingUsers = await storage.getAllUsers();
+      const existingUserByEmail = existingUsers.find(user => user.email === email);
+      if (existingUserByEmail) {
+        return res.status(409).json({ message: "البريد الإلكتروني موجود بالفعل" });
+      }
+
+      // إنشاء المستخدم الجديد
+      const newUser = await storage.createUser({
+        username,
+        email,
+        fullName,
+        password, // في الإنتاج يجب تشفير كلمة المرور
+        role: role || 'user'
+      });
+
+      // إزالة كلمة المرور من الاستجابة
+      const { password: _, ...safeUser } = newUser;
+      res.status(201).json(safeUser);
+    } catch (error) {
+      console.error("Register error:", error);
+      res.status(500).json({ message: "حدث خطأ أثناء إنشاء الحساب" });
+    }
+  });
+
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { username, password } = req.body;
