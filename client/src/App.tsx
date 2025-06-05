@@ -98,6 +98,12 @@ function Router() {
         
         {/* الإعدادات */}
         <Route path="/settings" component={Settings} />
+        <Route path="/settings/general" component={Settings} />
+        <Route path="/settings/company" component={Settings} />
+        <Route path="/settings/users" component={Settings} />
+        <Route path="/settings/system" component={Settings} />
+        <Route path="/settings/backup" component={Settings} />
+        <Route path="/settings/security" component={Settings} />
         <Route path="/settings/system" component={Settings} />
         <Route path="/settings/printing" component={Settings} />
         <Route path="/settings/taxes" component={Settings} />
