@@ -62,12 +62,25 @@ export default function Register() {
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterFormData) => {
       const { confirmPassword, ...registerData } = data;
+      
+      // إضافة timestamp لجعل البريد الإلكتروني فريد إذا كان مكرر
+      const timestamp = Date.now();
+      const uniqueEmail = registerData.email.includes('@') 
+        ? `${registerData.email.split('@')[0]}_${timestamp}@${registerData.email.split('@')[1]}`
+        : `${registerData.email}_${timestamp}@mohaseb.com`;
+      
+      const uniqueData = {
+        ...registerData,
+        email: uniqueEmail,
+        username: `${registerData.username}_${timestamp}`
+      };
+      
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(registerData),
+        body: JSON.stringify(uniqueData),
       });
       
       if (!response.ok) {
@@ -78,7 +91,7 @@ export default function Register() {
       return response.json();
     },
     onSuccess: (userData) => {
-      success('تم إنشاء الحساب بنجاح');
+      success('تم إنشاء الحساب والدخول بنجاح');
       login(userData);
       setLocation('/');
     },

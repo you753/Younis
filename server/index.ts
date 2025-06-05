@@ -1,10 +1,22 @@
 import express, { type Request, Response, NextFunction } from "express";
+import session from "express-session";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// إعداد الجلسات
+app.use(session({
+  secret: 'accounting-app-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: false, // تغيير إلى true في الإنتاج مع HTTPS
+    maxAge: 24 * 60 * 60 * 1000 // 24 ساعة
+  }
+}));
 
 app.use((req, res, next) => {
   const start = Date.now();
