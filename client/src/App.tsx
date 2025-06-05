@@ -49,6 +49,7 @@ function Router() {
         <Route path="/client-accounts" component={Clients} />
         <Route path="/products" component={Products} />
         <Route path="/products/add" component={Products} />
+        <Route path="/products/edit/:id" component={Products} />
         <Route path="/products/barcodes" component={ProductBarcodes} />
         <Route path="/inventory/barcodes" component={ProductBarcodes} />
         <Route path="/product-categories" component={ProductCategories} />
