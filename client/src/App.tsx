@@ -82,6 +82,9 @@ function Router() {
         <Route path="/employees" component={Employees} />
         <Route path="/deductions" component={Deductions} />
         <Route path="/salaries" component={Salaries} />
+        <Route path="/attendance" component={Employees} />
+        <Route path="/holidays" component={Employees} />
+        <Route path="/performance" component={Employees} />
         
         {/* التقارير */}
         <Route path="/reports" component={Reports} />

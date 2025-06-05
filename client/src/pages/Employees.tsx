@@ -1,23 +1,119 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Users, Edit, Trash2, Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Employee } from "@shared/schema";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import EmployeeFormComponent from "@/components/forms/EmployeeForm";
+import { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAppStore } from '@/lib/store';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import EmployeeForm from '@/components/forms/EmployeeForm';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Plus, Users, Clock, Calendar, TrendingUp, UserCheck, UserX, 
+  Edit, Trash2, Save, Award, Target, CheckCircle, XCircle, 
+  CalendarCheck, CalendarX, Star, Search
+} from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import type { Employee } from '@shared/schema';
+
+// Schema for attendance record
+const attendanceSchema = z.object({
+  employeeId: z.number().min(1, 'يجب اختيار موظف'),
+  date: z.string().min(1, 'يجب تحديد التاريخ'),
+  timeIn: z.string().min(1, 'يجب تحديد وقت الحضور'),
+  timeOut: z.string().optional(),
+  status: z.enum(['present', 'absent', 'late', 'early_leave']),
+  notes: z.string().optional(),
+});
+
+// Schema for holiday request
+const holidaySchema = z.object({
+  employeeId: z.number().min(1, 'يجب اختيار موظف'),
+  startDate: z.string().min(1, 'يجب تحديد تاريخ البداية'),
+  endDate: z.string().min(1, 'يجب تحديد تاريخ النهاية'),
+  type: z.enum(['annual', 'sick', 'emergency', 'personal']),
+  reason: z.string().min(5, 'يجب كتابة سبب الإجازة'),
+  status: z.enum(['pending', 'approved', 'rejected']).default('pending'),
+});
+
+// Schema for performance evaluation
+const performanceSchema = z.object({
+  employeeId: z.number().min(1, 'يجب اختيار موظف'),
+  period: z.string().min(1, 'يجب تحديد فترة التقييم'),
+  qualityRating: z.number().min(1).max(5),
+  punctualityRating: z.number().min(1).max(5),
+  teamworkRating: z.number().min(1).max(5),
+  communicationRating: z.number().min(1).max(5),
+  overallRating: z.number().min(1).max(5),
+  goals: z.string().optional(),
+  comments: z.string().optional(),
+});
+
+type AttendanceForm = z.infer<typeof attendanceSchema>;
+type HolidayForm = z.infer<typeof holidaySchema>;
+type PerformanceForm = z.infer<typeof performanceSchema>;
 
 export default function Employees() {
+  const [location] = useLocation();
+  const { setCurrentPage } = useAppStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [showAttendanceForm, setShowAttendanceForm] = useState(false);
+  const [showHolidayForm, setShowHolidayForm] = useState(false);
+  const [showPerformanceForm, setShowPerformanceForm] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<any>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: employees = [], isLoading } = useQuery<Employee[]>({
+  const attendanceForm = useForm<AttendanceForm>({
+    resolver: zodResolver(attendanceSchema),
+    defaultValues: {
+      employeeId: 0,
+      date: new Date().toISOString().split('T')[0],
+      timeIn: '',
+      timeOut: '',
+      status: 'present',
+      notes: '',
+    }
+  });
+
+  const holidayForm = useForm<HolidayForm>({
+    resolver: zodResolver(holidaySchema),
+    defaultValues: {
+      employeeId: 0,
+      startDate: '',
+      endDate: '',
+      type: 'annual',
+      reason: '',
+      status: 'pending',
+    }
+  });
+
+  const performanceForm = useForm<PerformanceForm>({
+    resolver: zodResolver(performanceSchema),
+    defaultValues: {
+      employeeId: 0,
+      period: '',
+      qualityRating: 5,
+      punctualityRating: 5,
+      teamworkRating: 5,
+      communicationRating: 5,
+      overallRating: 5,
+      goals: '',
+      comments: '',
+    }
+  });
+
+  const { data: employees = [] } = useQuery<Employee[]>({
     queryKey: ["/api/employees"],
   });
 
@@ -42,6 +138,23 @@ export default function Employees() {
     },
   });
 
+  // Set page title based on route
+  useEffect(() => {
+    switch (location) {
+      case '/attendance':
+        setCurrentPage('الحضور والانصراف');
+        break;
+      case '/holidays':
+        setCurrentPage('الإجازات');
+        break;
+      case '/performance':
+        setCurrentPage('تقييم الأداء');
+        break;
+      default:
+        setCurrentPage('إدارة الموظفين');
+    }
+  }, [location, setCurrentPage]);
+
   const handleEdit = (employee: any) => {
     setEditingEmployee(employee);
     setShowForm(true);
@@ -53,252 +166,536 @@ export default function Employees() {
     }
   };
 
-  const handleFormSuccess = () => {
-    setEditingEmployee(null);
-    setShowForm(false);
-  };
-
-  const filteredEmployees = employees.filter((employee: Employee) =>
-    employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.position?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.department?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'inactive':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'terminated':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'نشط';
-      case 'inactive':
-        return 'غير نشط';
-      case 'terminated':
-        return 'منتهي الخدمة';
-      default:
-        return status;
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="p-6 space-y-6" dir="rtl">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <Users className="h-8 w-8 text-blue-600" />
-          <h1 className="text-3xl font-bold text-gray-900">الموظفين</h1>
-        </div>
-        <Button 
-          onClick={() => setShowForm(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          <Plus className="h-4 w-4 ml-2" />
-          إضافة موظف جديد
-        </Button>
-      </div>
-
-      {/* Search and Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex gap-4 items-center">
-            <div className="relative flex-1">
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="البحث في الموظفين..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pr-10"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Users className="h-6 w-6 text-green-600" />
+  const getPageContent = () => {
+    switch (location) {
+      case '/attendance':
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">الحضور والانصراف</h2>
+                <p className="text-gray-600">تسجيل ومتابعة حضور وانصراف الموظفين</p>
               </div>
-              <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">إجمالي الموظفين</p>
-                <p className="text-2xl font-bold text-gray-900">{employees.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Users className="h-6 w-6 text-blue-600" />
-              </div>
-              <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">الموظفين النشطين</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {employees.filter(emp => emp.status === 'active').length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <Users className="h-6 w-6 text-yellow-600" />
-              </div>
-              <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">غير النشطين</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {employees.filter(emp => emp.status === 'inactive').length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <Users className="h-6 w-6 text-red-600" />
-              </div>
-              <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">منتهي الخدمة</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {employees.filter(emp => emp.status === 'terminated').length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Employees Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>قائمة الموظفين ({filteredEmployees.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {filteredEmployees.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">لا توجد بيانات موظفين</h3>
-              <p className="text-gray-500 mb-4">ابدأ بإضافة موظف جديد لإدارة فريق العمل</p>
-              <Button onClick={() => setShowForm(true)}>
-                <Plus className="h-4 w-4 ml-2" />
-                إضافة موظف جديد
+              <Button onClick={() => setShowAttendanceForm(true)} className="btn-accounting-primary">
+                <Plus className="ml-2 h-4 w-4" />
+                تسجيل حضور
               </Button>
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-right p-4 font-semibold">الاسم</th>
-                    <th className="text-right p-4 font-semibold">رقم الموظف</th>
-                    <th className="text-right p-4 font-semibold">المنصب</th>
-                    <th className="text-right p-4 font-semibold">القسم</th>
-                    <th className="text-right p-4 font-semibold">الراتب</th>
-                    <th className="text-right p-4 font-semibold">الحالة</th>
-                    <th className="text-right p-4 font-semibold">تاريخ التوظيف</th>
-                    <th className="text-right p-4 font-semibold">الإجراءات</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredEmployees.map((employee: Employee) => (
-                    <tr key={employee.id} className="border-b hover:bg-gray-50">
-                      <td className="p-4">
-                        <div>
-                          <div className="font-medium text-gray-900">{employee.name}</div>
-                          {employee.phone && (
-                            <div className="text-sm text-gray-500">{employee.phone}</div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-4 text-gray-900">
-                        {employee.employeeId || '-'}
-                      </td>
-                      <td className="p-4 text-gray-900">
-                        {employee.position || '-'}
-                      </td>
-                      <td className="p-4 text-gray-900">
-                        {employee.department || '-'}
-                      </td>
-                      <td className="p-4">
-                        <span className="font-medium text-green-600">
-                          {parseFloat(employee.salary).toLocaleString()} ر.س
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <Badge className={getStatusColor(employee.status)}>
-                          {getStatusText(employee.status)}
-                        </Badge>
-                      </td>
-                      <td className="p-4 text-gray-900">
-                        {new Date(employee.hireDate).toLocaleDateString('ar-SA')}
-                      </td>
-                      <td className="p-4">
-                        <div className="flex gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleEdit(employee)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="text-red-600 hover:text-red-700"
-                            onClick={() => handleDelete(employee.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
-      {/* Employee Form */}
-      <EmployeeFormComponent
-        open={showForm}
-        onOpenChange={setShowForm}
-        editingEmployee={editingEmployee}
-        onSuccess={handleFormSuccess}
-      />
-    </div>
-  );
+            {/* Attendance Statistics */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-green-600 text-sm font-medium">حاضرون اليوم</p>
+                      <p className="text-2xl font-bold text-green-700">{Math.max(0, employees.length - 1)}</p>
+                    </div>
+                    <div className="bg-green-200 p-3 rounded-full">
+                      <UserCheck className="h-6 w-6 text-green-700" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-r from-red-50 to-red-100 border-red-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-red-600 text-sm font-medium">غائبون اليوم</p>
+                      <p className="text-2xl font-bold text-red-700">1</p>
+                    </div>
+                    <div className="bg-red-200 p-3 rounded-full">
+                      <UserX className="h-6 w-6 text-red-700" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-yellow-600 text-sm font-medium">متأخرون</p>
+                      <p className="text-2xl font-bold text-yellow-700">0</p>
+                    </div>
+                    <div className="bg-yellow-200 p-3 rounded-full">
+                      <Clock className="h-6 w-6 text-yellow-700" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-blue-600 text-sm font-medium">ساعات العمل</p>
+                      <p className="text-2xl font-bold text-blue-700">8 ساعات</p>
+                    </div>
+                    <div className="bg-blue-200 p-3 rounded-full">
+                      <Calendar className="h-6 w-6 text-blue-700" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Attendance Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>سجل الحضور اليومي</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-right">اسم الموظف</TableHead>
+                      <TableHead className="text-right">وقت الحضور</TableHead>
+                      <TableHead className="text-right">وقت الانصراف</TableHead>
+                      <TableHead className="text-right">عدد الساعات</TableHead>
+                      <TableHead className="text-right">الحالة</TableHead>
+                      <TableHead className="text-right">الإجراءات</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {employees.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                          لم يتم تسجيل أي حضور اليوم
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      employees.map((employee) => (
+                        <TableRow key={employee.id}>
+                          <TableCell className="font-medium">{employee.name}</TableCell>
+                          <TableCell>08:30</TableCell>
+                          <TableCell>17:00</TableCell>
+                          <TableCell>8.5</TableCell>
+                          <TableCell>
+                            <Badge variant="default">حاضر</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Button variant="outline" size="sm">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            {/* Attendance Form Dialog */}
+            <Dialog open={showAttendanceForm} onOpenChange={setShowAttendanceForm}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>تسجيل حضور موظف</DialogTitle>
+                </DialogHeader>
+                <Form {...attendanceForm}>
+                  <form className="space-y-4">
+                    <FormField
+                      control={attendanceForm.control}
+                      name="employeeId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>الموظف</FormLabel>
+                          <Select onValueChange={(value) => field.onChange(parseInt(value))}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="اختر الموظف" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {employees.map((employee) => (
+                                <SelectItem key={employee.id} value={employee.id.toString()}>
+                                  {employee.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="flex gap-2 pt-4">
+                      <Button type="submit" className="flex-1">
+                        <Save className="h-4 w-4 ml-1" />
+                        حفظ التسجيل
+                      </Button>
+                      <Button type="button" variant="outline" onClick={() => setShowAttendanceForm(false)} className="flex-1">
+                        إلغاء
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+          </div>
+        );
+
+      case '/holidays':
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">الإجازات</h2>
+                <p className="text-gray-600">إدارة طلبات الإجازات والموافقات</p>
+              </div>
+              <Button onClick={() => setShowHolidayForm(true)} className="btn-accounting-primary">
+                <Plus className="ml-2 h-4 w-4" />
+                طلب إجازة جديد
+              </Button>
+            </div>
+
+            {/* Holiday Statistics */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-green-600 text-sm font-medium">إجازات مؤكدة</p>
+                      <p className="text-2xl font-bold text-green-700">5</p>
+                    </div>
+                    <div className="bg-green-200 p-3 rounded-full">
+                      <CalendarCheck className="h-6 w-6 text-green-700" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-yellow-600 text-sm font-medium">في الانتظار</p>
+                      <p className="text-2xl font-bold text-yellow-700">2</p>
+                    </div>
+                    <div className="bg-yellow-200 p-3 rounded-full">
+                      <Clock className="h-6 w-6 text-yellow-700" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-r from-red-50 to-red-100 border-red-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-red-600 text-sm font-medium">مرفوضة</p>
+                      <p className="text-2xl font-bold text-red-700">1</p>
+                    </div>
+                    <div className="bg-red-200 p-3 rounded-full">
+                      <CalendarX className="h-6 w-6 text-red-700" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-blue-600 text-sm font-medium">إجمالي الأيام</p>
+                      <p className="text-2xl font-bold text-blue-700">45 يوم</p>
+                    </div>
+                    <div className="bg-blue-200 p-3 rounded-full">
+                      <Calendar className="h-6 w-6 text-blue-700" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Holidays Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>طلبات الإجازات</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-right">اسم الموظف</TableHead>
+                      <TableHead className="text-right">نوع الإجازة</TableHead>
+                      <TableHead className="text-right">من تاريخ</TableHead>
+                      <TableHead className="text-right">إلى تاريخ</TableHead>
+                      <TableHead className="text-right">عدد الأيام</TableHead>
+                      <TableHead className="text-right">الحالة</TableHead>
+                      <TableHead className="text-right">الإجراءات</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                        لا توجد طلبات إجازات
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            {/* Holiday Form Dialog */}
+            <Dialog open={showHolidayForm} onOpenChange={setShowHolidayForm}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>طلب إجازة جديد</DialogTitle>
+                </DialogHeader>
+                <Form {...holidayForm}>
+                  <form className="space-y-4">
+                    <FormField
+                      control={holidayForm.control}
+                      name="employeeId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>الموظف</FormLabel>
+                          <Select onValueChange={(value) => field.onChange(parseInt(value))}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="اختر الموظف" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {employees.map((employee) => (
+                                <SelectItem key={employee.id} value={employee.id.toString()}>
+                                  {employee.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="flex gap-2 pt-4">
+                      <Button type="submit" className="flex-1">
+                        <Save className="h-4 w-4 ml-1" />
+                        تقديم الطلب
+                      </Button>
+                      <Button type="button" variant="outline" onClick={() => setShowHolidayForm(false)} className="flex-1">
+                        إلغاء
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+          </div>
+        );
+
+      case '/performance':
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">تقييم الأداء</h2>
+                <p className="text-gray-600">تقييم ومتابعة أداء الموظفين</p>
+              </div>
+              <Button onClick={() => setShowPerformanceForm(true)} className="btn-accounting-primary">
+                <Plus className="ml-2 h-4 w-4" />
+                تقييم جديد
+              </Button>
+            </div>
+
+            {/* Performance Statistics */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-green-600 text-sm font-medium">أداء ممتاز</p>
+                      <p className="text-2xl font-bold text-green-700">3</p>
+                    </div>
+                    <div className="bg-green-200 p-3 rounded-full">
+                      <Award className="h-6 w-6 text-green-700" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-blue-600 text-sm font-medium">أداء جيد</p>
+                      <p className="text-2xl font-bold text-blue-700">2</p>
+                    </div>
+                    <div className="bg-blue-200 p-3 rounded-full">
+                      <TrendingUp className="h-6 w-6 text-blue-700" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-yellow-600 text-sm font-medium">يحتاج تحسين</p>
+                      <p className="text-2xl font-bold text-yellow-700">1</p>
+                    </div>
+                    <div className="bg-yellow-200 p-3 rounded-full">
+                      <Target className="h-6 w-6 text-yellow-700" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-r from-purple-50 to-purple-100 border-purple-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-purple-600 text-sm font-medium">متوسط التقييم</p>
+                      <p className="text-2xl font-bold text-purple-700">4.2</p>
+                    </div>
+                    <div className="bg-purple-200 p-3 rounded-full">
+                      <Star className="h-6 w-6 text-purple-700" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Performance Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>تقييمات الأداء</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-right">اسم الموظف</TableHead>
+                      <TableHead className="text-right">فترة التقييم</TableHead>
+                      <TableHead className="text-right">الجودة</TableHead>
+                      <TableHead className="text-right">الالتزام</TableHead>
+                      <TableHead className="text-right">العمل الجماعي</TableHead>
+                      <TableHead className="text-right">التقييم الإجمالي</TableHead>
+                      <TableHead className="text-right">الإجراءات</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                        لا توجد تقييمات أداء
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            {/* Performance Form Dialog */}
+            <Dialog open={showPerformanceForm} onOpenChange={setShowPerformanceForm}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>تقييم أداء موظف</DialogTitle>
+                </DialogHeader>
+                <Form {...performanceForm}>
+                  <form className="space-y-4">
+                    <FormField
+                      control={performanceForm.control}
+                      name="employeeId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>الموظف</FormLabel>
+                          <Select onValueChange={(value) => field.onChange(parseInt(value))}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="اختر الموظف" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {employees.map((employee) => (
+                                <SelectItem key={employee.id} value={employee.id.toString()}>
+                                  {employee.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="flex gap-2 pt-4">
+                      <Button type="submit" className="flex-1">
+                        <Save className="h-4 w-4 ml-1" />
+                        حفظ التقييم
+                      </Button>
+                      <Button type="button" variant="outline" onClick={() => setShowPerformanceForm(false)} className="flex-1">
+                        إلغاء
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+          </div>
+        );
+
+      default:
+        return (
+          <div className="space-y-6">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">إدارة الموظفين</h2>
+              <p className="text-gray-600">إضافة وإدارة معلومات الموظفين ومتابعة أدائهم</p>
+            </div>
+            
+            <EmployeeForm />
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>قائمة الموظفين</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-right">اسم الموظف</TableHead>
+                      <TableHead className="text-right">المنصب</TableHead>
+                      <TableHead className="text-right">القسم</TableHead>
+                      <TableHead className="text-right">الراتب</TableHead>
+                      <TableHead className="text-right">الإجراءات</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {employees.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                          لا توجد موظفين مسجلين
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      employees.map((employee) => (
+                        <TableRow key={employee.id}>
+                          <TableCell className="font-medium">{employee.name}</TableCell>
+                          <TableCell>{employee.position}</TableCell>
+                          <TableCell>{employee.department}</TableCell>
+                          <TableCell>{employee.salary} ر.س</TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button variant="outline" size="sm" onClick={() => handleEdit(employee)}>
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => handleDelete(employee.id)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+        );
+    }
+  };
+
+  return getPageContent();
 }
