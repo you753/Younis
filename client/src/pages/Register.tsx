@@ -94,7 +94,9 @@ export default function Register() {
     onSuccess: (userData) => {
       success('تم إنشاء الحساب والدخول بنجاح');
       login(userData);
-      setLocation('/');
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 100);
     },
     onError: (errorMsg: Error) => {
       error(`خطأ في إنشاء الحساب: ${errorMsg.message}`);

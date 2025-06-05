@@ -23,7 +23,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [, setLocation] = useLocation();
   const { success, error } = useNotification();
-  const { login } = useAuth();
+  const { login, checkAuthStatus } = useAuth();
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -54,7 +54,9 @@ export default function Login() {
     onSuccess: (userData) => {
       success('تم تسجيل الدخول بنجاح');
       login(userData);
-      setLocation('/');
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 100);
     },
     onError: (errorMsg: Error) => {
       error(`خطأ في تسجيل الدخول: ${errorMsg.message}`);
