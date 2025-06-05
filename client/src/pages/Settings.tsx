@@ -43,6 +43,11 @@ export default function Settings() {
 
   const handleCompanyInfoChange = (field: string, value: string) => {
     setCompanyInfo(prev => ({ ...prev, [field]: value }));
+    
+    // إذا تم تغيير اسم الشركة، قم بتحديث الـ store أيضاً
+    if (field === 'name') {
+      updateSetting('companyName', value);
+    }
   };
 
   const saveCompanyInfo = () => {
