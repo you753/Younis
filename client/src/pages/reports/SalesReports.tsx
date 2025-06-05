@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { BarChart3, Download, Calendar, TrendingUp, FileText } from 'lucide-react';
 import type { Sale, Client } from '@shared/schema';
 import jsPDF from 'jspdf';
+import * as XLSX from 'xlsx';
 
 export default function SalesReports() {
   const [dateFrom, setDateFrom] = useState('');
@@ -147,6 +148,60 @@ export default function SalesReports() {
     }
   };
 
+  const exportToExcel = () => {
+    try {
+      // إعداد البيانات للتصدير
+      const exportData = filteredSales.map(sale => {
+        const client = clients.find(c => c.id === sale.clientId);
+        return {
+          'رقم الفاتورة': sale.id,
+          'التاريخ': new Date(sale.date).toLocaleDateString('ar-SA'),
+          'اسم العميل': client?.name || 'عميل نقدي',
+          'رقم الهاتف': client?.phone || '',
+          'المبلغ': parseFloat(sale.total).toFixed(2),
+          'العملة': 'ر.س',
+          'الحالة': 'مكتملة'
+        };
+      });
+
+      // إضافة ملخص الإحصائيات
+      const summaryData = [
+        {},
+        { 'رقم الفاتورة': 'ملخص التقرير' },
+        { 'رقم الفاتورة': 'إجمالي المبيعات', 'المبلغ': totalSales.toFixed(2) },
+        { 'رقم الفاتورة': 'عدد العمليات', 'المبلغ': filteredSales.length },
+        { 'رقم الفاتورة': 'متوسط البيع', 'المبلغ': averageSale.toFixed(2) },
+        { 'رقم الفاتورة': 'تاريخ التقرير', 'المبلغ': new Date().toLocaleDateString('ar-SA') }
+      ];
+
+      const finalData = [...exportData, ...summaryData];
+
+      // إنشاء workbook
+      const ws = XLSX.utils.json_to_sheet(finalData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "تقرير المبيعات");
+
+      // تحديد عرض الأعمدة
+      const colWidths = [
+        { wch: 15 }, // رقم الفاتورة
+        { wch: 15 }, // التاريخ  
+        { wch: 25 }, // اسم العميل
+        { wch: 15 }, // رقم الهاتف
+        { wch: 15 }, // المبلغ
+        { wch: 10 }, // العملة
+        { wch: 15 }  // الحالة
+      ];
+      ws['!cols'] = colWidths;
+
+      // حفظ الملف
+      const fileName = `تقرير_المبيعات_${new Date().toLocaleDateString('ar-SA').replace(/\//g, '-')}.xlsx`;
+      XLSX.writeFile(wb, fileName);
+    } catch (error) {
+      console.error('Excel Export Error:', error);
+      alert('حدث خطأ في تصدير Excel');
+    }
+  };
+
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
@@ -157,13 +212,22 @@ export default function SalesReports() {
             <p className="text-gray-600">تحليل مفصل لأداء المبيعات والعملاء</p>
           </div>
         </div>
-        <Button 
-          onClick={exportToPDF} 
-          className="btn-accounting-primary flex items-center gap-2"
-        >
-          <FileText className="h-4 w-4" />
-          تصدير PDF
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={exportToPDF} 
+            className="btn-accounting-primary flex items-center gap-2"
+          >
+            <FileText className="h-4 w-4" />
+            تصدير PDF
+          </Button>
+          <Button 
+            onClick={exportToExcel} 
+            className="btn-accounting-secondary flex items-center gap-2"
+          >
+            <Download className="h-4 w-4" />
+            تصدير Excel
+          </Button>
+        </div>
       </div>
 
       {/* فلاتر التقرير */}
