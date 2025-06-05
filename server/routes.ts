@@ -209,40 +209,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/auth/profile", async (req, res) => {
     try {
-      const updateData = req.body;
-      const userId = 1; // ID المستخدم الحالي
+      const authReq = req as AuthenticatedRequest;
+      const userId = authReq.session.userId;
       
-      // تحديث المستخدم في قاعدة البيانات
-      const updatedUser = await storage.updateUser(userId, updateData);
-      
-      if (!updatedUser) {
-        return res.status(404).json({ message: "User not found" });
+      if (!userId) {
+        return res.status(401).json({ message: "غير مسجل دخول" });
       }
       
-      // إزالة كلمة المرور من الاستجابة
+      const updatedUser = await storage.updateUser(userId, req.body);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "المستخدم غير موجود" });
+      }
+      
       const { password, ...safeUser } = updatedUser;
       res.json(safeUser);
     } catch (error) {
       console.error("Profile update error:", error);
-      res.status(500).json({ message: "Failed to update profile" });
+      res.status(500).json({ message: "فشل في تحديث الملف الشخصي" });
     }
   });
 
   // رفع الصورة الشخصية
   app.post("/api/auth/upload-avatar", avatarUpload.single('avatar'), async (req, res) => {
     try {
+      const authReq = req as AuthenticatedRequest;
+      const userId = authReq.session.userId;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "غير مسجل دخول" });
+      }
+
       if (!req.file) {
         return res.status(400).json({ message: "لم يتم رفع أي ملف" });
       }
 
-      const userId = 1; // ID المستخدم الحالي
       const avatarPath = `/uploads/avatars/${req.file.filename}`;
       
-      // تحديث مسار الصورة في قاعدة البيانات
       const updatedUser = await storage.updateUser(userId, { avatar: avatarPath });
       
       if (!updatedUser) {
-        return res.status(404).json({ message: "User not found" });
+        return res.status(404).json({ message: "المستخدم غير موجود" });
       }
 
       res.json({ 
