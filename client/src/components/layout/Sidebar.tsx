@@ -258,7 +258,7 @@ export default function Sidebar() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-bold">{settings.companyName || 'المحاسب الأعظم'}</h1>
-              <p className="text-blue-200 text-sm mt-1">نظام المحاسبة الاحترافي</p>
+              <p className="text-blue-200 text-sm mt-1">المحاسب الأعظم</p>
             </div>
             <Button
               variant="ghost"
