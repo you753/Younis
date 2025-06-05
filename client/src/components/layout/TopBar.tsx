@@ -45,19 +45,19 @@ export default function TopBar() {
   };
 
   return (
-    <div className="bg-gradient-to-l from-blue-600 to-blue-800 border-b border-blue-500/30 shadow-lg">
+    <div className="bg-gradient-to-l from-blue-600 to-blue-800 dark:from-slate-800 dark:to-slate-900 border-b border-blue-500/30 dark:border-slate-700/50 shadow-lg">
       <div className="flex items-center justify-between px-6 py-4">
         {/* الترحيب والوقت */}
         <div className="flex items-center gap-6">
           <div className="text-white">
-            <h2 className="text-xl font-bold bg-gradient-to-r from-yellow-200 to-yellow-100 bg-clip-text text-transparent">
+            <h2 className="text-xl font-bold bg-gradient-to-r from-yellow-200 to-yellow-100 dark:from-blue-300 dark:to-cyan-300 bg-clip-text text-transparent">
               مرحباً بك في المحاسب الأعظم ✨
             </h2>
             <div className="flex items-center gap-4 mt-1">
-              <p className="text-blue-100 text-sm">{formatDate(currentTime)}</p>
+              <p className="text-blue-100 dark:text-slate-300 text-sm">{formatDate(currentTime)}</p>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-                <p className="text-blue-100 text-sm font-mono">{formatTime(currentTime)}</p>
+                <div className="w-2 h-2 bg-yellow-400 dark:bg-cyan-400 rounded-full animate-pulse"></div>
+                <p className="text-blue-100 dark:text-slate-300 text-sm font-mono">{formatTime(currentTime)}</p>
               </div>
             </div>
           </div>
@@ -66,10 +66,10 @@ export default function TopBar() {
         {/* شريط البحث */}
         <div className="flex-1 max-w-md mx-8">
           <div className="relative">
-            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-blue-400" />
+            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-blue-400 dark:text-slate-400" />
             <Input
               placeholder="البحث في النظام..."
-              className="pl-4 pr-10 bg-white/10 border-white/20 text-white placeholder:text-blue-200 focus:bg-white/20 focus:border-white/40"
+              className="pl-4 pr-10 bg-white/10 dark:bg-slate-800/50 border-white/20 dark:border-slate-600/50 text-white dark:text-slate-200 placeholder:text-blue-200 dark:placeholder:text-slate-400 focus:bg-white/20 dark:focus:bg-slate-700/50 focus:border-white/40 dark:focus:border-slate-500"
             />
           </div>
         </div>
@@ -82,9 +82,9 @@ export default function TopBar() {
           </div>
 
           {/* حالة النظام */}
-          <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-            <span className="text-emerald-100 text-xs font-medium">النظام يعمل بشكل طبيعي</span>
+          <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-white/10 dark:bg-slate-700/50 rounded-full">
+            <div className="w-2 h-2 bg-green-400 dark:bg-emerald-400 rounded-full animate-pulse"></div>
+            <span className="text-emerald-100 dark:text-emerald-300 text-xs font-medium">النظام يعمل بشكل طبيعي</span>
           </div>
 
           {/* قائمة المستخدم */}
@@ -93,13 +93,13 @@ export default function TopBar() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-white hover:bg-white/10 gap-2"
+                className="text-white dark:text-slate-200 hover:bg-white/10 dark:hover:bg-slate-700/50 gap-2"
               >
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-medium">المدير العام</p>
-                  <p className="text-xs text-blue-200">admin@company.com</p>
+                  <p className="text-xs text-blue-200 dark:text-slate-400">admin@company.com</p>
                 </div>
-                <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-500 dark:from-blue-500 dark:to-cyan-500 rounded-full flex items-center justify-center">
                   <User className="h-4 w-4 text-white" />
                 </div>
               </Button>
