@@ -27,6 +27,7 @@ import PurchasesReports from "@/pages/reports/PurchasesReports";
 import InventoryReports from "@/pages/reports/InventoryReports";
 import FinancialReports from "@/pages/reports/FinancialReports";
 import Settings from "@/pages/Settings";
+import Login from "@/pages/Login";
 import NotFound from "@/pages/not-found";
 import Employees from "@/pages/Employees";
 import Deductions from "@/pages/Deductions";
