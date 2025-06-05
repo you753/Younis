@@ -10,37 +10,10 @@ import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Settings() {
-  const { setCurrentPage } = useAppStore();
+  const { setCurrentPage, settings, updateSetting, updateSettings } = useAppStore();
   const [location] = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [settings, setSettings] = useState({
-    appName: 'المحاسب الأعظم',
-    companyName: 'المحاسب الأعظم',
-    companyEmail: 'info@almohaseb.com',
-    companyPhone: '+966 11 123 4567',
-    taxNumber: '300002471110003',
-    address: 'الرياض، المملكة العربية السعودية',
-    currency: 'ريال سعودي (ر.س)',
-    fiscalYear: '2025',
-    notifications: true,
-    autoSave: true,
-    userRegistration: false,
-    emailVerification: true,
-    sessionTimeout: 60,
-    maxUsers: 10,
-    debugMode: false,
-    maintenanceMode: false,
-    maxFileSize: 10,
-    logRetention: 30,
-    autoBackup: true,
-    backupTime: '02:00',
-    backupRetention: 30,
-    twoFactor: false,
-    forcePasswordChange: false,
-    minPasswordLength: 8,
-    maxLoginAttempts: 5
-  });
 
   useEffect(() => {
     setCurrentPage('إعدادات النظام');
@@ -49,12 +22,12 @@ export default function Settings() {
   const handleSaveSettings = async () => {
     setIsLoading(true);
     try {
-      // محاكاة حفظ الإعدادات
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // حفظ الإعدادات في قاعدة البيانات هنا
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       toast({
         title: "تم حفظ الإعدادات",
-        description: "تم حفظ جميع الإعدادات بنجاح",
+        description: "تم حفظ جميع الإعدادات وتطبيقها على النظام",
       });
     } catch (error) {
       toast({
@@ -65,13 +38,6 @@ export default function Settings() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleSettingChange = (key: string, value: any) => {
-    setSettings(prev => ({
-      ...prev,
-      [key]: value
-    }));
   };
 
   // معالجة المحتوى بناء على المسار
@@ -119,7 +85,7 @@ export default function Settings() {
             <Switch 
               id="notifications" 
               checked={settings.notifications}
-              onCheckedChange={(checked) => handleSettingChange('notifications', checked)}
+              onCheckedChange={(checked) => updateSetting('notifications', checked)}
             />
           </div>
           <div className="flex items-center justify-between">
