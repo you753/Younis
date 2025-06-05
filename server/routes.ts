@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { z } from "zod";
 import { storage } from "./storage";
@@ -18,6 +18,15 @@ import { uploadMiddleware, transcribeAudio } from "./voice";
 import { handleAIChat } from "./ai-chat";
 import multer from 'multer';
 import path from 'path';
+
+// تمديد نوع Request لإضافة الجلسة
+interface AuthenticatedRequest extends Request {
+  session: {
+    userId?: number;
+    save: (callback: (err?: any) => void) => void;
+    destroy: (callback: (err?: any) => void) => void;
+  } & any;
+}
 import fs from 'fs';
 
 // إعداد رفع الصور
@@ -84,19 +93,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "جميع الحقول مطلوبة" });
       }
 
-      // التحقق من عدم وجود مستخدم بنفس اسم المستخدم أو البريد الإلكتروني
-      const existingUserByUsername = await storage.getUserByUsername(username);
-      if (existingUserByUsername) {
-        return res.status(409).json({ message: "اسم المستخدم موجود بالفعل" });
-      }
-
-      const existingUsers = await storage.getAllUsers();
-      const existingUserByEmail = existingUsers.find(user => user.email === email);
-      if (existingUserByEmail) {
-        return res.status(409).json({ message: "البريد الإلكتروني موجود بالفعل" });
-      }
-
-      // إنشاء المستخدم الجديد
+      // إنشاء المستخدم الجديد بدون فحص التكرار
       const newUser = await storage.createUser({
         username,
         email,
@@ -104,6 +101,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         password, // في الإنتاج يجب تشفير كلمة المرور
         role: role || 'user'
       });
+
+      // تسجيل دخول المستخدم مباشرة بعد إنشاء الحساب
+      const authReq = req as AuthenticatedRequest;
+      authReq.session.userId = newUser.id;
 
       // إزالة كلمة المرور من الاستجابة
       const { password: _, ...safeUser } = newUser;
