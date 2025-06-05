@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 
 export default function Settings() {
-  const { settings, updateSetting } = useAppStore();
+  const { settings, updateSetting, canAccessSettings, user } = useAppStore();
   const { t } = useTranslation();
   const [location] = useLocation();
 
@@ -145,39 +145,55 @@ export default function Settings() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
-          <TabsTrigger value="general" className="flex items-center gap-2">
-            <SettingsIcon className="h-4 w-4" />
-            عام
-          </TabsTrigger>
-          <TabsTrigger value="company" className="flex items-center gap-2">
-            <Building2 className="h-4 w-4" />
-            الشركة
-          </TabsTrigger>
-          <TabsTrigger value="users" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            المستخدمين
-          </TabsTrigger>
-          <TabsTrigger value="system" className="flex items-center gap-2">
-            <Monitor className="h-4 w-4" />
-            النظام
-          </TabsTrigger>
-          <TabsTrigger value="security" className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
-            الأمان
-          </TabsTrigger>
-          <TabsTrigger value="backup" className="flex items-center gap-2">
-            <Database className="h-4 w-4" />
-            النسخ الاحتياطي
-          </TabsTrigger>
-          <TabsTrigger value="printing" className="flex items-center gap-2">
-            <Printer className="h-4 w-4" />
-            الطباعة
-          </TabsTrigger>
-          <TabsTrigger value="taxes" className="flex items-center gap-2">
-            <Calculator className="h-4 w-4" />
-            الضرائب
-          </TabsTrigger>
+        <TabsList className={`grid w-full ${canAccessSettings('system') ? 'grid-cols-4 lg:grid-cols-8' : 'grid-cols-2 lg:grid-cols-4'}`}>
+          {canAccessSettings('general') && (
+            <TabsTrigger value="general" className="flex items-center gap-2">
+              <SettingsIcon className="h-4 w-4" />
+              عام
+            </TabsTrigger>
+          )}
+          {canAccessSettings('company') && (
+            <TabsTrigger value="company" className="flex items-center gap-2">
+              <Building2 className="h-4 w-4" />
+              الشركة
+            </TabsTrigger>
+          )}
+          {canAccessSettings('users') && (
+            <TabsTrigger value="users" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              المستخدمين
+            </TabsTrigger>
+          )}
+          {canAccessSettings('system') && (
+            <TabsTrigger value="system" className="flex items-center gap-2">
+              <Monitor className="h-4 w-4" />
+              النظام
+            </TabsTrigger>
+          )}
+          {canAccessSettings('security') && (
+            <TabsTrigger value="security" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              الأمان
+            </TabsTrigger>
+          )}
+          {canAccessSettings('backup') && (
+            <TabsTrigger value="backup" className="flex items-center gap-2">
+              <Database className="h-4 w-4" />
+              النسخ الاحتياطي
+            </TabsTrigger>
+          )}
+          {canAccessSettings('printing') && (
+            <TabsTrigger value="printing" className="flex items-center gap-2">
+              <Printer className="h-4 w-4" />
+              الطباعة
+            </TabsTrigger>
+          )}
+          {canAccessSettings('taxes') && (
+            <TabsTrigger value="taxes" className="flex items-center gap-2">
+              <Calculator className="h-4 w-4" />
+              الضرائب
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {/* الإعدادات العامة */}
