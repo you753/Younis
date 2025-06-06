@@ -321,9 +321,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("البيانات بعد التحقق:", validatedData);
       const supplier = await storage.createSupplier(validatedData);
       res.status(201).json(supplier);
-    } catch (error) {
+    } catch (error: any) {
       console.error("خطأ في إضافة المورد:", error);
-      res.status(400).json({ message: "بيانات المورد غير صحيحة", error: error.message });
+      res.status(400).json({ message: "بيانات المورد غير صحيحة", error: error?.message || "خطأ غير معروف" });
     }
   });
 
