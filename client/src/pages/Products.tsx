@@ -120,7 +120,9 @@ export default function Products() {
           </div>
 
           {/* Products Table */}
-          <ProductsTable />
+          <div data-onboarding="products-table">
+            <ProductsTable />
+          </div>
         </>
       )}
     </div>
