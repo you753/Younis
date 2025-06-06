@@ -19,7 +19,7 @@ export const users = pgTable("users", {
 
 export const suppliers = pgTable("suppliers", {
   id: serial("id").primaryKey(),
-  name: text("name").notNull(),
+  name: text("name"),
   phone: text("phone"),
   email: text("email"),
   address: text("address"),
@@ -31,7 +31,7 @@ export const suppliers = pgTable("suppliers", {
 
 export const clients = pgTable("clients", {
   id: serial("id").primaryKey(),
-  name: text("name").notNull(),
+  name: text("name"),
   phone: text("phone"),
   email: text("email"),
   address: text("address"),
@@ -42,13 +42,13 @@ export const clients = pgTable("clients", {
 
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
-  name: text("name").notNull(),
+  name: text("name"),
   code: text("code").unique(),
   barcode: text("barcode").unique(),
   description: text("description"),
   category: text("category"),
-  purchasePrice: decimal("purchase_price", { precision: 10, scale: 2 }).notNull(),
-  salePrice: decimal("sale_price", { precision: 10, scale: 2 }).notNull(),
+  purchasePrice: decimal("purchase_price", { precision: 10, scale: 2 }),
+  salePrice: decimal("sale_price", { precision: 10, scale: 2 }),
   quantity: integer("quantity").default(0),
   minQuantity: integer("min_quantity").default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -178,18 +178,18 @@ export const insertSupplierSchema = createInsertSchema(suppliers).omit({
   id: true,
   balance: true,
   createdAt: true,
-});
+}).partial();
 
 export const insertClientSchema = createInsertSchema(clients).omit({
   id: true,
   balance: true,
   createdAt: true,
-});
+}).partial();
 
 export const insertProductSchema = createInsertSchema(products).omit({
   id: true,
   createdAt: true,
-});
+}).partial();
 
 export const insertSaleSchema = createInsertSchema(sales).omit({
   id: true,

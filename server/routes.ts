@@ -193,17 +193,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/auth/status", async (req, res) => {
     try {
-      // جلب المستخدم من قاعدة البيانات
-      const currentUser = await storage.getUser(1); // ID المستخدم الحالي
+      const authReq = req as AuthenticatedRequest;
+      const userId = authReq.session.userId;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "غير مسجل دخول" });
+      }
+
+      const currentUser = await storage.getUser(userId);
       if (!currentUser) {
-        return res.status(404).json({ message: "User not found" });
+        return res.status(404).json({ message: "المستخدم غير موجود" });
       }
       
-      // إزالة كلمة المرور من الاستجابة
       const { password, ...safeUser } = currentUser;
       res.json(safeUser);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch user profile" });
+      res.status(500).json({ message: "فشل في جلب بيانات المستخدم" });
     }
   });
 
