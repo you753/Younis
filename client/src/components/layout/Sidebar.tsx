@@ -252,11 +252,14 @@ export default function Sidebar() {
       )}
 
       {/* Sidebar */}
-      <aside className={cn(
-        "fixed top-0 right-0 h-full min-h-screen w-72 sm:w-80 bg-gradient-to-b from-blue-600 to-blue-800 text-white shadow-xl transition-transform duration-300 ease-in-out z-50",
-        "lg:relative lg:translate-x-0",
-        sidebarCollapsed ? "translate-x-full" : "translate-x-0"
-      )}>
+      <aside 
+        className={cn(
+          "fixed top-0 right-0 h-full min-h-screen w-72 sm:w-80 bg-gradient-to-b from-blue-600 to-blue-800 text-white shadow-xl transition-transform duration-300 ease-in-out z-50",
+          "lg:relative lg:translate-x-0",
+          sidebarCollapsed ? "translate-x-full" : "translate-x-0"
+        )}
+        data-onboarding="sidebar"
+      >
         {/* Header */}
         <div className="p-6 border-b border-white/20">
           <div className="flex items-center justify-between">

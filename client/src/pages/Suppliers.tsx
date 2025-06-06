@@ -16,6 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Users, Star, Edit, Trash2, Save, Building } from 'lucide-react';
+import { OnboardingTrigger } from '@/components/onboarding/OnboardingTrigger';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -450,12 +451,19 @@ export default function Suppliers() {
       default:
         return (
           <div className="space-y-6">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">إدارة الموردين</h2>
-              <p className="text-gray-600">إضافة وإدارة معلومات الموردين وحساباتهم</p>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">إدارة الموردين</h2>
+                <p className="text-gray-600">إضافة وإدارة معلومات الموردين وحساباتهم</p>
+              </div>
+              <OnboardingTrigger tourName="suppliers" />
             </div>
-            <SupplierForm />
-            <SuppliersTable />
+            <div data-onboarding="add-supplier">
+              <SupplierForm />
+            </div>
+            <div data-onboarding="suppliers-table">
+              <SuppliersTable />
+            </div>
           </div>
         );
     }

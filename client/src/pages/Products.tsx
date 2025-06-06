@@ -4,6 +4,7 @@ import ProductForm from '@/components/forms/ProductForm';
 import ProductsTable from '@/components/tables/ProductsTable';
 import { Button } from '@/components/ui/button';
 import { Plus, List } from 'lucide-react';
+import { OnboardingTrigger } from '@/components/onboarding/OnboardingTrigger';
 import { useEffect, useState } from 'react';
 
 export default function Products() {
@@ -56,8 +57,9 @@ export default function Products() {
           </div>
           
           <div className="flex gap-2">
+            {currentView === 'list' && <OnboardingTrigger tourName="products" />}
             {currentView === 'list' ? (
-              <Button onClick={switchToAdd} className="btn-accounting-primary">
+              <Button onClick={switchToAdd} className="btn-accounting-primary" data-onboarding="add-product">
                 <Plus className="ml-2 h-4 w-4" />
                 إضافة صنف جديد
               </Button>
