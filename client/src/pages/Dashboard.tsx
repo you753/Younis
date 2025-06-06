@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { OnboardingTrigger } from '@/components/onboarding/OnboardingTrigger';
+import { useOnboarding } from '@/components/onboarding/OnboardingProvider';
 import { 
   Users, 
   DollarSign, 
@@ -179,6 +181,8 @@ export default function Dashboard() {
           </div>
           
           <div className="flex items-center gap-3">
+            <OnboardingTrigger tourName="dashboard" />
+            
             <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
               <SelectTrigger className="w-32">
                 <SelectValue />
@@ -205,7 +209,7 @@ export default function Dashboard() {
       </div>
 
       {/* Enhanced KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6" data-onboarding="stats-cards">
         <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-blue-100">إجمالي المبيعات</CardTitle>
@@ -348,7 +352,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Activity Panel */}
-        <Card>
+        <Card data-onboarding="recent-sales">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>آخر النشاطات</CardTitle>
