@@ -548,6 +548,13 @@ async function initializeDatabaseWithSampleData() {
       // Create sample users
       await db.insert(users).values([
         {
+          username: "YOUNIS1234",
+          email: "younis1234@system.com",
+          password: "Aa123456",
+          fullName: "يونس المدير الرئيسي",
+          role: "admin"
+        },
+        {
           username: "admin",
           email: "admin@system.com",
           password: "admin123",
