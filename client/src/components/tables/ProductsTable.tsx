@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useNotification } from '@/hooks/useNotification';
+import { useCurrency } from '@/hooks/useCurrency';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2, Package, AlertTriangle } from 'lucide-react';
@@ -9,6 +10,7 @@ import { useLocation } from 'wouter';
 
 export default function ProductsTable() {
   const { success, error } = useNotification();
+  const { format: formatAmount } = useCurrency();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
@@ -146,10 +148,10 @@ export default function ProductsTable() {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 arabic-numbers">
-                  {formatCurrency(product.purchasePrice)}
+                  {formatAmount(parseFloat(product.purchasePrice || '0'))}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 arabic-numbers">
-                  {formatCurrency(product.salePrice)}
+                  {formatAmount(parseFloat(product.salePrice || '0'))}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {getCategoryBadge(product.category)}
