@@ -35,6 +35,7 @@ export default function TopBar() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
   const { t, language } = useTranslation();
   const { settings } = useAppStore();
   const [, setLocation] = useLocation();
@@ -124,7 +125,7 @@ export default function TopBar() {
   ) : [];
 
   const handleSearchSelect = (type: string, id: string) => {
-    setSearchOpen(false);
+    setShowDropdown(false);
     setSearchQuery('');
     
     switch (type) {
@@ -185,16 +186,123 @@ export default function TopBar() {
         </div>
 
         {/* شريط البحث */}
-        <div className="flex-1 max-w-md mx-8">
+        <div className="flex-1 max-w-md mx-8 relative">
           <div className="relative">
             <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-blue-400 dark:text-slate-400" />
             <Input
-              placeholder="ابحث في النظام (Ctrl+K)"
-              className="pl-4 pr-10 bg-white/10 dark:bg-slate-800/50 border-white/20 dark:border-slate-600/50 text-white dark:text-slate-200 placeholder:text-blue-200 dark:placeholder:text-slate-400 focus:bg-white/20 dark:focus:bg-slate-700/50 focus:border-white/40 dark:focus:border-slate-500 cursor-pointer"
-              onClick={() => setSearchOpen(true)}
-              readOnly
+              placeholder="ابحث في المنتجات، العملاء، الموردين..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowDropdown(e.target.value.length > 0);
+              }}
+              onFocus={() => {
+                if (searchQuery.length > 0) {
+                  setShowDropdown(true);
+                }
+              }}
+              onBlur={() => {
+                setTimeout(() => setShowDropdown(false), 200);
+              }}
+              className="pl-4 pr-10 bg-white/10 dark:bg-slate-800/50 border-white/20 dark:border-slate-600/50 text-white dark:text-slate-200 placeholder:text-blue-200 dark:placeholder:text-slate-400 focus:bg-white/20 dark:focus:bg-slate-700/50 focus:border-white/40 dark:focus:border-slate-500"
             />
           </div>
+
+          {/* نتائج البحث المنسدلة */}
+          {searchQuery.length > 0 && showDropdown && (
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-lg max-h-96 overflow-y-auto z-50">
+              {/* صفحات النظام */}
+              {searchQuery.length > 0 && (
+                <div className="p-3 border-b border-gray-100 dark:border-slate-700">
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">صفحات النظام</h4>
+                  <div className="space-y-1">
+                    {[
+                      { name: 'لوحة التحكم', path: '/dashboard' },
+                      { name: 'المبيعات', path: '/sales' },
+                      { name: 'المشتريات', path: '/purchases' },
+                      { name: 'المنتجات', path: '/products' },
+                      { name: 'العملاء', path: '/clients' },
+                      { name: 'الموردين', path: '/suppliers' },
+                      { name: 'الموظفين', path: '/employees' },
+                      { name: 'الإعدادات', path: '/settings' }
+                    ].filter(page => page.name.toLowerCase().includes(searchQuery.toLowerCase())).map(page => (
+                      <button
+                        key={page.path}
+                        onClick={() => handleSearchSelect('page', page.path)}
+                        className="w-full text-right px-2 py-1 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded"
+                      >
+                        {page.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* المنتجات */}
+              {filteredProducts.length > 0 && (
+                <div className="p-3 border-b border-gray-100 dark:border-slate-700">
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">المنتجات</h4>
+                  <div className="space-y-1">
+                    {filteredProducts.slice(0, 3).map((product: any) => (
+                      <button
+                        key={product.id}
+                        onClick={() => handleSearchSelect('product', product.id)}
+                        className="w-full text-right px-2 py-1 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex justify-between items-center"
+                      >
+                        <span>{product.name}</span>
+                        <span className="text-xs text-gray-500">{product.code}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* العملاء */}
+              {filteredClients.length > 0 && (
+                <div className="p-3 border-b border-gray-100 dark:border-slate-700">
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">العملاء</h4>
+                  <div className="space-y-1">
+                    {filteredClients.slice(0, 3).map((client: any) => (
+                      <button
+                        key={client.id}
+                        onClick={() => handleSearchSelect('client', client.id)}
+                        className="w-full text-right px-2 py-1 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex justify-between items-center"
+                      >
+                        <span>{client.name}</span>
+                        <span className="text-xs text-gray-500">{client.phone}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* الموردين */}
+              {filteredSuppliers.length > 0 && (
+                <div className="p-3">
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">الموردين</h4>
+                  <div className="space-y-1">
+                    {filteredSuppliers.slice(0, 3).map((supplier: any) => (
+                      <button
+                        key={supplier.id}
+                        onClick={() => handleSearchSelect('supplier', supplier.id)}
+                        className="w-full text-right px-2 py-1 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex justify-between items-center"
+                      >
+                        <span>{supplier.name}</span>
+                        <span className="text-xs text-gray-500">{supplier.phone}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* لا توجد نتائج */}
+              {filteredProducts.length === 0 && filteredClients.length === 0 && filteredSuppliers.length === 0 && searchQuery.length > 0 && (
+                <div className="p-4 text-center text-gray-500 dark:text-slate-400">
+                  لا توجد نتائج للبحث "{searchQuery}"
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* الإشعارات وإعدادات المستخدم */}
@@ -273,127 +381,7 @@ export default function TopBar() {
         </div>
       </div>
 
-      {/* نافذة البحث التفاعلية */}
-      <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
-        <Command>
-          <CommandInput 
-            placeholder="ابحث في المنتجات، العملاء، الموردين..."
-            value={searchQuery}
-            onValueChange={setSearchQuery}
-          />
-          <CommandList>
-            <CommandEmpty>لا توجد نتائج</CommandEmpty>
-            
-            {/* صفحات النظام */}
-            <CommandGroup heading="صفحات النظام">
-              <CommandItem onSelect={() => handleSearchSelect('page', '/dashboard')}>
-                لوحة التحكم
-              </CommandItem>
-              <CommandItem onSelect={() => handleSearchSelect('page', '/sales')}>
-                المبيعات
-              </CommandItem>
-              <CommandItem onSelect={() => handleSearchSelect('page', '/purchases')}>
-                المشتريات
-              </CommandItem>
-              <CommandItem onSelect={() => handleSearchSelect('page', '/products')}>
-                المنتجات
-              </CommandItem>
-              <CommandItem onSelect={() => handleSearchSelect('page', '/clients')}>
-                العملاء
-              </CommandItem>
-              <CommandItem onSelect={() => handleSearchSelect('page', '/suppliers')}>
-                الموردين
-              </CommandItem>
-              <CommandItem onSelect={() => handleSearchSelect('page', '/employees')}>
-                الموظفين
-              </CommandItem>
-              <CommandItem onSelect={() => handleSearchSelect('page', '/settings')}>
-                الإعدادات
-              </CommandItem>
-            </CommandGroup>
 
-            {/* المنتجات */}
-            {filteredProducts.length > 0 && (
-              <>
-                <CommandSeparator />
-                <CommandGroup heading="المنتجات">
-                  {filteredProducts.slice(0, 5).map((product: any) => (
-                    <CommandItem 
-                      key={product.id}
-                      onSelect={() => handleSearchSelect('product', product.id)}
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <span>{product.name}</span>
-                        <Badge variant="secondary">{product.code}</Badge>
-                      </div>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </>
-            )}
-
-            {/* العملاء */}
-            {filteredClients.length > 0 && (
-              <>
-                <CommandSeparator />
-                <CommandGroup heading="العملاء">
-                  {filteredClients.slice(0, 5).map((client: any) => (
-                    <CommandItem 
-                      key={client.id}
-                      onSelect={() => handleSearchSelect('client', client.id)}
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <span>{client.name}</span>
-                        <Badge variant="outline">{client.phone}</Badge>
-                      </div>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </>
-            )}
-
-            {/* الموردين */}
-            {filteredSuppliers.length > 0 && (
-              <>
-                <CommandSeparator />
-                <CommandGroup heading="الموردين">
-                  {filteredSuppliers.slice(0, 5).map((supplier: any) => (
-                    <CommandItem 
-                      key={supplier.id}
-                      onSelect={() => handleSearchSelect('supplier', supplier.id)}
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <span>{supplier.name}</span>
-                        <Badge variant="outline">{supplier.phone}</Badge>
-                      </div>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </>
-            )}
-
-            {/* المبيعات */}
-            {filteredSales.length > 0 && (
-              <>
-                <CommandSeparator />
-                <CommandGroup heading="المبيعات">
-                  {filteredSales.slice(0, 5).map((sale: any) => (
-                    <CommandItem 
-                      key={sale.id}
-                      onSelect={() => handleSearchSelect('sale', sale.id)}
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <span>فاتورة #{sale.id}</span>
-                        <Badge variant="default">{sale.total} ر.س</Badge>
-                      </div>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </>
-            )}
-          </CommandList>
-        </Command>
-      </CommandDialog>
     </div>
   );
 }
