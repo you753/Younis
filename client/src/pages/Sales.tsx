@@ -6,7 +6,8 @@ import { useCurrency } from '@/hooks/useCurrency';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, FileText, TrendingUp, DollarSign, Edit, Trash2, Printer, Download, Eye, ArrowLeft, Percent, Calculator as CalcIcon } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Plus, FileText, TrendingUp, DollarSign, Edit, Trash2, Printer, Download, Eye, ArrowLeft, Percent, Calculator as CalcIcon, Search } from 'lucide-react';
 import EnhancedSaleForm from '@/components/forms/EnhancedSaleForm';
 import Calculator from '@/components/Calculator';
 import InvoiceActions from '@/components/InvoiceActions';
@@ -18,6 +19,7 @@ export default function Sales() {
   const [showForm, setShowForm] = useState(false);
   const [selectedSale, setSelectedSale] = useState<any>(null);
   const [showInvoicePreview, setShowInvoicePreview] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // تحديد نوع الصفحة حسب المسار
   const getPageInfo = () => {
@@ -74,7 +76,23 @@ export default function Sales() {
     queryKey: ['/api/products'],
   });
 
-  const totalSales = sales.reduce((sum: number, sale: any) => sum + parseFloat(sale.total), 0);
+  // فلترة المبيعات حسب البحث
+  const filteredSales = Array.isArray(sales) ? sales.filter((sale: any) => {
+    if (!searchTerm) return true;
+    
+    const searchLower = searchTerm.toLowerCase();
+    const client = Array.isArray(clients) ? clients.find((c: any) => c.id === sale.clientId) : null;
+    
+    return (
+      sale.id?.toString().includes(searchTerm) ||
+      sale.total?.toString().includes(searchTerm) ||
+      sale.date?.toLowerCase().includes(searchLower) ||
+      client?.name?.toLowerCase().includes(searchLower) ||
+      client?.phone?.toLowerCase().includes(searchLower)
+    );
+  }) : [];
+
+  const totalSales = filteredSales.reduce((sum: number, sale: any) => sum + parseFloat(sale.total), 0);
 
   return (
     <div className="space-y-6">
@@ -90,6 +108,24 @@ export default function Sales() {
             <Plus className="ml-2 h-4 w-4" />
             فاتورة مبيعات جديدة
           </Button>
+        </div>
+
+        {/* شريط البحث */}
+        <div className="mt-4">
+          <div className="relative max-w-md">
+            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="ابحث في المبيعات، العملاء، المبالغ..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pr-10"
+            />
+          </div>
+          {searchTerm && (
+            <p className="text-sm text-gray-500 mt-2">
+              عرض {filteredSales.length} من أصل {Array.isArray(sales) ? sales.length : 0} فاتورة
+            </p>
+          )}
         </div>
       </div>
 
@@ -160,15 +196,27 @@ export default function Sales() {
         <CardContent>
           {isLoading ? (
             <div className="text-center py-8">جاري تحميل البيانات...</div>
-          ) : sales.length === 0 ? (
+          ) : filteredSales.length === 0 ? (
             <div className="text-center py-8">
               <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">لا توجد فواتير مبيعات</h3>
-              <p className="text-gray-600 mb-4">ابدأ بإضافة أول فاتورة مبيعات</p>
-              <Button onClick={() => setShowForm(true)}>
-                <Plus className="ml-2 h-4 w-4" />
-                إضافة فاتورة جديدة
-              </Button>
+              {searchTerm ? (
+                <>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">لا توجد نتائج للبحث</h3>
+                  <p className="text-gray-600 mb-4">جرب البحث بكلمات مختلفة</p>
+                  <Button variant="outline" onClick={() => setSearchTerm('')}>
+                    مسح البحث
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">لا توجد فواتير مبيعات</h3>
+                  <p className="text-gray-600 mb-4">ابدأ بإضافة أول فاتورة مبيعات</p>
+                  <Button onClick={() => setShowForm(true)}>
+                    <Plus className="ml-2 h-4 w-4" />
+                    إضافة فاتورة جديدة
+                  </Button>
+                </>
+              )}
             </div>
           ) : (
             <Table>
@@ -183,8 +231,8 @@ export default function Sales() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sales.map((sale: any) => {
-                  const client = clients.find((c: any) => c.id === sale.clientId);
+                {filteredSales.map((sale: any) => {
+                  const client = Array.isArray(clients) ? clients.find((c: any) => c.id === sale.clientId) : null;
                   return (
                     <TableRow key={sale.id}>
                       <TableCell className="font-medium">#{sale.id}</TableCell>
