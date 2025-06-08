@@ -212,7 +212,7 @@ export default function Dashboard() {
             <DollarSign className="h-5 w-5 text-blue-200" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{totalRevenue.toFixed(2)} ر.س</div>
+            <div className="text-3xl font-bold">{formatAmount(totalRevenue)}</div>
             <div className="flex items-center text-blue-100 text-sm mt-2">
               <TrendingUp className="h-4 w-4 ml-1" />
               +{profitMargin.toFixed(1)}% من الشهر الماضي
@@ -226,7 +226,7 @@ export default function Dashboard() {
             <TrendingUp className="h-5 w-5 text-green-200" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{netProfit.toFixed(2)} ر.س</div>
+            <div className="text-3xl font-bold">{formatAmount(netProfit)}</div>
             <div className="flex items-center text-green-100 text-sm mt-2">
               <Badge variant="secondary" className="bg-green-400 text-green-900">
                 {profitMargin.toFixed(1)}% هامش ربح
@@ -255,7 +255,7 @@ export default function Dashboard() {
             <Warehouse className="h-5 w-5 text-orange-200" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{inventoryValue.toFixed(2)} ر.س</div>
+            <div className="text-3xl font-bold">{formatAmount(inventoryValue)}</div>
             <div className="flex items-center text-orange-100 text-sm mt-2">
               <Badge variant="secondary" className="bg-orange-400 text-orange-900">
                 {products.length} صنف
