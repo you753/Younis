@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/lib/store';
+import { useCurrency } from '@/hooks/useCurrency';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import { format } from 'date-fns';
 
 export default function Purchases() {
   const { setCurrentPage } = useAppStore();
+  const { format: formatAmount } = useCurrency();
   const [showForm, setShowForm] = useState(false);
   const [editingPurchase, setEditingPurchase] = useState<any>(null);
   const queryClient = useQueryClient();
@@ -101,7 +103,7 @@ export default function Purchases() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-600 text-sm font-medium">إجمالي المشتريات</p>
-                <p className="text-2xl font-bold text-blue-700">{totalPurchases.toFixed(2)} ر.س</p>
+                <p className="text-2xl font-bold text-blue-700">{formatAmount(totalPurchases)}</p>
               </div>
               <div className="bg-blue-200 p-3 rounded-full">
                 <DollarSign className="h-6 w-6 text-blue-700" />
@@ -143,7 +145,7 @@ export default function Purchases() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-orange-600 text-sm font-medium">متوسط قيمة الفاتورة</p>
-                <p className="text-2xl font-bold text-orange-700">{averageOrderValue.toFixed(2)} ر.س</p>
+                <p className="text-2xl font-bold text-orange-700">{formatAmount(averageOrderValue)}</p>
               </div>
               <div className="bg-orange-200 p-3 rounded-full">
                 <DollarSign className="h-6 w-6 text-orange-700" />
@@ -178,7 +180,7 @@ export default function Purchases() {
                     <TableRow key={purchase.id}>
                       <TableCell className="font-medium">#{purchase.id}</TableCell>
                       <TableCell>{supplier?.name || 'غير محدد'}</TableCell>
-                      <TableCell>{purchase.total} ر.س</TableCell>
+                      <TableCell>{formatAmount(parseFloat(purchase.total || 0))}</TableCell>
                       <TableCell>
                         {purchase.createdAt ? format(new Date(purchase.createdAt), 'yyyy-MM-dd') : '-'}
                       </TableCell>
