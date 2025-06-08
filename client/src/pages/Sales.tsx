@@ -189,7 +189,7 @@ export default function Sales() {
                     <TableRow key={sale.id}>
                       <TableCell className="font-medium">#{sale.id}</TableCell>
                       <TableCell>{client?.name || 'غير محدد'}</TableCell>
-                      <TableCell>{parseFloat(sale.total).toFixed(2)} ر.س</TableCell>
+                      <TableCell>{formatAmount(parseFloat(sale.total))}</TableCell>
                       <TableCell>{new Date(sale.date).toLocaleDateString('ar-SA')}</TableCell>
                       <TableCell>{sale.notes || '-'}</TableCell>
                       <TableCell>
