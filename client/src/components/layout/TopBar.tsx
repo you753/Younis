@@ -13,6 +13,16 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
+import { 
+  CommandDialog,
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandSeparator
+} from '@/components/ui/command';
 
 import { useTranslation } from '@/lib/translations';
 import { useAppStore } from '@/lib/store';
@@ -23,11 +33,34 @@ import type { User as UserType } from '@shared/schema';
 
 export default function TopBar() {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { t, language } = useTranslation();
   const { settings } = useAppStore();
   const [, setLocation] = useLocation();
   const { logout, user } = useAuth();
   
+  // جلب بيانات البحث
+  const { data: products = [] } = useQuery({
+    queryKey: ['/api/products'],
+    enabled: searchOpen
+  });
+
+  const { data: clients = [] } = useQuery({
+    queryKey: ['/api/clients'],
+    enabled: searchOpen
+  });
+
+  const { data: suppliers = [] } = useQuery({
+    queryKey: ['/api/suppliers'],
+    enabled: searchOpen
+  });
+
+  const { data: sales = [] } = useQuery({
+    queryKey: ['/api/sales'],
+    enabled: searchOpen
+  });
+
   // جلب بيانات المستخدم الحالي
   const { data: currentUser } = useQuery<UserType & { fullName?: string; phone?: string; address?: string; bio?: string; profession?: string; avatar?: string }>({
     queryKey: ['/api/auth/me']
@@ -52,6 +85,66 @@ export default function TopBar() {
 
     return () => clearInterval(timer);
   }, []);
+
+  // فتح البحث بالضغط على Ctrl+K
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setSearchOpen(open => !open);
+      }
+    };
+
+    document.addEventListener('keydown', down);
+    return () => document.removeEventListener('keydown', down);
+  }, []);
+
+  // فلترة نتائج البحث
+  const filteredProducts = Array.isArray(products) ? products.filter((item: any) =>
+    item.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.barcode?.toLowerCase().includes(searchQuery.toLowerCase())
+  ) : [];
+
+  const filteredClients = Array.isArray(clients) ? clients.filter((item: any) =>
+    item.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.phone?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.email?.toLowerCase().includes(searchQuery.toLowerCase())
+  ) : [];
+
+  const filteredSuppliers = Array.isArray(suppliers) ? suppliers.filter((item: any) =>
+    item.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.phone?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.email?.toLowerCase().includes(searchQuery.toLowerCase())
+  ) : [];
+
+  const filteredSales = Array.isArray(sales) ? sales.filter((item: any) =>
+    item.id?.toString().includes(searchQuery) ||
+    item.total?.toString().includes(searchQuery)
+  ) : [];
+
+  const handleSearchSelect = (type: string, id: string) => {
+    setSearchOpen(false);
+    setSearchQuery('');
+    
+    switch (type) {
+      case 'product':
+        setLocation('/products');
+        break;
+      case 'client':
+        setLocation('/clients');
+        break;
+      case 'supplier':
+        setLocation('/suppliers');
+        break;
+      case 'sale':
+        setLocation('/sales');
+        break;
+      case 'page':
+        setLocation(id);
+        break;
+    }
+  };
 
   const formatTime = (date: Date) => {
     const locale = language === 'ar' ? 'ar-SA' : 'en-US';
@@ -96,8 +189,10 @@ export default function TopBar() {
           <div className="relative">
             <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-blue-400 dark:text-slate-400" />
             <Input
-              placeholder={t('searchPlaceholder')}
-              className="pl-4 pr-10 bg-white/10 dark:bg-slate-800/50 border-white/20 dark:border-slate-600/50 text-white dark:text-slate-200 placeholder:text-blue-200 dark:placeholder:text-slate-400 focus:bg-white/20 dark:focus:bg-slate-700/50 focus:border-white/40 dark:focus:border-slate-500"
+              placeholder="ابحث في النظام (Ctrl+K)"
+              className="pl-4 pr-10 bg-white/10 dark:bg-slate-800/50 border-white/20 dark:border-slate-600/50 text-white dark:text-slate-200 placeholder:text-blue-200 dark:placeholder:text-slate-400 focus:bg-white/20 dark:focus:bg-slate-700/50 focus:border-white/40 dark:focus:border-slate-500 cursor-pointer"
+              onClick={() => setSearchOpen(true)}
+              readOnly
             />
           </div>
         </div>
@@ -177,6 +272,128 @@ export default function TopBar() {
           </div>
         </div>
       </div>
+
+      {/* نافذة البحث التفاعلية */}
+      <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
+        <Command>
+          <CommandInput 
+            placeholder="ابحث في المنتجات، العملاء، الموردين..."
+            value={searchQuery}
+            onValueChange={setSearchQuery}
+          />
+          <CommandList>
+            <CommandEmpty>لا توجد نتائج</CommandEmpty>
+            
+            {/* صفحات النظام */}
+            <CommandGroup heading="صفحات النظام">
+              <CommandItem onSelect={() => handleSearchSelect('page', '/dashboard')}>
+                لوحة التحكم
+              </CommandItem>
+              <CommandItem onSelect={() => handleSearchSelect('page', '/sales')}>
+                المبيعات
+              </CommandItem>
+              <CommandItem onSelect={() => handleSearchSelect('page', '/purchases')}>
+                المشتريات
+              </CommandItem>
+              <CommandItem onSelect={() => handleSearchSelect('page', '/products')}>
+                المنتجات
+              </CommandItem>
+              <CommandItem onSelect={() => handleSearchSelect('page', '/clients')}>
+                العملاء
+              </CommandItem>
+              <CommandItem onSelect={() => handleSearchSelect('page', '/suppliers')}>
+                الموردين
+              </CommandItem>
+              <CommandItem onSelect={() => handleSearchSelect('page', '/employees')}>
+                الموظفين
+              </CommandItem>
+              <CommandItem onSelect={() => handleSearchSelect('page', '/settings')}>
+                الإعدادات
+              </CommandItem>
+            </CommandGroup>
+
+            {/* المنتجات */}
+            {filteredProducts.length > 0 && (
+              <>
+                <CommandSeparator />
+                <CommandGroup heading="المنتجات">
+                  {filteredProducts.slice(0, 5).map((product: any) => (
+                    <CommandItem 
+                      key={product.id}
+                      onSelect={() => handleSearchSelect('product', product.id)}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <span>{product.name}</span>
+                        <Badge variant="secondary">{product.code}</Badge>
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </>
+            )}
+
+            {/* العملاء */}
+            {filteredClients.length > 0 && (
+              <>
+                <CommandSeparator />
+                <CommandGroup heading="العملاء">
+                  {filteredClients.slice(0, 5).map((client: any) => (
+                    <CommandItem 
+                      key={client.id}
+                      onSelect={() => handleSearchSelect('client', client.id)}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <span>{client.name}</span>
+                        <Badge variant="outline">{client.phone}</Badge>
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </>
+            )}
+
+            {/* الموردين */}
+            {filteredSuppliers.length > 0 && (
+              <>
+                <CommandSeparator />
+                <CommandGroup heading="الموردين">
+                  {filteredSuppliers.slice(0, 5).map((supplier: any) => (
+                    <CommandItem 
+                      key={supplier.id}
+                      onSelect={() => handleSearchSelect('supplier', supplier.id)}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <span>{supplier.name}</span>
+                        <Badge variant="outline">{supplier.phone}</Badge>
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </>
+            )}
+
+            {/* المبيعات */}
+            {filteredSales.length > 0 && (
+              <>
+                <CommandSeparator />
+                <CommandGroup heading="المبيعات">
+                  {filteredSales.slice(0, 5).map((sale: any) => (
+                    <CommandItem 
+                      key={sale.id}
+                      onSelect={() => handleSearchSelect('sale', sale.id)}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <span>فاتورة #{sale.id}</span>
+                        <Badge variant="default">{sale.total} ر.س</Badge>
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </>
+            )}
+          </CommandList>
+        </Command>
+      </CommandDialog>
     </div>
   );
 }
