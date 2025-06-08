@@ -45,7 +45,7 @@ const settingsSchema = z.object({
 type SettingsFormData = z.infer<typeof settingsSchema>;
 
 export default function Settings() {
-  const { setCurrentPage } = useAppStore();
+  const { setCurrentPage, updateSettings } = useAppStore();
   const { success, error } = useNotification();
   const [isSaving, setIsSaving] = useState(false);
 
@@ -74,9 +74,25 @@ export default function Settings() {
   const onSubmit = async (data: SettingsFormData) => {
     setIsSaving(true);
     try {
-      // محاكاة حفظ الإعدادات
+      // حفظ الإعدادات في localStorage
+      localStorage.setItem('app-settings', JSON.stringify(data));
+      
+      // تطبيق العملة فوراً
+      if (data.currency) {
+        localStorage.setItem('currency', data.currency);
+      }
+      
+      // تطبيق المظهر فوراً
+      if (data.theme) {
+        localStorage.setItem('theme', data.theme);
+        setTheme(data.theme);
+      }
+      
+      // تحديث الصفحة لتطبيق التغييرات فوراً
+      window.dispatchEvent(new CustomEvent('currency-changed', { detail: data.currency }));
+      
       await new Promise(resolve => setTimeout(resolve, 1000));
-      success('تم حفظ الإعدادات بنجاح');
+      success('تم حفظ الإعدادات بنجاح وسيتم تطبيقها');
     } catch (err) {
       error('حدث خطأ أثناء حفظ الإعدادات');
     } finally {
