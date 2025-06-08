@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import { useAppStore } from '@/lib/store';
+import { useCurrency } from '@/hooks/useCurrency';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -48,6 +49,7 @@ export default function Dashboard() {
   const { setCurrentPage } = useAppStore();
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [refreshKey, setRefreshKey] = useState(0);
+  const { format: formatAmount } = useCurrency();
 
   useEffect(() => {
     setCurrentPage('لوحة التحكم الرئيسية');
@@ -136,13 +138,7 @@ export default function Dashboard() {
     setRefreshKey(prev => prev + 1);
   };
 
-  const formatCurrency = (amount: string) => {
-    return new Intl.NumberFormat('ar-SA', {
-      style: 'currency',
-      currency: 'SAR',
-      minimumFractionDigits: 0
-    }).format(parseFloat(amount));
-  };
+
 
   if (statsLoading) {
     return (

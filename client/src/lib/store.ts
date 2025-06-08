@@ -30,7 +30,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
     companyPhone: '+966 11 123 4567',
     taxNumber: '300002471110003',
     address: 'الرياض، المملكة العربية السعودية',
-    currency: 'ريال سعودي (ر.س)',
+    currency: 'SAR',
     fiscalYear: '2025',
     notifications: true,
     autoSave: true,

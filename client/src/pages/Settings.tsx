@@ -260,17 +260,23 @@ export default function Settings() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>العملة</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} defaultValue={field.value || 'SAR'}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="اختر العملة" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="SAR">ريال سعودي (SAR)</SelectItem>
-                              <SelectItem value="USD">دولار أمريكي (USD)</SelectItem>
-                              <SelectItem value="EUR">يورو (EUR)</SelectItem>
-                              <SelectItem value="AED">درهم إماراتي (AED)</SelectItem>
+                              <SelectItem value="SAR">ريال سعودي (ر.س)</SelectItem>
+                              <SelectItem value="USD">دولار أمريكي ($)</SelectItem>
+                              <SelectItem value="EUR">يورو (€)</SelectItem>
+                              <SelectItem value="AED">درهم إماراتي (د.إ)</SelectItem>
+                              <SelectItem value="KWD">دينار كويتي (د.ك)</SelectItem>
+                              <SelectItem value="QAR">ريال قطري (ر.ق)</SelectItem>
+                              <SelectItem value="BHD">دينار بحريني (د.ب)</SelectItem>
+                              <SelectItem value="OMR">ريال عماني (ر.ع)</SelectItem>
+                              <SelectItem value="EGP">جنيه مصري (ج.م)</SelectItem>
+                              <SelectItem value="JOD">دينار أردني (د.أ)</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
