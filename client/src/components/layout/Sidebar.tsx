@@ -6,6 +6,7 @@ import {
   Settings, ChevronDown, X, Truck, UsersRound,
   DollarSign, Tags, List, Plus, Percent, Minus
 } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAppStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -267,14 +268,19 @@ export default function Sidebar() {
               <h1 className="text-xl font-bold">{settings.companyName || 'المحاسب الأعظم'}</h1>
               <p className="text-blue-200 text-sm mt-1">المحاسب الأعظم</p>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleSidebar}
-              className="lg:hidden text-white hover:bg-white/10"
-            >
-              <X className="h-5 w-5" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <div className="scale-90">
+                <ThemeToggle />
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleSidebar}
+                className="lg:hidden text-white hover:bg-white/10"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
         </div>
 
