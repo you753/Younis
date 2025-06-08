@@ -74,7 +74,21 @@ export default function Settings() {
   const onSubmit = async (data: SettingsFormData) => {
     setIsSaving(true);
     try {
-      // حفظ الإعدادات في localStorage
+      // تحديث المتجر مباشرة لتطبيق التغييرات فوراً
+      updateSettings({
+        currency: data.currency,
+        language: data.language,
+        darkMode: data.theme === 'dark',
+        notifications: data.notifications,
+        autoBackup: data.autoBackup,
+        companyName: data.companyName,
+        companyEmail: data.companyEmail,
+        companyPhone: data.companyPhone,
+        taxNumber: data.taxNumber,
+        address: data.companyAddress,
+      });
+      
+      // حفظ الإعدادات في localStorage كنسخة احتياطية
       localStorage.setItem('app-settings', JSON.stringify(data));
       
       // تطبيق العملة فوراً
@@ -85,14 +99,11 @@ export default function Settings() {
       // تطبيق المظهر فوراً
       if (data.theme) {
         localStorage.setItem('theme', data.theme);
-        setTheme(data.theme);
+        document.documentElement.classList.toggle('dark', data.theme === 'dark');
       }
       
-      // تحديث الصفحة لتطبيق التغييرات فوراً
-      window.dispatchEvent(new CustomEvent('currency-changed', { detail: data.currency }));
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      success('تم حفظ الإعدادات بنجاح وسيتم تطبيقها');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      success('تم حفظ الإعدادات بنجاح وتطبيقها فوراً');
     } catch (err) {
       error('حدث خطأ أثناء حفظ الإعدادات');
     } finally {
