@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { useAppStore } from '@/lib/store';
+import { useCurrency } from '@/hooks/useCurrency';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -12,6 +13,7 @@ import InvoiceActions from '@/components/InvoiceActions';
 
 export default function Sales() {
   const { setCurrentPage } = useAppStore();
+  const { format: formatAmount } = useCurrency();
   const [location] = useLocation();
   const [showForm, setShowForm] = useState(false);
   const [selectedSale, setSelectedSale] = useState<any>(null);
@@ -100,7 +102,7 @@ export default function Sales() {
             </div>
             <div className="mr-4">
               <p className="text-sm font-medium text-gray-600">إجمالي المبيعات</p>
-              <p className="text-2xl font-bold text-gray-900">{totalSales.toFixed(2)} ر.س</p>
+              <p className="text-2xl font-bold text-gray-900">{formatAmount(totalSales)}</p>
             </div>
           </div>
         </div>
@@ -125,7 +127,7 @@ export default function Sales() {
             <div className="mr-4">
               <p className="text-sm font-medium text-gray-600">متوسط الفاتورة</p>
               <p className="text-2xl font-bold text-gray-900">
-                {sales.length ? (totalSales / sales.length).toFixed(2) : '0.00'} ر.س
+                {sales.length ? formatAmount(totalSales / sales.length) : formatAmount(0)}
               </p>
             </div>
           </div>
