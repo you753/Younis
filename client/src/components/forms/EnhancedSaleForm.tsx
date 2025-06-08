@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCurrency } from '@/hooks/useCurrency';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,6 +32,7 @@ interface EnhancedSaleFormProps {
 
 export default function EnhancedSaleForm({ onClose }: EnhancedSaleFormProps) {
   const { toast } = useToast();
+  const { format: formatAmount } = useCurrency();
   const queryClient = useQueryClient();
   
   const [formData, setFormData] = useState<FormData>({
@@ -266,7 +268,7 @@ export default function EnhancedSaleForm({ onClose }: EnhancedSaleFormProps) {
                               <SelectContent>
                                 {products.map((product: any) => (
                                   <SelectItem key={product.id} value={product.id.toString()}>
-                                    {product.name} - {product.price} ر.س
+                                    {product.name} - {formatAmount(parseFloat(product.salePrice || '0'))}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
