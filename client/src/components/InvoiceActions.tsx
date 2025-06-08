@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { useCurrency } from '@/hooks/useCurrency';
 import { Button } from '@/components/ui/button';
 import { Printer, Download, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -17,6 +18,7 @@ interface InvoiceActionsProps {
 
 export default function InvoiceActions({ sale, client, products, showPreview = false }: InvoiceActionsProps) {
   const { toast } = useToast();
+  const { format: formatAmount } = useCurrency();
   const invoiceRef = useRef<HTMLDivElement>(null);
 
   // Print handler

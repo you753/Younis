@@ -294,7 +294,7 @@ export default function EnhancedSaleForm({ onClose }: EnhancedSaleFormProps) {
                           </TableCell>
                           <TableCell className="w-32">
                             <div className="bg-gray-100 p-2 rounded text-center font-semibold">
-                              {item.total.toFixed(2)} ر.س
+                              {formatAmount(item.total)}
                             </div>
                           </TableCell>
                           <TableCell className="w-20">
@@ -327,7 +327,7 @@ export default function EnhancedSaleForm({ onClose }: EnhancedSaleFormProps) {
                     </div>
                     <div className="text-2xl font-bold text-green-700">
                       <span>الإجمالي الكلي: </span>
-                      <span>{grandTotal.toFixed(2)} ر.س</span>
+                      <span>{formatAmount(grandTotal)}</span>
                     </div>
                   </div>
                 </div>
