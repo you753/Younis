@@ -33,23 +33,38 @@ export function useTheme() {
     const root = document.documentElement;
     const body = document.body;
     
+    console.log('تطبيق المظهر المحلول:', resolvedTheme);
+    
     if (resolvedTheme === 'dark') {
+      console.log('تطبيق المظهر الداكن');
       root.classList.add('dark');
       body.classList.add('dark');
       root.style.colorScheme = 'dark';
+      // Force immediate style application
+      document.body.style.backgroundColor = 'hsl(222 84% 4%)';
+      document.body.style.color = 'hsl(210 40% 98%)';
     } else {
+      console.log('تطبيق المظهر الفاتح');
       root.classList.remove('dark');
       body.classList.remove('dark');
       root.style.colorScheme = 'light';
+      // Reset to light theme
+      document.body.style.backgroundColor = '';
+      document.body.style.color = '';
     }
+    
+    console.log('كلاسات HTML:', root.classList.toString());
+    console.log('كلاسات Body:', body.classList.toString());
     
     // Force re-render by triggering a small layout change
     root.style.setProperty('--theme-transition', 'all 0.3s ease');
   }, [resolvedTheme]);
 
   const changeTheme = (newTheme: Theme) => {
+    console.log('تغيير المظهر إلى:', newTheme);
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
+    console.log('تم حفظ المظهر في localStorage:', newTheme);
   };
 
   return {

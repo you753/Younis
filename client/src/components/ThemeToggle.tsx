@@ -29,7 +29,10 @@ export function ThemeToggle() {
           فاتح
         </DropdownMenuItem>
         <DropdownMenuItem 
-          onClick={() => setTheme('dark')}
+          onClick={() => {
+            console.log('تم النقر على المظهر الداكن');
+            setTheme('dark');
+          }}
           className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
         >
           <Moon className="ml-2 h-4 w-4" />
