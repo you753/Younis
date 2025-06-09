@@ -135,140 +135,169 @@ export default function Reports() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto p-6">
-      {/* Header الجديد */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl p-8 shadow-2xl">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold mb-3">التقارير المالية المتقدمة</h1>
-            <p className="text-blue-100 text-lg">نظام تحليل شامل لمراقبة الأداء المالي وتطوير الأعمال</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header المحسن */}
+        <div className="relative bg-gradient-to-r from-indigo-900 via-blue-800 to-cyan-700 text-white rounded-2xl p-10 shadow-2xl mb-8 overflow-hidden">
+          {/* خلفية زخرفية */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-10 right-10 w-32 h-32 bg-white rounded-full"></div>
+            <div className="absolute bottom-10 left-10 w-24 h-24 bg-cyan-300 rounded-full"></div>
+            <div className="absolute top-1/2 left-1/3 w-16 h-16 bg-blue-300 rounded-full"></div>
           </div>
-          <div className="flex gap-3">
-            <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-              <SelectTrigger className="w-40 bg-white text-gray-800">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="today">اليوم</SelectItem>
-                <SelectItem value="week">هذا الأسبوع</SelectItem>
-                <SelectItem value="month">هذا الشهر</SelectItem>
-                <SelectItem value="quarter">هذا الربع</SelectItem>
-                <SelectItem value="year">هذا العام</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button 
-              variant="secondary"
-              onClick={() => exportToCSV(salesArray, 'تقرير_شامل')}
-              className="bg-white text-blue-600 hover:bg-blue-50"
-            >
-              <Download className="ml-2 h-4 w-4" />
-              تصدير Excel
-            </Button>
-            <Button 
-              variant="secondary"
-              onClick={() => window.print()}
-              className="bg-white text-blue-600 hover:bg-blue-50"
-            >
-              <PrinterIcon className="ml-2 h-4 w-4" />
-              طباعة التقرير
-            </Button>
+          
+          <div className="relative z-10">
+            <div className="flex items-center justify-between flex-wrap gap-6">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                    <BarChart3 className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-4xl lg:text-5xl font-bold mb-2 bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent">
+                      مركز التقارير المالية
+                    </h1>
+                    <p className="text-cyan-100 text-lg font-medium">
+                      📊 نظام تحليل ذكي لمراقبة الأداء المالي وإدارة الأعمال بكفاءة عالية
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex gap-3 flex-wrap">
+                <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+                  <SelectTrigger className="w-44 bg-white/95 text-gray-800 border-0 shadow-lg">
+                    <Calendar className="ml-2 h-4 w-4 text-blue-600" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="today">📅 اليوم</SelectItem>
+                    <SelectItem value="week">📅 هذا الأسبوع</SelectItem>
+                    <SelectItem value="month">📅 هذا الشهر</SelectItem>
+                    <SelectItem value="quarter">📅 هذا الربع</SelectItem>
+                    <SelectItem value="year">📅 هذا العام</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Button 
+                  variant="secondary"
+                  onClick={() => exportToCSV(salesArray, 'تقرير_مالي_شامل')}
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white border-0 shadow-lg px-6"
+                >
+                  <Download className="ml-2 h-4 w-4" />
+                  تصدير Excel
+                </Button>
+                
+                <Button 
+                  variant="secondary"
+                  onClick={() => window.print()}
+                  className="bg-purple-500 hover:bg-purple-600 text-white border-0 shadow-lg px-6"
+                >
+                  <PrinterIcon className="ml-2 h-4 w-4" />
+                  طباعة التقرير
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* مؤشرات الأداء الرئيسية */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow">
-          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-green-400 to-green-600"></div>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">إجمالي المبيعات</CardTitle>
-            <div className="p-2 bg-green-100 rounded-lg">
-              <DollarSign className="h-5 w-5 text-green-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-green-600 mb-2">{formatAmount(totalRevenue)}</div>
-            <Badge className="bg-green-100 text-green-800 border-green-200">
-              {salesArray.length} فاتورة مكتملة
-            </Badge>
-          </CardContent>
-        </Card>
+        {/* مؤشرات الأداء الرئيسية المحسنة */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* بطاقة المبيعات */}
+          <Card className="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-emerald-50 to-green-100">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 via-green-500 to-emerald-600"></div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+              <CardTitle className="text-sm font-bold text-gray-700">💰 إجمالي المبيعات</CardTitle>
+              <div className="p-3 bg-emerald-500 rounded-xl shadow-lg">
+                <DollarSign className="h-6 w-6 text-white" />
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="text-3xl font-bold text-emerald-700 mb-3">{formatAmount(totalRevenue)}</div>
+              <Badge className="bg-emerald-200 text-emerald-800 border-emerald-300 px-3 py-1 text-sm">
+                📋 {salesArray.length} فاتورة مكتملة
+              </Badge>
+            </CardContent>
+          </Card>
 
-        <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow">
-          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-red-400 to-red-600"></div>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">إجمالي المشتريات</CardTitle>
-            <div className="p-2 bg-red-100 rounded-lg">
-              <ShoppingCart className="h-5 w-5 text-red-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-red-600 mb-2">{formatAmount(totalCosts)}</div>
-            <Badge className="bg-red-100 text-red-800 border-red-200">
-              {purchasesArray.length} فاتورة مدفوعة
-            </Badge>
-          </CardContent>
-        </Card>
+          {/* بطاقة المشتريات */}
+          <Card className="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-red-50 to-rose-100">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-400 via-rose-500 to-red-600"></div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+              <CardTitle className="text-sm font-bold text-gray-700">🛒 إجمالي المشتريات</CardTitle>
+              <div className="p-3 bg-red-500 rounded-xl shadow-lg">
+                <ShoppingCart className="h-6 w-6 text-white" />
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="text-3xl font-bold text-red-700 mb-3">{formatAmount(totalCosts)}</div>
+              <Badge className="bg-red-200 text-red-800 border-red-300 px-3 py-1 text-sm">
+                📦 {purchasesArray.length} فاتورة مدفوعة
+              </Badge>
+            </CardContent>
+          </Card>
 
-        <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow">
-          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-400 to-blue-600"></div>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">صافي الأرباح</CardTitle>
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <TrendingUp className="h-5 w-5 text-blue-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className={`text-3xl font-bold mb-2 ${netProfit >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
-              {formatAmount(netProfit)}
-            </div>
-            <Badge className={netProfit >= 0 ? "bg-blue-100 text-blue-800 border-blue-200" : "bg-red-100 text-red-800 border-red-200"}>
-              {profitMargin.toFixed(1)}% هامش الربح
-            </Badge>
-          </CardContent>
-        </Card>
+          {/* بطاقة صافي الأرباح */}
+          <Card className="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-blue-50 to-indigo-100">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 via-indigo-500 to-blue-600"></div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+              <CardTitle className="text-sm font-bold text-gray-700">📈 صافي الأرباح</CardTitle>
+              <div className="p-3 bg-blue-500 rounded-xl shadow-lg">
+                <TrendingUp className="h-6 w-6 text-white" />
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className={`text-3xl font-bold mb-3 ${netProfit >= 0 ? 'text-blue-700' : 'text-red-700'}`}>
+                {formatAmount(netProfit)}
+              </div>
+              <Badge className={`px-3 py-1 text-sm ${netProfit >= 0 ? "bg-blue-200 text-blue-800 border-blue-300" : "bg-red-200 text-red-800 border-red-300"}`}>
+                📊 {profitMargin.toFixed(1)}% هامش الربح
+              </Badge>
+            </CardContent>
+          </Card>
 
-        <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow">
-          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-purple-400 to-purple-600"></div>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">العملاء النشطون</CardTitle>
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Users className="h-5 w-5 text-purple-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-purple-600 mb-2">{clientsArray.length}</div>
-            <Badge className="bg-purple-100 text-purple-800 border-purple-200">
-              عميل مسجل
-            </Badge>
-          </CardContent>
-        </Card>
-      </div>
+          {/* بطاقة العملاء */}
+          <Card className="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-purple-50 to-violet-100">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-400 via-violet-500 to-purple-600"></div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+              <CardTitle className="text-sm font-bold text-gray-700">👥 العملاء النشطون</CardTitle>
+              <div className="p-3 bg-purple-500 rounded-xl shadow-lg">
+                <Users className="h-6 w-6 text-white" />
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="text-3xl font-bold text-purple-700 mb-3">{clientsArray.length}</div>
+              <Badge className="bg-purple-200 text-purple-800 border-purple-300 px-3 py-1 text-sm">
+                🎯 عميل مسجل
+              </Badge>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* التقارير التفصيلية */}
-      <Tabs value={selectedReport} onValueChange={setSelectedReport} className="w-full">
-        <TabsList className="grid w-full grid-cols-5 h-14 bg-gray-100 rounded-xl p-1">
-          <TabsTrigger value="overview" className="flex items-center gap-2 h-12 rounded-lg">
-            <BarChart3 className="h-4 w-4" />
-            نظرة عامة
-          </TabsTrigger>
-          <TabsTrigger value="sales" className="flex items-center gap-2 h-12 rounded-lg">
-            <DollarSign className="h-4 w-4" />
-            تقارير المبيعات
-          </TabsTrigger>
-          <TabsTrigger value="purchases" className="flex items-center gap-2 h-12 rounded-lg">
-            <ShoppingCart className="h-4 w-4" />
-            تقارير المشتريات
-          </TabsTrigger>
-          <TabsTrigger value="inventory" className="flex items-center gap-2 h-12 rounded-lg">
-            <Package className="h-4 w-4" />
-            تقارير المخزون
-          </TabsTrigger>
-          <TabsTrigger value="financial" className="flex items-center gap-2 h-12 rounded-lg">
-            <TrendingUp className="h-4 w-4" />
-            التحليل المالي
-          </TabsTrigger>
-        </TabsList>
+        {/* التقارير التفصيلية المحسنة */}
+        <Tabs value={selectedReport} onValueChange={setSelectedReport} className="w-full">
+          <TabsList className="grid w-full grid-cols-5 h-16 bg-gradient-to-r from-gray-100 to-slate-200 rounded-2xl p-2 shadow-lg">
+            <TabsTrigger value="overview" className="flex items-center gap-2 h-12 rounded-xl font-bold data-[state=active]:bg-white data-[state=active]:shadow-md transition-all">
+              <BarChart3 className="h-4 w-4" />
+              📊 نظرة عامة
+            </TabsTrigger>
+            <TabsTrigger value="sales" className="flex items-center gap-2 h-12 rounded-xl font-bold data-[state=active]:bg-white data-[state=active]:shadow-md transition-all">
+              <DollarSign className="h-4 w-4" />
+              💰 المبيعات
+            </TabsTrigger>
+            <TabsTrigger value="purchases" className="flex items-center gap-2 h-12 rounded-xl font-bold data-[state=active]:bg-white data-[state=active]:shadow-md transition-all">
+              <ShoppingCart className="h-4 w-4" />
+              🛒 المشتريات
+            </TabsTrigger>
+            <TabsTrigger value="inventory" className="flex items-center gap-2 h-12 rounded-xl font-bold data-[state=active]:bg-white data-[state=active]:shadow-md transition-all">
+              <Package className="h-4 w-4" />
+              📦 المخزون
+            </TabsTrigger>
+            <TabsTrigger value="financial" className="flex items-center gap-2 h-12 rounded-xl font-bold data-[state=active]:bg-white data-[state=active]:shadow-md transition-all">
+              <TrendingUp className="h-4 w-4" />
+              📈 التحليل المالي
+            </TabsTrigger>
+          </TabsList>
 
         {/* النظرة العامة */}
         <TabsContent value="overview" className="space-y-6 mt-8">
@@ -574,8 +603,9 @@ export default function Reports() {
         </TabsContent>
       </Tabs>
 
-      {/* الآلة الحاسبة */}
-      <Calculator />
+        {/* الآلة الحاسبة */}
+        <Calculator />
+      </div>
     </div>
   );
 }
