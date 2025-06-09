@@ -123,10 +123,15 @@ export default function SupplierPaymentVoucherForm({
 
   const updateMutation = useMutation({
     mutationFn: async (data: PaymentVoucherForm) => {
-      return apiRequest(`/api/supplier-payment-vouchers/${editingVoucher!.id}`, {
+      const response = await fetch(`/api/supplier-payment-vouchers/${editingVoucher!.id}`, {
         method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(data),
       });
+      if (!response.ok) throw new Error('Failed to update payment voucher');
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/supplier-payment-vouchers'] });

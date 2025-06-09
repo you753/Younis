@@ -48,7 +48,10 @@ export default function Suppliers() {
   const { setCurrentPage } = useAppStore();
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [showEvaluationForm, setShowEvaluationForm] = useState(false);
+  const [showPaymentVoucherForm, setShowPaymentVoucherForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any>(null);
+  const [editingPaymentVoucher, setEditingPaymentVoucher] = useState<any>(null);
+  const [selectedSupplierId, setSelectedSupplierId] = useState<number | undefined>();
   const [localSearchQuery, setLocalSearchQuery] = useState('');
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -77,6 +80,10 @@ export default function Suppliers() {
   // Fetch data
   const { data: suppliers = [] } = useQuery<any[]>({
     queryKey: ['/api/suppliers'],
+  });
+
+  const { data: paymentVouchers = [] } = useQuery<any[]>({
+    queryKey: ['/api/supplier-payment-vouchers'],
   });
 
   const { data: categories = [] } = useQuery({
@@ -111,10 +118,50 @@ export default function Suppliers() {
       case '/supplier-evaluation':
         setCurrentPage('تقييم الموردين');
         break;
+      case '/supplier-payment-vouchers':
+        setCurrentPage('سندات صرف الموردين');
+        break;
       default:
         setCurrentPage('إدارة الموردين');
     }
   }, [location, setCurrentPage]);
+
+  // Payment voucher handlers
+  const handleAddPaymentVoucher = (supplierId?: number) => {
+    setSelectedSupplierId(supplierId);
+    setEditingPaymentVoucher(null);
+    setShowPaymentVoucherForm(true);
+  };
+
+  const handleEditPaymentVoucher = (voucher: any) => {
+    setEditingPaymentVoucher(voucher);
+    setSelectedSupplierId(voucher.supplierId);
+    setShowPaymentVoucherForm(true);
+  };
+
+  const handleDeletePaymentVoucher = async (id: number) => {
+    if (confirm('هل أنت متأكد من حذف سند الصرف؟')) {
+      try {
+        const response = await fetch(`/api/supplier-payment-vouchers/${id}`, {
+          method: 'DELETE',
+        });
+        if (!response.ok) throw new Error('Failed to delete payment voucher');
+        
+        queryClient.invalidateQueries({ queryKey: ['/api/supplier-payment-vouchers'] });
+        toast({
+          title: "تم حذف سند الصرف بنجاح",
+          description: "تم حذف سند الصرف من النظام",
+        });
+      } catch (error) {
+        console.error('Error deleting payment voucher:', error);
+        toast({
+          title: "خطأ في حذف سند الصرف",
+          description: "حدث خطأ أثناء حذف سند الصرف",
+          variant: "destructive",
+        });
+      }
+    }
+  };
 
   const getPageContent = () => {
     switch (location) {
@@ -461,6 +508,105 @@ export default function Suppliers() {
           </div>
         );
 
+      case '/supplier-payment-vouchers':
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">سندات صرف الموردين</h2>
+                <p className="text-gray-600">إدارة سندات الصرف للموردين ومتابعة المدفوعات</p>
+              </div>
+              <Button onClick={() => handleAddPaymentVoucher()} className="btn-accounting-primary">
+                <Plus className="ml-2 h-4 w-4" />
+                إضافة سند صرف
+              </Button>
+            </div>
+
+            {/* Payment Vouchers Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>سندات الصرف</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>رقم السند</TableHead>
+                      <TableHead>المورد</TableHead>
+                      <TableHead>المبلغ</TableHead>
+                      <TableHead>طريقة الدفع</TableHead>
+                      <TableHead>تاريخ الدفع</TableHead>
+                      <TableHead>الحالة</TableHead>
+                      <TableHead>الإجراءات</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {Array.isArray(paymentVouchers) && paymentVouchers.length > 0 ? (
+                      paymentVouchers.map((voucher: any) => {
+                        const supplier = suppliers.find((s: any) => s.id === voucher.supplierId);
+                        const getStatusBadge = (status: string) => {
+                          switch (status) {
+                            case 'pending': return <Badge variant="secondary">في الانتظار</Badge>;
+                            case 'approved': return <Badge variant="default">معتمد</Badge>;
+                            case 'paid': return <Badge variant="default" className="bg-green-100 text-green-800">مدفوع</Badge>;
+                            case 'cancelled': return <Badge variant="destructive">ملغي</Badge>;
+                            default: return <Badge variant="secondary">{status}</Badge>;
+                          }
+                        };
+
+                        const getPaymentMethodLabel = (method: string) => {
+                          switch (method) {
+                            case 'cash': return 'نقدي';
+                            case 'bank_transfer': return 'تحويل بنكي';
+                            case 'check': return 'شيك';
+                            case 'credit_card': return 'بطاقة ائتمان';
+                            default: return method;
+                          }
+                        };
+
+                        return (
+                          <TableRow key={voucher.id}>
+                            <TableCell className="font-medium">#{voucher.voucherNumber}</TableCell>
+                            <TableCell>{supplier?.name || 'غير محدد'}</TableCell>
+                            <TableCell>{parseFloat(voucher.amount || 0).toLocaleString('ar-SA', { style: 'currency', currency: 'SAR' })}</TableCell>
+                            <TableCell>{getPaymentMethodLabel(voucher.paymentMethod)}</TableCell>
+                            <TableCell>{voucher.paymentDate ? new Date(voucher.paymentDate).toLocaleDateString('ar-SA') : '-'}</TableCell>
+                            <TableCell>{getStatusBadge(voucher.status)}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleEditPaymentVoucher(voucher)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleDeletePaymentVoucher(voucher.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                          لا توجد سندات صرف حتى الآن
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
       default:
         return (
           <div className="space-y-6">
@@ -557,5 +703,21 @@ export default function Suppliers() {
     }
   };
 
-  return getPageContent();
+  return (
+    <div>
+      {getPageContent()}
+      
+      {/* Payment Voucher Form */}
+      <SupplierPaymentVoucherForm
+        isOpen={showPaymentVoucherForm}
+        onClose={() => {
+          setShowPaymentVoucherForm(false);
+          setEditingPaymentVoucher(null);
+          setSelectedSupplierId(undefined);
+        }}
+        supplierId={selectedSupplierId}
+        editingVoucher={editingPaymentVoucher}
+      />
+    </div>
+  );
 }
