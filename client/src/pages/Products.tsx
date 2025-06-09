@@ -3,15 +3,36 @@ import { useAppStore } from '@/lib/store';
 import ProductForm from '@/components/forms/ProductForm';
 import ProductsTable from '@/components/tables/ProductsTable';
 import { Button } from '@/components/ui/button';
-import { Plus, List } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Plus, List, Search, Edit } from 'lucide-react';
 import { OnboardingTrigger } from '@/components/onboarding/OnboardingTrigger';
 import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import type { Product } from '@shared/schema';
 
 export default function Products() {
   const [location, setLocation] = useLocation();
   const { setCurrentPage } = useAppStore();
   const [currentView, setCurrentView] = useState<'list' | 'add' | 'edit'>('list');
   const [editProductId, setEditProductId] = useState<number | null>(null);
+  const [localSearchQuery, setLocalSearchQuery] = useState('');
+
+  // جلب بيانات المنتجات
+  const { data: products = [] } = useQuery<Product[]>({
+    queryKey: ['/api/products'],
+  });
+
+  // فلترة المنتجات بناءً على البحث المحلي
+  const filteredProducts = Array.isArray(products) ? products.filter((product: Product) => {
+    if (!localSearchQuery.trim()) return true;
+    
+    const searchTerms = localSearchQuery.toLowerCase().trim().split(' ');
+    const searchText = `${product.name || ''} ${product.code || ''} ${product.barcode || ''} ${product.category || ''} ${product.description || ''}`.toLowerCase();
+    
+    return searchTerms.every(term => searchText.includes(term));
+  }) : [];
 
   useEffect(() => {
     if (location === '/products/add') {

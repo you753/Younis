@@ -16,7 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Users, DollarSign, CreditCard, Edit, Trash2, Save, Building, UserPlus, Group } from 'lucide-react';
+import { Plus, Users, DollarSign, CreditCard, Edit, Trash2, Save, Building, UserPlus, Group, Search } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -37,6 +37,7 @@ export default function Clients() {
   const [showGroupForm, setShowGroupForm] = useState(false);
   const [showCashClientForm, setShowCashClientForm] = useState(false);
   const [editingGroup, setEditingGroup] = useState<any>(null);
+  const [localSearchQuery, setLocalSearchQuery] = useState('');
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -58,6 +59,16 @@ export default function Clients() {
     queryKey: ['/api/client-groups'],
     enabled: location === '/client-groups'
   });
+
+  // فلترة العملاء بناءً على البحث المحلي
+  const filteredClients = Array.isArray(clients) ? clients.filter((client: Client) => {
+    if (!localSearchQuery.trim()) return true;
+    
+    const searchTerms = localSearchQuery.toLowerCase().trim().split(' ');
+    const searchText = `${client.name || ''} ${client.phone || ''} ${client.email || ''} ${client.address || ''}`.toLowerCase();
+    
+    return searchTerms.every(term => searchText.includes(term));
+  }) : [];
 
   // Set page title based on route
   useEffect(() => {
@@ -498,8 +509,84 @@ export default function Clients() {
               <h2 className="text-2xl font-bold text-gray-900 mb-2">إدارة العملاء</h2>
               <p className="text-gray-600">إضافة وإدارة معلومات العملاء ومجموعاتهم</p>
             </div>
+
+            {/* شريط البحث المحلي */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="relative">
+                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    placeholder="البحث عن عميل (الاسم، الهاتف، البريد الإلكتروني...)"
+                    value={localSearchQuery}
+                    onChange={(e) => setLocalSearchQuery(e.target.value)}
+                    className="pr-10 text-right"
+                  />
+                </div>
+                {localSearchQuery && (
+                  <div className="mt-3 text-sm text-gray-600">
+                    النتائج: {filteredClients.length} من أصل {clients.length} عميل
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* نتائج البحث */}
+            {localSearchQuery && filteredClients.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>نتائج البحث ({filteredClients.length})</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {filteredClients.map((client) => (
+                      <div 
+                        key={client.id}
+                        className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="flex-1 text-right">
+                          <div className="font-medium text-gray-900">{client.name}</div>
+                          <div className="text-sm text-gray-500">
+                            {client.phone && <span>📞 {client.phone}</span>}
+                            {client.phone && client.email && <span className="mx-2">•</span>}
+                            {client.email && <span>✉️ {client.email}</span>}
+                          </div>
+                          {client.address && (
+                            <div className="text-xs text-gray-400 mt-1">📍 {client.address}</div>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            عرض
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* رسالة عدم وجود نتائج */}
+            {localSearchQuery && filteredClients.length === 0 && (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <div className="text-gray-400 mb-3">
+                    <Search className="h-12 w-12 mx-auto" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">لا توجد نتائج</h3>
+                  <p className="text-gray-500 mb-4">لم نجد أي عملاء يطابقون البحث "{localSearchQuery}"</p>
+                  <Button variant="outline" onClick={() => setLocalSearchQuery('')}>
+                    مسح البحث
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
             <ClientForm />
-            <ClientsTable />
+            {!localSearchQuery && <ClientsTable />}
           </div>
         );
     }
