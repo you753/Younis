@@ -34,6 +34,17 @@ export default function Purchases() {
     queryKey: ['/api/suppliers'],
   });
 
+  // Filter purchases based on search query
+  const filteredPurchases = Array.isArray(purchases) ? purchases.filter((purchase: any) => {
+    if (!searchQuery.trim()) return true;
+    
+    const searchTerms = searchQuery.toLowerCase().trim().split(' ');
+    const supplier = Array.isArray(suppliers) ? suppliers.find((s: any) => s.id === purchase.supplierId) : null;
+    const searchText = `${purchase.id || ''} ${purchase.total || ''} ${purchase.date || ''} ${purchase.notes || ''} ${supplier?.name || ''}`.toLowerCase();
+    
+    return searchTerms.every(term => searchText.includes(term));
+  }) : [];
+
   const deletePurchaseMutation = useMutation({
     mutationFn: (id: number) => apiRequest({
       url: `/api/purchases/${id}`,
@@ -96,6 +107,21 @@ export default function Purchases() {
           <Plus className="h-4 w-4" />
           إضافة فاتورة مشتريات
         </Button>
+      </div>
+
+      {/* Search Box */}
+      <div className="mt-4">
+        <SearchBox
+          placeholder="ابحث في المشتريات، الموردين، المبالغ..."
+          value={searchQuery}
+          onChange={setSearchQuery}
+          className="max-w-md"
+        />
+        {searchQuery && (
+          <p className="text-sm text-gray-500 mt-2">
+            عرض {filteredPurchases.length} من أصل {Array.isArray(purchases) ? purchases.length : 0} فاتورة
+          </p>
+        )}
       </div>
 
       {/* Stats Cards */}
@@ -175,8 +201,8 @@ export default function Purchases() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {Array.isArray(purchases) && purchases.length > 0 ? (
-                purchases.map((purchase: any) => {
+              {Array.isArray(filteredPurchases) && filteredPurchases.length > 0 ? (
+                filteredPurchases.map((purchase: any) => {
                   const supplier = Array.isArray(suppliers) ? suppliers.find((s: any) => s.id === purchase.supplierId) : null;
                   return (
                     <TableRow key={purchase.id}>

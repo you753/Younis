@@ -20,6 +20,7 @@ import {
   Edit, Trash2, Save, Award, Target, CheckCircle, XCircle, 
   CalendarCheck, CalendarX, Star, Search
 } from 'lucide-react';
+import SearchBox from '@/components/SearchBox';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -71,6 +72,7 @@ export default function Employees() {
   const [showHolidayForm, setShowHolidayForm] = useState(false);
   const [showPerformanceForm, setShowPerformanceForm] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -116,6 +118,16 @@ export default function Employees() {
   const { data: employees = [] } = useQuery<Employee[]>({
     queryKey: ["/api/employees"],
   });
+
+  // Filter employees based on search query
+  const filteredEmployees = Array.isArray(employees) ? employees.filter((employee: Employee) => {
+    if (!searchQuery.trim()) return true;
+    
+    const searchTerms = searchQuery.toLowerCase().trim().split(' ');
+    const searchText = `${employee.name || ''} ${employee.email || ''} ${employee.phone || ''} ${employee.position || ''} ${employee.department || ''}`.toLowerCase();
+    
+    return searchTerms.every(term => searchText.includes(term));
+  }) : [];
 
   const deleteEmployeeMutation = useMutation({
     mutationFn: async (id: number) => {
