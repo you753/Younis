@@ -21,7 +21,8 @@ export default function SupplierForm() {
       email: '',
       address: '',
       taxNumber: '',
-      creditLimit: ''
+      creditLimit: '',
+      balance: '0'
     }
   });
 
@@ -57,7 +58,7 @@ export default function SupplierForm() {
               <FormItem>
                 <FormLabel>اسم المورد</FormLabel>
                 <FormControl>
-                  <Input placeholder="أدخل اسم المورد" {...field} />
+                  <Input placeholder="أدخل اسم المورد" value={field.value || ''} onChange={field.onChange} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -128,6 +129,29 @@ export default function SupplierForm() {
                 <FormLabel>حد الائتمان</FormLabel>
                 <FormControl>
                   <Input type="number" step="0.01" placeholder="0.00" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="balance"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>الرصيد الافتتاحي</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    step="0.01" 
+                    placeholder="0.00" 
+                    value={field.value || '0'}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    ref={field.ref}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

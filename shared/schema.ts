@@ -190,7 +190,6 @@ export const insertUserSchema = createInsertSchema(users).omit({
 
 export const insertSupplierSchema = createInsertSchema(suppliers).omit({
   id: true,
-  balance: true,
   createdAt: true,
 }).partial();
 
