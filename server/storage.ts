@@ -18,13 +18,11 @@ import { db } from "./db";
 import { eq, sql, desc } from "drizzle-orm";
 
 export interface IStorage {
-  // Users
+  // Users (Authentication only)
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
-  getAllUsers(): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
-  deleteUser(id: number): Promise<boolean>;
 
   // Suppliers
   getSupplier(id: number): Promise<Supplier | undefined>;

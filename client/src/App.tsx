@@ -8,7 +8,7 @@ import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { useAuth } from "@/hooks/useAuth";
 import Dashboard from "@/pages/Dashboard";
-import Users from "@/pages/Users";
+
 import Suppliers from "@/pages/Suppliers";
 import Clients from "@/pages/Clients";
 import Products from "@/pages/Products";
@@ -72,7 +72,7 @@ function Router() {
     <Layout>
       <Switch>
         <Route path="/" component={Dashboard} />
-        <Route path="/users" component={Users} />
+
         <Route path="/suppliers" component={Suppliers} />
         <Route path="/suppliers/add" component={Suppliers} />
         <Route path="/supplier-categories" component={Suppliers} />
