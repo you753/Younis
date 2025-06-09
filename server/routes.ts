@@ -305,6 +305,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/suppliers/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // تنظيف البيانات قبل التحقق
+      const cleanedData = {
+        ...req.body,
+        creditLimit: req.body.creditLimit === '' ? null : req.body.creditLimit,
+        balance: req.body.balance === '' ? '0' : req.body.balance,
+        email: req.body.email === '' ? null : req.body.email,
+        phone: req.body.phone === '' ? null : req.body.phone,
+        address: req.body.address === '' ? null : req.body.address,
+        taxNumber: req.body.taxNumber === '' ? null : req.body.taxNumber
+      };
+      
+      const validatedData = insertSupplierSchema.parse(cleanedData);
+      const supplier = await storage.updateSupplier(id, validatedData);
+      if (supplier) {
+        res.json(supplier);
+      } else {
+        res.status(404).json({ message: "المورد غير موجود" });
+      }
+    } catch (error: any) {
+      console.error("خطأ في تحديث المورد:", error);
+      res.status(400).json({ message: "بيانات المورد غير صحيحة", error: error?.message || "خطأ غير معروف" });
+    }
+  });
+
   app.delete("/api/suppliers/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
