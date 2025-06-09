@@ -109,9 +109,10 @@ export default function SupplierPaymentVoucherForm({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/supplier-payment-vouchers'] });
       queryClient.invalidateQueries({ queryKey: ['/api/supplier-payment-vouchers', 'supplier', supplierId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/suppliers'] }); // تحديث قائمة الموردين لتحديث الرصيد
       toast({
         title: "تم إنشاء سند الصرف بنجاح",
-        description: "تم حفظ بيانات سند الصرف في النظام",
+        description: "تم خصم المبلغ من رصيد المورد تلقائياً",
       });
       onClose();
       form.reset();
