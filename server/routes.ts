@@ -932,7 +932,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/supplier-payment-vouchers', async (req, res) => {
     try {
       const validatedData = insertSupplierPaymentVoucherSchema.parse(req.body);
+      
+      // إنشاء سند الصرف
       const voucher = await storage.createSupplierPaymentVoucher(validatedData);
+      
+      // خصم المبلغ من رصيد المورد
+      const supplier = await storage.getSupplier(validatedData.supplierId);
+      if (supplier) {
+        const currentBalance = parseFloat(supplier.balance || '0') || 0;
+        const voucherAmount = parseFloat(validatedData.amount);
+        const newBalance = (currentBalance - voucherAmount).toString();
+        
+        await storage.updateSupplier(validatedData.supplierId, {
+          balance: newBalance
+        });
+        
+        console.log(`تم خصم ${voucherAmount} من رصيد المورد ${supplier.name}. الرصيد الجديد: ${newBalance}`);
+      }
+      
       res.status(201).json(voucher);
     } catch (error) {
       console.error('Error creating supplier payment voucher:', error);
@@ -961,10 +978,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/supplier-payment-vouchers/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      
+      // الحصول على بيانات السند قبل الحذف لإعادة المبلغ
+      const voucher = await storage.getSupplierPaymentVoucher(id);
+      
+      if (!voucher) {
+        return res.status(404).json({ error: 'Supplier payment voucher not found' });
+      }
+      
       const success = await storage.deleteSupplierPaymentVoucher(id);
       
       if (!success) {
         return res.status(404).json({ error: 'Supplier payment voucher not found' });
+      }
+      
+      // إعادة المبلغ إلى رصيد المورد
+      const supplier = await storage.getSupplier(voucher.supplierId);
+      if (supplier) {
+        const currentBalance = parseFloat(supplier.balance || '0') || 0;
+        const voucherAmount = parseFloat(voucher.amount);
+        const newBalance = (currentBalance + voucherAmount).toString();
+        
+        await storage.updateSupplier(voucher.supplierId, {
+          balance: newBalance
+        });
+        
+        console.log(`تم إعادة ${voucherAmount} إلى رصيد المورد ${supplier.name}. الرصيد الجديد: ${newBalance}`);
       }
       
       res.json({ message: 'Supplier payment voucher deleted successfully' });
