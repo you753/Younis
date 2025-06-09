@@ -69,9 +69,9 @@ const SimpleInvoiceReport: React.FC = () => {
                 
                 {/* User Avatar */}
                 <div className="w-16 h-16 border-2 border-gray-600 rounded-full flex items-center justify-center bg-white overflow-hidden">
-                  {currentUser?.avatar ? (
+                  {(currentUser as any)?.avatar ? (
                     <img 
-                      src={currentUser.avatar} 
+                      src={(currentUser as any).avatar} 
                       alt="صورة المستخدم" 
                       className="w-full h-full object-cover"
                       onError={(e) => {
@@ -80,10 +80,10 @@ const SimpleInvoiceReport: React.FC = () => {
                       }}
                     />
                   ) : null}
-                  <div className={`text-2xl ${currentUser?.avatar ? 'hidden' : 'flex'} fallback-avatar items-center justify-center`}>👤</div>
+                  <div className={`text-2xl ${(currentUser as any)?.avatar ? 'hidden' : 'flex'} fallback-avatar items-center justify-center`}>👤</div>
                 </div>
                 <p className="text-xs text-gray-600 text-center mt-1">
-                  {currentUser?.fullName || 'المستخدم'}
+                  {(currentUser as any)?.fullName || 'المستخدم'}
                 </p>
               </div>
 

@@ -12,6 +12,8 @@ import { Input } from '@/components/ui/input';
 import { BarChart3, FileText, TrendingUp, Download, Calendar, Filter, DollarSign, Package, Users, ShoppingCart, PrinterIcon, Search, Eye } from 'lucide-react';
 import Calculator from '@/components/Calculator';
 import SimpleInvoiceReport from '@/components/SimpleInvoiceReport';
+import PurchaseInvoiceReport from '@/components/PurchaseInvoiceReport';
+import GeneralInvoiceReport from '@/components/GeneralInvoiceReport';
 import {
   LineChart,
   Line,
@@ -277,7 +279,7 @@ export default function Reports() {
 
         {/* التقارير التفصيلية المحسنة */}
         <Tabs value={selectedReport} onValueChange={setSelectedReport} className="w-full">
-          <TabsList className="grid w-full grid-cols-6 h-16 bg-gradient-to-r from-gray-100 to-slate-200 rounded-2xl p-2 shadow-lg">
+          <TabsList className="grid w-full grid-cols-7 h-16 bg-gradient-to-r from-gray-100 to-slate-200 rounded-2xl p-2 shadow-lg">
             <TabsTrigger value="overview" className="flex items-center gap-2 h-12 rounded-xl font-bold data-[state=active]:bg-white data-[state=active]:shadow-md transition-all">
               <BarChart3 className="h-4 w-4" />
               📊 نظرة عامة
@@ -285,6 +287,10 @@ export default function Reports() {
             <TabsTrigger value="invoice" className="flex items-center gap-2 h-12 rounded-xl font-bold data-[state=active]:bg-white data-[state=active]:shadow-md transition-all">
               <FileText className="h-4 w-4" />
               📄 تقرير فاتورة
+            </TabsTrigger>
+            <TabsTrigger value="invoices" className="flex items-center gap-2 h-12 rounded-xl font-bold data-[state=active]:bg-white data-[state=active]:shadow-md transition-all">
+              <PrinterIcon className="h-4 w-4" />
+              🧾 الفواتير
             </TabsTrigger>
             <TabsTrigger value="sales" className="flex items-center gap-2 h-12 rounded-xl font-bold data-[state=active]:bg-white data-[state=active]:shadow-md transition-all">
               <DollarSign className="h-4 w-4" />
@@ -717,6 +723,53 @@ export default function Reports() {
                       <div className="text-lg text-orange-800 font-bold">💳 متوسط قيمة الفاتورة</div>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* قسم الفواتير مع الشعار وصورة المستخدم */}
+          <TabsContent value="invoices" className="space-y-8 mt-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* فاتورة المبيعات */}
+              <Card className="shadow-xl border-0 bg-gradient-to-br from-green-50 to-emerald-50">
+                <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-700 text-white rounded-t-lg">
+                  <CardTitle className="text-white text-lg font-bold flex items-center gap-2">
+                    <DollarSign className="h-5 w-5" />
+                    فاتورة المبيعات
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <p className="text-gray-600 mb-4">فاتورة مبيعات كاملة مع شعار الشركة وصورة المستخدم</p>
+                  <GeneralInvoiceReport invoiceType="sales" title="فاتورة المبيعات" />
+                </CardContent>
+              </Card>
+
+              {/* فاتورة المشتريات */}
+              <Card className="shadow-xl border-0 bg-gradient-to-br from-blue-50 to-indigo-50">
+                <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-t-lg">
+                  <CardTitle className="text-white text-lg font-bold flex items-center gap-2">
+                    <ShoppingCart className="h-5 w-5" />
+                    فاتورة المشتريات
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <p className="text-gray-600 mb-4">فاتورة مشتريات كاملة مع شعار الشركة وصورة المستخدم</p>
+                  <GeneralInvoiceReport invoiceType="purchase" title="فاتورة المشتريات" />
+                </CardContent>
+              </Card>
+
+              {/* فاتورة عامة */}
+              <Card className="shadow-xl border-0 bg-gradient-to-br from-purple-50 to-pink-50">
+                <CardHeader className="bg-gradient-to-r from-purple-600 to-pink-700 text-white rounded-t-lg">
+                  <CardTitle className="text-white text-lg font-bold flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    فاتورة عامة
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <p className="text-gray-600 mb-4">فاتورة عامة مع شعار الشركة وصورة المستخدم</p>
+                  <GeneralInvoiceReport invoiceType="general" title="فاتورة عامة" />
                 </CardContent>
               </Card>
             </div>
