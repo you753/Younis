@@ -538,6 +538,44 @@ export class DatabaseStorage implements IStorage {
       .where(eq(purchaseReturns.id, id));
     return (result.rowCount ?? 0) > 0;
   }
+
+  // Supplier Payment Vouchers
+  async getSupplierPaymentVoucher(id: number): Promise<SupplierPaymentVoucher | undefined> {
+    const [voucher] = await db.select().from(supplierPaymentVouchers).where(eq(supplierPaymentVouchers.id, id));
+    return voucher || undefined;
+  }
+
+  async getAllSupplierPaymentVouchers(): Promise<SupplierPaymentVoucher[]> {
+    return await db.select().from(supplierPaymentVouchers).orderBy(desc(supplierPaymentVouchers.createdAt));
+  }
+
+  async getSupplierPaymentVouchersBySupplierId(supplierId: number): Promise<SupplierPaymentVoucher[]> {
+    return await db.select().from(supplierPaymentVouchers)
+      .where(eq(supplierPaymentVouchers.supplierId, supplierId))
+      .orderBy(desc(supplierPaymentVouchers.createdAt));
+  }
+
+  async createSupplierPaymentVoucher(insertVoucher: InsertSupplierPaymentVoucher): Promise<SupplierPaymentVoucher> {
+    const [voucher] = await db
+      .insert(supplierPaymentVouchers)
+      .values(insertVoucher)
+      .returning();
+    return voucher;
+  }
+
+  async updateSupplierPaymentVoucher(id: number, updateData: Partial<InsertSupplierPaymentVoucher>): Promise<SupplierPaymentVoucher | undefined> {
+    const [voucher] = await db
+      .update(supplierPaymentVouchers)
+      .set(updateData)
+      .where(eq(supplierPaymentVouchers.id, id))
+      .returning();
+    return voucher || undefined;
+  }
+
+  async deleteSupplierPaymentVoucher(id: number): Promise<boolean> {
+    const result = await db.delete(supplierPaymentVouchers).where(eq(supplierPaymentVouchers.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
 }
 
 // Initialize database with sample data
