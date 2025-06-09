@@ -40,9 +40,9 @@ const ArabicInvoiceReport: React.FC<ArabicInvoiceReportProps> = ({
   };
 
   return (
-    <div style={containerStyle} className="min-h-screen bg-white p-8" dir="rtl" lang="ar">
+    <div className="min-h-screen bg-white p-8 arabic-content" dir="rtl" lang="ar">
       <Card className="max-w-full mx-auto shadow-lg border border-gray-300">
-        <CardContent className="p-0">
+        <CardContent className="p-0 arabic-content">
           {/* Header */}
           <div className="bg-white border-b border-gray-300 p-6">
             <div className="flex justify-between items-start mb-6">
@@ -123,8 +123,7 @@ const ArabicInvoiceReport: React.FC<ArabicInvoiceReportProps> = ({
           {/* الجدول */}
           <div className="overflow-x-auto">
             <table 
-              className="w-full border-collapse border border-gray-400" 
-              style={containerStyle}
+              className="w-full border-collapse border border-gray-400 arabic-content"
             >
               <thead>
                 <tr className="bg-gray-100">

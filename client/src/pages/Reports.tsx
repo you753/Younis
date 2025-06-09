@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { BarChart3, FileText, TrendingUp, Download, Calendar, Filter, DollarSign, Package, Users, ShoppingCart, PrinterIcon, Search, Eye } from 'lucide-react';
 import Calculator from '@/components/Calculator';
-import ArabicInvoiceReport from '@/components/ArabicInvoiceReport';
+import UnicodeInvoiceReport from '@/components/UnicodeInvoiceReport';
 import {
   LineChart,
   Line,
@@ -476,7 +476,7 @@ export default function Reports() {
 
           {/* تقرير الفاتورة المطابق للصورة */}
           <TabsContent value="invoice" className="mt-8">
-            <ArabicInvoiceReport />
+            <UnicodeInvoiceReport />
           </TabsContent>
 
           {/* تقارير المبيعات المحسنة */}
