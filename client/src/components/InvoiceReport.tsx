@@ -6,16 +6,11 @@ import { PrinterIcon, Download } from 'lucide-react';
 
 interface InvoiceItem {
   id: number;
-  description: string;
-  customerCode: string;
-  type: string;
-  date: string;
   invoiceNumber: string;
-  unitPrice: number;
-  quantity: number;
-  totalBeforeVAT: number;
-  vatAmount: number;
-  totalAfterVAT: number;
+  date: string;
+  description: string;
+  amount: string;
+  status: string;
 }
 
 interface InvoiceReportProps {
@@ -28,98 +23,31 @@ const InvoiceReport = ({
   dateRange = "31/12/2025 - 01/01/2024"
 }: InvoiceReportProps) => {
   
-  // بيانات تجريبية مطابقة للصورة
-  const invoiceItems: InvoiceItem[] = [
+  // بيانات مطابقة للصورة تماماً
+  const invoiceItems = [
     {
       id: 1,
+      invoiceNumber: "INV-0001",
+      date: "4/6/5202",
       description: "مؤسسة فاطمة عبدالله الحازمي التجارية",
-      customerCode: "ترك كن",
-      type: "خدمة كن",
-      date: "2025-06-05",
-      invoiceNumber: "0643",
-      unitPrice: 7370.00,
-      quantity: 1.0,
-      totalBeforeVAT: 1105.50,
-      vatAmount: 0.00,
-      totalAfterVAT: 8475.50
+      amount: "15.00",
+      status: "مدفوع مؤجل"
     },
     {
       id: 2,
+      invoiceNumber: "INV-0002",
+      date: "5/6/5202",
       description: "مؤسسة فاطمة عبدالله الحازمي التجارية",
-      customerCode: "ترك",
-      type: "خدمة خارجي",
-      date: "2025-05-31",
-      invoiceNumber: "0642",
-      unitPrice: 100.00,
-      quantity: 1.0,
-      totalBeforeVAT: 15.00,
-      vatAmount: 0.00,
-      totalAfterVAT: 115.00
+      amount: "1250.00",
+      status: "مدفوع مؤجل"
     },
     {
       id: 3,
+      invoiceNumber: "INV-0003",
+      date: "5/6/5202",
       description: "مؤسسة فاطمة عبدالله الحازمي التجارية",
-      customerCode: "ترك كن",
-      type: "خدمة كن الخرجي التجارية",
-      date: "2025-05-29",
-      invoiceNumber: "0641",
-      unitPrice: 16160.00,
-      quantity: 1.0,
-      totalBeforeVAT: 2424.00,
-      vatAmount: 0.00,
-      totalAfterVAT: 18584.00
-    },
-    {
-      id: 4,
-      description: "مؤسسة فاطمة عبدالله الحازمي التجارية",
-      customerCode: "ترك",
-      type: "خدمة خارجي",
-      date: "2025-05-26",
-      invoiceNumber: "0640",
-      unitPrice: 140.00,
-      quantity: 1.0,
-      totalBeforeVAT: 21.00,
-      vatAmount: 0.00,
-      totalAfterVAT: 161.00
-    },
-    {
-      id: 5,
-      description: "مؤسسة فاطمة عبدالله الحازمي التجارية",
-      customerCode: "ترك",
-      type: "خدمة خارجي",
-      date: "2025-05-25",
-      invoiceNumber: "0639",
-      unitPrice: 175.00,
-      quantity: 1.0,
-      totalBeforeVAT: 26.25,
-      vatAmount: 0.00,
-      totalAfterVAT: 201.25
-    },
-    {
-      id: 6,
-      description: "مؤسسة فاطمة عبدالله الحازمي التجارية",
-      customerCode: "ترك",
-      type: "خدمة خارجي",
-      date: "2025-05-24",
-      invoiceNumber: "0638",
-      unitPrice: 315.00,
-      quantity: 1.0,
-      totalBeforeVAT: 47.25,
-      vatAmount: 0.00,
-      totalAfterVAT: 362.25
-    },
-    {
-      id: 7,
-      description: "مؤسسة فاطمة عبدالله الحازمي التجارية",
-      customerCode: "ترك",
-      type: "خدمة خارجي",
-      date: "2025-05-23",
-      invoiceNumber: "0637",
-      unitPrice: 210.00,
-      quantity: 1.0,
-      totalBeforeVAT: 31.50,
-      vatAmount: 0.00,
-      totalAfterVAT: 241.50
+      amount: "15.00",
+      status: "مدفوع مؤجل"
     }
   ];
 
@@ -130,19 +58,14 @@ const InvoiceReport = ({
   const handleExport = () => {
     // تصدير إكسل
     const csvContent = [
-      ['#', 'نوع المنتج', 'أجمالي', 'سعر الوحدة', 'التاريخ', 'جذة البيع', 'البحوثة', 'مبلغ قائمة الضريبة', 'مبلغ ضريبة القيمة المضافة', 'الضريبة المضافة', 'الإجمالي'],
+      ['#', 'رقم الفاتورة/المرجع', 'التاريخ', 'الوصف/البيان', 'المبلغ', 'الحالة'],
       ...invoiceItems.map(item => [
         item.id,
-        item.description,
-        item.customerCode,
-        item.type,
-        item.date,
         item.invoiceNumber,
-        item.unitPrice,
-        item.quantity,
-        item.totalBeforeVAT,
-        item.vatAmount,
-        item.totalAfterVAT
+        item.date,
+        item.description,
+        item.amount,
+        item.status
       ])
     ].map(row => row.join(',')).join('\n');
 
@@ -155,18 +78,21 @@ const InvoiceReport = ({
 
   return (
     <div className="min-h-screen bg-white p-8" dir="rtl">
-      <Card className="max-w-7xl mx-auto shadow-lg border border-gray-300">
+      <Card className="max-w-full mx-auto shadow-lg border border-gray-300">
         <CardContent className="p-0">
           {/* Header */}
-          <div className="bg-white border-b-2 border-gray-300 p-6">
-            <div className="flex justify-between items-start">
-              {/* معلومات الشركة */}
-              <div className="text-right">
-                <h1 className="text-lg font-bold text-gray-800 mb-1">
+          <div className="bg-white border-b border-gray-300 p-6">
+            <div className="flex justify-between items-start mb-6">
+              {/* معلومات الشركة بالإنجليزية */}
+              <div className="text-left flex-1" dir="ltr">
+                <h1 className="text-sm font-normal text-gray-800 mb-1">
                   Fatima Abdullah Al Hazmi Trading Establishment
                 </h1>
                 <p className="text-sm text-gray-600 mb-1">
-                  Kingdom Of Saudi Arabia,Jeddah,Abraq Al-Raghama District
+                  Kingdom Of Saudi Arabia,Jeddah,Abraq Al-
+                </p>
+                <p className="text-sm text-gray-600 mb-1">
+                  Raghama District
                 </p>
                 <div className="text-sm text-gray-600 space-y-1">
                   <p>VAT No: 311852766100003</p>
@@ -175,26 +101,41 @@ const InvoiceReport = ({
               </div>
 
               {/* شعار الشركة */}
-              <div className="flex flex-col items-center">
-                <div className="w-16 h-16 bg-gray-200 border-2 border-gray-400 flex items-center justify-center mb-2">
-                  <div className="text-2xl">🏢</div>
+              <div className="flex flex-col items-center mx-8">
+                <div className="w-20 h-20 border-2 border-gray-800 flex items-center justify-center mb-2 bg-white">
+                  <svg width="60" height="60" viewBox="0 0 100 100" className="text-gray-800">
+                    <rect x="20" y="30" width="60" height="40" fill="none" stroke="currentColor" strokeWidth="2"/>
+                    <rect x="30" y="20" width="40" height="30" fill="none" stroke="currentColor" strokeWidth="2"/>
+                    <rect x="35" y="10" width="30" height="20" fill="none" stroke="currentColor" strokeWidth="2"/>
+                  </svg>
                 </div>
-                <div className="text-right text-sm">
-                  <p className="font-bold">مؤسسة فاطمة عبدالله الحازمي التجارية</p>
-                  <p className="text-gray-600">المملكة العربية السعودية,جدة,أبرق الرغامة</p>
-                  <p className="text-gray-600">الرقم الضريبي: 311852766100003</p>
-                  <p className="text-gray-600">الجوال: 0552490756</p>
+              </div>
+
+              {/* معلومات الشركة بالعربية */}
+              <div className="text-right flex-1">
+                <h1 className="text-sm font-normal text-gray-800 mb-1">
+                  مؤسسة فاطمة عبدالله الحازمي التجارية
+                </h1>
+                <p className="text-sm text-gray-600 mb-1">
+                  المملكة العربية السعودية,جدة,أبرق
+                </p>
+                <p className="text-sm text-gray-600 mb-1">
+                  منطقة الرغامة
+                </p>
+                <div className="text-sm text-gray-600 space-y-1">
+                  <p>رقم ضريبة القيمة المضافة: 311852766100003</p>
+                  <p>الجوال: 0552490756</p>
                 </div>
               </div>
             </div>
 
-            <div className="text-center mt-6">
+            <div className="text-center mb-6">
               <h2 className="text-xl font-bold text-gray-800">تقرير المبيعات</h2>
             </div>
 
-            <div className="flex justify-between items-center mt-4">
+            <div className="flex justify-between items-center">
               <div className="text-sm text-gray-600">
-                منتج التاريخ: {dateRange}
+                فنترة التاريخ: {dateRange}
               </div>
               <div className="flex gap-4">
                 <Button 
@@ -216,89 +157,40 @@ const InvoiceReport = ({
             </div>
           </div>
 
-          {/* الجدول */}
+          {/* الجدول مطابق للصورة */}
           <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gray-100 border-b-2 border-gray-300">
-                  <TableHead className="text-center font-bold text-gray-800 border-r border-gray-300 p-3">#</TableHead>
-                  <TableHead className="text-center font-bold text-gray-800 border-r border-gray-300 p-3">نوع المنتج</TableHead>
-                  <TableHead className="text-center font-bold text-gray-800 border-r border-gray-300 p-3">أجمالي</TableHead>
-                  <TableHead className="text-center font-bold text-gray-800 border-r border-gray-300 p-3">سعر الوحدة</TableHead>
-                  <TableHead className="text-center font-bold text-gray-800 border-r border-gray-300 p-3">التاريخ</TableHead>
-                  <TableHead className="text-center font-bold text-gray-800 border-r border-gray-300 p-3">جذة البيع</TableHead>
-                  <TableHead className="text-center font-bold text-gray-800 border-r border-gray-300 p-3">البحوثة</TableHead>
-                  <TableHead className="text-center font-bold text-gray-800 border-r border-gray-300 p-3 min-w-[120px]">مبلغ قائمة ضريبة القيمة المضافة</TableHead>
-                  <TableHead className="text-center font-bold text-gray-800 border-r border-gray-300 p-3 min-w-[120px]">مبلغ ضريبة القيمة المضافة</TableHead>
-                  <TableHead className="text-center font-bold text-gray-800 border-r border-gray-300 p-3">الضريبة المضافة</TableHead>
-                  <TableHead className="text-center font-bold text-gray-800 p-3">الإجمالي</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <table className="w-full border-collapse border border-gray-400" style={{ fontFamily: 'Arial, sans-serif' }}>
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="border border-gray-400 p-2 text-center text-sm font-bold">#</th>
+                  <th className="border border-gray-400 p-2 text-center text-sm font-bold">رقم الفاتورة/المرجع</th>
+                  <th className="border border-gray-400 p-2 text-center text-sm font-bold">التاريخ</th>
+                  <th className="border border-gray-400 p-2 text-center text-sm font-bold">الوصف/البيان</th>
+                  <th className="border border-gray-400 p-2 text-center text-sm font-bold">المبلغ</th>
+                  <th className="border border-gray-400 p-2 text-center text-sm font-bold">الحالة</th>
+                </tr>
+              </thead>
+              <tbody>
                 {invoiceItems.map((item) => (
-                  <TableRow key={item.id} className="border-b border-gray-200 hover:bg-gray-50">
-                    <TableCell className="text-center border-r border-gray-200 p-3 font-medium">
-                      {item.id}
-                    </TableCell>
-                    <TableCell className="text-center border-r border-gray-200 p-3 text-sm">
-                      {item.description}
-                    </TableCell>
-                    <TableCell className="text-center border-r border-gray-200 p-3 font-medium">
-                      {item.customerCode}
-                    </TableCell>
-                    <TableCell className="text-center border-r border-gray-200 p-3">
-                      {item.type}
-                    </TableCell>
-                    <TableCell className="text-center border-r border-gray-200 p-3">
-                      {item.date}
-                    </TableCell>
-                    <TableCell className="text-center border-r border-gray-200 p-3 font-medium">
-                      {item.invoiceNumber}
-                    </TableCell>
-                    <TableCell className="text-center border-r border-gray-200 p-3">
-                      مبتوع
-                    </TableCell>
-                    <TableCell className="text-center border-r border-gray-200 p-3 font-mono">
-                      {item.unitPrice.toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-center border-r border-gray-200 p-3 font-mono">
-                      {item.totalBeforeVAT.toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-center border-r border-gray-200 p-3 font-mono">
-                      {item.vatAmount.toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-center p-3 font-mono font-bold">
-                      {item.totalAfterVAT.toFixed(2)}
-                    </TableCell>
-                  </TableRow>
+                  <tr key={item.id} className="hover:bg-gray-50">
+                    <td className="border border-gray-400 p-2 text-center text-sm">{item.id}</td>
+                    <td className="border border-gray-400 p-2 text-center text-sm">{item.invoiceNumber}</td>
+                    <td className="border border-gray-400 p-2 text-center text-sm">{item.date}</td>
+                    <td className="border border-gray-400 p-2 text-center text-sm">{item.description}</td>
+                    <td className="border border-gray-400 p-2 text-center text-sm font-mono">{item.amount}</td>
+                    <td className="border border-gray-400 p-2 text-center text-sm">{item.status}</td>
+                  </tr>
                 ))}
-              </TableBody>
-            </Table>
+              </tbody>
+            </table>
           </div>
 
-          {/* المجاميع */}
-          <div className="bg-gray-50 border-t-2 border-gray-300 p-6">
-            <div className="flex justify-end">
-              <div className="w-96 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="font-medium">المجموع الفرعي:</span>
-                  <span className="font-mono">
-                    {invoiceItems.reduce((sum, item) => sum + item.unitPrice, 0).toFixed(2)} ر.س
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="font-medium">ضريبة القيمة المضافة (15%):</span>
-                  <span className="font-mono">
-                    {invoiceItems.reduce((sum, item) => sum + item.vatAmount, 0).toFixed(2)} ر.س
-                  </span>
-                </div>
-                <div className="flex justify-between text-lg font-bold border-t-2 border-gray-400 pt-2">
-                  <span>الإجمالي النهائي:</span>
-                  <span className="font-mono">
-                    {invoiceItems.reduce((sum, item) => sum + item.totalAfterVAT, 0).toFixed(2)} ر.س
-                  </span>
-                </div>
-              </div>
+          {/* المجموع الإجمالي */}
+          <div className="border border-gray-400 p-4 mt-0">
+            <div className="text-center">
+              <span className="text-sm">
+                المجموع الإجمالي للمبلغ: {invoiceItems.reduce((sum, item) => sum + parseFloat(item.amount), 0).toFixed(2)} ريال
+              </span>
             </div>
           </div>
         </CardContent>
