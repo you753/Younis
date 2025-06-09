@@ -7,7 +7,8 @@ import { apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, ShoppingCart, TrendingDown, DollarSign, Edit, Trash2 } from 'lucide-react';
+import { Plus, ShoppingCart, TrendingDown, DollarSign, Edit, Trash2, Search } from 'lucide-react';
+import SearchBox from '@/components/SearchBox';
 import PurchaseFormComponent from '@/components/forms/PurchaseForm';
 import { format } from 'date-fns';
 
@@ -16,6 +17,7 @@ export default function Purchases() {
   const { format: formatAmount } = useCurrency();
   const [showForm, setShowForm] = useState(false);
   const [editingPurchase, setEditingPurchase] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const queryClient = useQueryClient();
   const { toast } = useToast();
 

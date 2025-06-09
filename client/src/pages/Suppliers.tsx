@@ -16,6 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Users, Star, Edit, Trash2, Save, Building, Search } from 'lucide-react';
+import SearchBox from '@/components/SearchBox';
 import { OnboardingTrigger } from '@/components/onboarding/OnboardingTrigger';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -473,15 +474,12 @@ export default function Suppliers() {
             {/* شريط البحث المحلي */}
             <Card>
               <CardContent className="p-4">
-                <div className="relative">
-                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
-                    placeholder="البحث عن مورد (الاسم، الهاتف، البريد الإلكتروني...)"
-                    value={localSearchQuery}
-                    onChange={(e) => setLocalSearchQuery(e.target.value)}
-                    className="pr-10 text-right"
-                  />
-                </div>
+                <SearchBox
+                  placeholder="البحث عن مورد (الاسم، الهاتف، البريد الإلكتروني...)"
+                  value={localSearchQuery}
+                  onChange={setLocalSearchQuery}
+                  className="max-w-md"
+                />
                 {localSearchQuery && (
                   <div className="mt-3 text-sm text-gray-600">
                     النتائج: {filteredSuppliers.length} من أصل {suppliers.length} مورد

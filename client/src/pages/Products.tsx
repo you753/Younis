@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Plus, List, Search, Edit } from 'lucide-react';
+import SearchBox from '@/components/SearchBox';
 import { OnboardingTrigger } from '@/components/onboarding/OnboardingTrigger';
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -104,15 +105,12 @@ export default function Products() {
           {/* شريط البحث المحلي */}
           <Card className="mb-6">
             <CardContent className="p-4">
-              <div className="relative">
-                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="البحث عن منتج (الاسم، الكود، الباركود، الفئة...)"
-                  value={localSearchQuery}
-                  onChange={(e) => setLocalSearchQuery(e.target.value)}
-                  className="pr-10 text-right"
-                />
-              </div>
+              <SearchBox
+                placeholder="البحث عن منتج (الاسم، الكود، الباركود، الفئة...)"
+                value={localSearchQuery}
+                onChange={setLocalSearchQuery}
+                className="max-w-md"
+              />
               {localSearchQuery && (
                 <div className="mt-3 text-sm text-gray-600">
                   النتائج: {filteredProducts.length} من أصل {products.length} منتج
