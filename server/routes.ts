@@ -267,42 +267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Users routes
-  app.get("/api/users", async (req, res) => {
-    try {
-      const users = await storage.getAllUsers();
-      // Remove passwords from response
-      const safeUsers = users.map(({ password, ...user }) => user);
-      res.json(safeUsers);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch users" });
-    }
-  });
 
-  app.post("/api/users", async (req, res) => {
-    try {
-      const validatedData = insertUserSchema.parse(req.body);
-      const user = await storage.createUser(validatedData);
-      const { password, ...safeUser } = user;
-      res.status(201).json(safeUser);
-    } catch (error) {
-      res.status(400).json({ message: "Invalid user data" });
-    }
-  });
-
-  app.delete("/api/users/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const deleted = await storage.deleteUser(id);
-      if (deleted) {
-        res.json({ message: "User deleted successfully" });
-      } else {
-        res.status(404).json({ message: "User not found" });
-      }
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete user" });
-    }
-  });
 
   // Suppliers routes
   app.get("/api/suppliers", async (req, res) => {
