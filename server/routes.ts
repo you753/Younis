@@ -283,7 +283,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/suppliers", async (req, res) => {
     try {
       console.log("بيانات المورد الواردة:", req.body);
-      const validatedData = insertSupplierSchema.parse(req.body);
+      
+      // تنظيف البيانات قبل التحقق
+      const cleanedData = {
+        ...req.body,
+        creditLimit: req.body.creditLimit === '' ? null : req.body.creditLimit,
+        balance: req.body.balance === '' ? '0' : req.body.balance,
+        email: req.body.email === '' ? null : req.body.email,
+        phone: req.body.phone === '' ? null : req.body.phone,
+        address: req.body.address === '' ? null : req.body.address,
+        taxNumber: req.body.taxNumber === '' ? null : req.body.taxNumber
+      };
+      
+      const validatedData = insertSupplierSchema.parse(cleanedData);
       console.log("البيانات بعد التحقق:", validatedData);
       const supplier = await storage.createSupplier(validatedData);
       res.status(201).json(supplier);
