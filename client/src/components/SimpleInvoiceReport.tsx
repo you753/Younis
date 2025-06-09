@@ -55,7 +55,7 @@ const SimpleInvoiceReport: React.FC = () => {
                 {/* Company Logo */}
                 <div className="w-20 h-20 border-2 border-gray-800 flex items-center justify-center mb-2 bg-white overflow-hidden">
                   <img 
-                    src="/uploads/company/logo.png" 
+                    src="/uploads/company/logo.svg" 
                     alt="شعار الشركة" 
                     className="w-full h-full object-contain"
                     onError={(e) => {
