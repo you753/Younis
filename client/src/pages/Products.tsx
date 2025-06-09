@@ -101,6 +101,83 @@ export default function Products() {
         <ProductForm productId={editProductId} />
       ) : (
         <>
+          {/* شريط البحث المحلي */}
+          <Card className="mb-6">
+            <CardContent className="p-4">
+              <div className="relative">
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="البحث عن منتج (الاسم، الكود، الباركود، الفئة...)"
+                  value={localSearchQuery}
+                  onChange={(e) => setLocalSearchQuery(e.target.value)}
+                  className="pr-10 text-right"
+                />
+              </div>
+              {localSearchQuery && (
+                <div className="mt-3 text-sm text-gray-600">
+                  النتائج: {filteredProducts.length} من أصل {products.length} منتج
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* نتائج البحث */}
+          {localSearchQuery && filteredProducts.length > 0 && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>نتائج البحث ({filteredProducts.length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {filteredProducts.map((product) => (
+                    <div 
+                      key={product.id}
+                      className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex-1 text-right">
+                        <div className="font-medium text-gray-900">{product.name}</div>
+                        <div className="text-sm text-gray-500 space-x-2 rtl:space-x-reverse">
+                          {product.code && <Badge variant="outline">كود: {product.code}</Badge>}
+                          {product.category && <Badge variant="secondary">{product.category}</Badge>}
+                          {product.barcode && <span className="text-xs">🏷️ {product.barcode}</span>}
+                        </div>
+                        <div className="text-sm text-gray-600 mt-1">
+                          {product.salePrice && <span className="text-green-600 font-medium">سعر البيع: {product.salePrice} ر.س</span>}
+                          {product.salePrice && product.quantity && <span className="mx-2">•</span>}
+                          {product.quantity !== null && <span>الكمية: {product.quantity}</span>}
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          عرض
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* رسالة عدم وجود نتائج */}
+          {localSearchQuery && filteredProducts.length === 0 && (
+            <Card className="mb-6">
+              <CardContent className="p-8 text-center">
+                <div className="text-gray-400 mb-3">
+                  <Search className="h-12 w-12 mx-auto" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">لا توجد نتائج</h3>
+                <p className="text-gray-500 mb-4">لم نجد أي منتجات تطابق البحث "{localSearchQuery}"</p>
+                <Button variant="outline" onClick={() => setLocalSearchQuery('')}>
+                  مسح البحث
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div className="stats-card">
@@ -141,9 +218,11 @@ export default function Products() {
           </div>
 
           {/* Products Table */}
-          <div data-onboarding="products-table">
-            <ProductsTable />
-          </div>
+          {!localSearchQuery && (
+            <div data-onboarding="products-table">
+              <ProductsTable />
+            </div>
+          )}
         </>
       )}
     </div>

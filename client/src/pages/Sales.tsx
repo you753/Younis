@@ -20,6 +20,7 @@ export default function Sales() {
   const [selectedSale, setSelectedSale] = useState<any>(null);
   const [showInvoicePreview, setShowInvoicePreview] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [localSearchQuery, setLocalSearchQuery] = useState('');
 
   // تحديد نوع الصفحة حسب المسار
   const getPageInfo = () => {
@@ -76,20 +77,16 @@ export default function Sales() {
     queryKey: ['/api/products'],
   });
 
-  // فلترة المبيعات حسب البحث
+  // فلترة المبيعات حسب البحث المحلي
   const filteredSales = Array.isArray(sales) ? sales.filter((sale: any) => {
-    if (!searchTerm) return true;
+    const searchQuery = localSearchQuery || searchTerm;
+    if (!searchQuery.trim()) return true;
     
-    const searchLower = searchTerm.toLowerCase();
+    const searchTerms = searchQuery.toLowerCase().trim().split(' ');
     const client = Array.isArray(clients) ? clients.find((c: any) => c.id === sale.clientId) : null;
+    const searchText = `${sale.id || ''} ${sale.total || ''} ${sale.date || ''} ${sale.notes || ''} ${client?.name || ''} ${client?.phone || ''}`.toLowerCase();
     
-    return (
-      sale.id?.toString().includes(searchTerm) ||
-      sale.total?.toString().includes(searchTerm) ||
-      sale.date?.toLowerCase().includes(searchLower) ||
-      client?.name?.toLowerCase().includes(searchLower) ||
-      client?.phone?.toLowerCase().includes(searchLower)
-    );
+    return searchTerms.every(term => searchText.includes(term));
   }) : [];
 
   const totalSales = filteredSales.reduce((sum: number, sale: any) => sum + parseFloat(sale.total), 0);
