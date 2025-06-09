@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Users, Star, Edit, Trash2, Save, Building } from 'lucide-react';
+import { Plus, Users, Star, Edit, Trash2, Save, Building, Search } from 'lucide-react';
 import { OnboardingTrigger } from '@/components/onboarding/OnboardingTrigger';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -47,6 +47,7 @@ export default function Suppliers() {
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [showEvaluationForm, setShowEvaluationForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any>(null);
+  const [localSearchQuery, setLocalSearchQuery] = useState('');
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -85,6 +86,16 @@ export default function Suppliers() {
     queryKey: ['/api/supplier-evaluations'],
     enabled: location === '/supplier-evaluation'
   });
+
+  // فلترة الموردين بناءً على البحث المحلي
+  const filteredSuppliers = Array.isArray(suppliers) ? suppliers.filter((supplier: any) => {
+    if (!localSearchQuery.trim()) return true;
+    
+    const searchTerms = localSearchQuery.toLowerCase().trim().split(' ');
+    const searchText = `${supplier.name || ''} ${supplier.phone || ''} ${supplier.email || ''} ${supplier.address || ''} ${supplier.category || ''}`.toLowerCase();
+    
+    return searchTerms.every(term => searchText.includes(term));
+  }) : [];
 
   // Set page title based on route
   useEffect(() => {
