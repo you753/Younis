@@ -17,11 +17,11 @@ export default function SupplierForm() {
     resolver: zodResolver(insertSupplierSchema),
     defaultValues: {
       name: '',
-      phone: '',
-      email: '',
-      address: '',
-      taxNumber: '',
-      creditLimit: '',
+      phone: null,
+      email: null,
+      address: null,
+      taxNumber: null,
+      creditLimit: null,
       balance: '0'
     }
   });
@@ -72,7 +72,7 @@ export default function SupplierForm() {
               <FormItem>
                 <FormLabel>رقم الهاتف</FormLabel>
                 <FormControl>
-                  <Input placeholder="05xxxxxxxx" {...field} />
+                  <Input placeholder="05xxxxxxxx" value={field.value || ''} onChange={field.onChange} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -86,7 +86,7 @@ export default function SupplierForm() {
               <FormItem>
                 <FormLabel>البريد الإلكتروني</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="البريد الإلكتروني" {...field} />
+                  <Input type="email" placeholder="البريد الإلكتروني" value={field.value || ''} onChange={field.onChange} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -100,7 +100,7 @@ export default function SupplierForm() {
               <FormItem>
                 <FormLabel>العنوان</FormLabel>
                 <FormControl>
-                  <Input placeholder="عنوان المورد" {...field} />
+                  <Input placeholder="عنوان المورد" value={field.value || ''} onChange={field.onChange} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -114,7 +114,7 @@ export default function SupplierForm() {
               <FormItem>
                 <FormLabel>الرقم الضريبي</FormLabel>
                 <FormControl>
-                  <Input placeholder="الرقم الضريبي" {...field} />
+                  <Input placeholder="الرقم الضريبي" value={field.value || ''} onChange={field.onChange} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -128,7 +128,7 @@ export default function SupplierForm() {
               <FormItem>
                 <FormLabel>حد الائتمان</FormLabel>
                 <FormControl>
-                  <Input type="number" step="0.01" placeholder="0.00" {...field} />
+                  <Input type="number" step="0.01" placeholder="0.00" value={field.value || ''} onChange={field.onChange} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
