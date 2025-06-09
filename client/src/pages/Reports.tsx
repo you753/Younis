@@ -299,309 +299,419 @@ export default function Reports() {
             </TabsTrigger>
           </TabsList>
 
-        {/* النظرة العامة */}
-        <TabsContent value="overview" className="space-y-6 mt-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="shadow-lg border-0">
-              <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
-                <CardTitle className="text-blue-800">اتجاه المبيعات والمشتريات الشهرية</CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <ResponsiveContainer width="100%" height={350}>
-                  <LineChart data={monthlySalesData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="month" stroke="#666" />
-                    <YAxis stroke="#666" />
-                    <Tooltip 
-                      formatter={(value: any) => [`${Number(value).toFixed(2)} ر.س`, '']}
-                      labelFormatter={(label) => `الشهر: ${label}`}
-                      contentStyle={{ backgroundColor: 'white', border: '1px solid #e2e8f0', borderRadius: '8px' }}
-                    />
-                    <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="sales" 
-                      stroke="#10b981" 
-                      strokeWidth={3}
-                      name="المبيعات"
-                      dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="purchases" 
-                      stroke="#ef4444" 
-                      strokeWidth={3}
-                      name="المشتريات"
-                      dot={{ fill: '#ef4444', strokeWidth: 2, r: 4 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-lg border-0">
-              <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
-                <CardTitle className="text-green-800">أفضل المنتجات أداءً</CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <ResponsiveContainer width="100%" height={350}>
-                  <BarChart data={topProducts}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="name" stroke="#666" />
-                    <YAxis stroke="#666" />
-                    <Tooltip 
-                      formatter={(value: any) => [`${Number(value).toFixed(2)} ر.س`, 'إجمالي المبيعات']}
-                      contentStyle={{ backgroundColor: 'white', border: '1px solid #e2e8f0', borderRadius: '8px' }}
-                    />
-                    <Bar dataKey="revenue" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* آخر المعاملات */}
-          <Card className="shadow-lg border-0">
-            <CardHeader className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-t-lg">
-              <CardTitle className="text-gray-800">آخر العمليات المالية</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-gray-200">
-                    <TableHead className="text-right font-semibold">النوع</TableHead>
-                    <TableHead className="text-right font-semibold">المبلغ</TableHead>
-                    <TableHead className="text-right font-semibold">التاريخ</TableHead>
-                    <TableHead className="text-right font-semibold">الوصف</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {[...salesArray.slice(-5), ...purchasesArray.slice(-5)]
-                    .sort((a: any, b: any) => new Date(b.createdAt || b.date).getTime() - new Date(a.createdAt || a.date).getTime())
-                    .slice(0, 8)
-                    .map((transaction: any, index: number) => (
-                    <TableRow key={index} className="hover:bg-gray-50">
-                      <TableCell>
-                        <Badge variant={transaction.clientId ? "default" : "secondary"} className="px-3 py-1">
-                          {transaction.clientId ? "💰 مبيعات" : "🛒 مشتريات"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className={`font-bold text-lg ${transaction.clientId ? 'text-green-600' : 'text-red-600'}`}>
-                        {formatAmount(transaction.total)}
-                      </TableCell>
-                      <TableCell className="text-gray-600">
-                        {new Date(transaction.createdAt || transaction.date).toLocaleDateString('ar-SA')}
-                      </TableCell>
-                      <TableCell className="text-gray-700">{transaction.notes || 'لا توجد ملاحظات'}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* تقارير المبيعات */}
-        <TabsContent value="sales" className="space-y-6 mt-8">
-          <Card className="shadow-lg border-0">
-            <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
-              <CardTitle className="text-green-800 flex items-center gap-2">
-                <DollarSign className="h-5 w-5" />
-                تقرير المبيعات التفصيلي
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="mb-6">
-                <Input
-                  placeholder="🔍 البحث في الفواتير (رقم الفاتورة، العميل، المبلغ)..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="max-w-md border-2 border-gray-200 focus:border-green-500"
-                />
-              </div>
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-green-50 border-green-200">
-                    <TableHead className="text-right font-bold text-green-800">رقم الفاتورة</TableHead>
-                    <TableHead className="text-right font-bold text-green-800">التاريخ</TableHead>
-                    <TableHead className="text-right font-bold text-green-800">العميل</TableHead>
-                    <TableHead className="text-right font-bold text-green-800">المبلغ الإجمالي</TableHead>
-                    <TableHead className="text-right font-bold text-green-800">حالة الدفع</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {salesArray.slice(0, 12).map((sale: any) => (
-                    <TableRow key={sale.id} className="hover:bg-green-25 border-green-100">
-                      <TableCell className="font-medium text-blue-600">#{sale.id.toString().padStart(4, '0')}</TableCell>
-                      <TableCell className="text-gray-600">{new Date(sale.date || sale.createdAt).toLocaleDateString('ar-SA')}</TableCell>
-                      <TableCell className="font-medium">
-                        {clientsArray.find((c: any) => c.id === sale.clientId)?.name || 'عميل غير محدد'}
-                      </TableCell>
-                      <TableCell className="font-bold text-green-600 text-lg">{formatAmount(sale.total)}</TableCell>
-                      <TableCell>
-                        <Badge className="bg-green-100 text-green-800 border-green-300 px-3 py-1">
-                          ✅ مدفوعة
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* تقارير المشتريات */}
-        <TabsContent value="purchases" className="space-y-6 mt-8">
-          <Card className="shadow-lg border-0">
-            <CardHeader className="bg-gradient-to-r from-red-50 to-rose-50 rounded-t-lg">
-              <CardTitle className="text-red-800 flex items-center gap-2">
-                <ShoppingCart className="h-5 w-5" />
-                تقرير المشتريات التفصيلي
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-red-50 border-red-200">
-                    <TableHead className="text-right font-bold text-red-800">رقم الفاتورة</TableHead>
-                    <TableHead className="text-right font-bold text-red-800">التاريخ</TableHead>
-                    <TableHead className="text-right font-bold text-red-800">المورد</TableHead>
-                    <TableHead className="text-right font-bold text-red-800">المبلغ الإجمالي</TableHead>
-                    <TableHead className="text-right font-bold text-red-800">حالة الاستلام</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {purchasesArray.slice(0, 12).map((purchase: any) => (
-                    <TableRow key={purchase.id} className="hover:bg-red-25 border-red-100">
-                      <TableCell className="font-medium text-blue-600">#{purchase.id.toString().padStart(4, '0')}</TableCell>
-                      <TableCell className="text-gray-600">{new Date(purchase.date || purchase.createdAt).toLocaleDateString('ar-SA')}</TableCell>
-                      <TableCell className="font-medium">{purchase.supplierName || 'مورد غير محدد'}</TableCell>
-                      <TableCell className="font-bold text-red-600 text-lg">{formatAmount(purchase.total)}</TableCell>
-                      <TableCell>
-                        <Badge className="bg-red-100 text-red-800 border-red-300 px-3 py-1">
-                          ✅ مستلمة
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* تقارير المخزون */}
-        <TabsContent value="inventory" className="space-y-6 mt-8">
-          <Card className="shadow-lg border-0">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-t-lg">
-              <CardTitle className="text-blue-800 flex items-center gap-2">
-                <Package className="h-5 w-5" />
-                تقرير المخزون والمنتجات
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-blue-50 border-blue-200">
-                    <TableHead className="text-right font-bold text-blue-800">اسم المنتج</TableHead>
-                    <TableHead className="text-right font-bold text-blue-800">الكود</TableHead>
-                    <TableHead className="text-right font-bold text-blue-800">الكمية المتوفرة</TableHead>
-                    <TableHead className="text-right font-bold text-blue-800">سعر البيع</TableHead>
-                    <TableHead className="text-right font-bold text-blue-800">القيمة الإجمالية</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {productsArray.slice(0, 12).map((product: any) => (
-                    <TableRow key={product.id} className="hover:bg-blue-25 border-blue-100">
-                      <TableCell className="font-medium text-gray-800">{product.name}</TableCell>
-                      <TableCell className="text-blue-600 font-mono">{product.code}</TableCell>
-                      <TableCell className="font-bold text-center">
-                        <span className={`px-3 py-1 rounded-full text-sm ${
-                          (product.quantity || 0) > 10 ? 'bg-green-100 text-green-800' : 
-                          (product.quantity || 0) > 5 ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {product.quantity || 0}
-                        </span>
-                      </TableCell>
-                      <TableCell className="font-bold text-blue-600">{formatAmount(product.salePrice)}</TableCell>
-                      <TableCell className="font-bold text-purple-600 text-lg">
-                        {formatAmount((product.quantity || 0) * parseFloat(product.salePrice || '0'))}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* التحليل المالي */}
-        <TabsContent value="financial" className="space-y-6 mt-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="shadow-lg border-0">
-              <CardHeader className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-t-lg">
-                <CardTitle className="text-emerald-800 flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  بيان الأرباح والخسائر
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 space-y-4">
-                <div className="flex justify-between items-center p-4 bg-green-50 rounded-xl border border-green-200">
-                  <span className="font-bold text-gray-700">💰 إجمالي الإيرادات</span>
-                  <span className="font-bold text-green-700 text-xl">{formatAmount(totalRevenue)}</span>
-                </div>
-                <div className="flex justify-between items-center p-4 bg-red-50 rounded-xl border border-red-200">
-                  <span className="font-bold text-gray-700">🛒 إجمالي المصروفات</span>
-                  <span className="font-bold text-red-700 text-xl">{formatAmount(totalCosts)}</span>
-                </div>
-                <div className="flex justify-between items-center p-4 bg-blue-50 rounded-xl border-2 border-blue-300 shadow-md">
-                  <span className="font-bold text-gray-800 text-lg">📈 صافي الربح</span>
-                  <span className={`font-bold text-2xl ${netProfit >= 0 ? 'text-blue-700' : 'text-red-700'}`}>
-                    {formatAmount(netProfit)}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center p-4 bg-purple-50 rounded-xl border border-purple-200">
-                  <span className="font-bold text-gray-700">📊 هامش الربح</span>
-                  <span className="font-bold text-purple-700 text-xl">{profitMargin.toFixed(1)}%</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-lg border-0">
-              <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-t-lg">
-                <CardTitle className="text-purple-800 flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  المؤشرات الرئيسية للأداء
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-6 bg-blue-50 rounded-xl border border-blue-200 hover:shadow-md transition-shadow">
-                    <div className="text-3xl font-bold text-blue-600 mb-2">{salesArray.length}</div>
-                    <div className="text-sm text-gray-600 font-medium">📋 إجمالي الفواتير</div>
-                  </div>
-                  <div className="text-center p-6 bg-green-50 rounded-xl border border-green-200 hover:shadow-md transition-shadow">
-                    <div className="text-3xl font-bold text-green-600 mb-2">{clientsArray.length}</div>
-                    <div className="text-sm text-gray-600 font-medium">👥 العملاء المسجلين</div>
-                  </div>
-                  <div className="text-center p-6 bg-purple-50 rounded-xl border border-purple-200 hover:shadow-md transition-shadow">
-                    <div className="text-3xl font-bold text-purple-600 mb-2">{productsArray.length}</div>
-                    <div className="text-sm text-gray-600 font-medium">📦 المنتجات المتوفرة</div>
-                  </div>
-                  <div className="text-center p-6 bg-orange-50 rounded-xl border border-orange-200 hover:shadow-md transition-shadow">
-                    <div className="text-3xl font-bold text-orange-600 mb-2">
-                      {salesArray.length > 0 ? formatAmount(totalRevenue / salesArray.length) : '0 ر.س'}
+          {/* النظرة العامة المحسنة */}
+          <TabsContent value="overview" className="space-y-8 mt-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* مخطط اتجاه المبيعات والمشتريات */}
+              <Card className="shadow-2xl border-0 bg-gradient-to-br from-white to-blue-50">
+                <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-2xl">
+                  <CardTitle className="text-white text-xl font-bold flex items-center gap-3">
+                    <div className="p-2 bg-white/20 rounded-lg">
+                      <TrendingUp className="h-6 w-6" />
                     </div>
-                    <div className="text-sm text-gray-600 font-medium">💳 متوسط قيمة الفاتورة</div>
+                    📈 اتجاه المبيعات والمشتريات الشهرية
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-8">
+                  <ResponsiveContainer width="100%" height={400}>
+                    <LineChart data={monthlySalesData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <XAxis 
+                        dataKey="month" 
+                        stroke="#64748b" 
+                        fontSize={12}
+                        tick={{ fill: '#64748b' }}
+                      />
+                      <YAxis 
+                        stroke="#64748b" 
+                        fontSize={12}
+                        tick={{ fill: '#64748b' }}
+                      />
+                      <Tooltip 
+                        formatter={(value: any) => [`${Number(value).toFixed(2)} ر.س`, '']}
+                        labelFormatter={(label) => `📅 الشهر: ${label}`}
+                        contentStyle={{ 
+                          backgroundColor: 'white', 
+                          border: '2px solid #e2e8f0', 
+                          borderRadius: '12px',
+                          boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+                        }}
+                      />
+                      <Legend />
+                      <Line 
+                        type="monotone" 
+                        dataKey="sales" 
+                        stroke="#10b981" 
+                        strokeWidth={4}
+                        name="💰 المبيعات"
+                        dot={{ fill: '#10b981', strokeWidth: 3, r: 6 }}
+                        activeDot={{ r: 8, fill: '#059669' }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="purchases" 
+                        stroke="#ef4444" 
+                        strokeWidth={4}
+                        name="🛒 المشتريات"
+                        dot={{ fill: '#ef4444', strokeWidth: 3, r: 6 }}
+                        activeDot={{ r: 8, fill: '#dc2626' }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              {/* مخطط أفضل المنتجات */}
+              <Card className="shadow-2xl border-0 bg-gradient-to-br from-white to-emerald-50">
+                <CardHeader className="bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-t-2xl">
+                  <CardTitle className="text-white text-xl font-bold flex items-center gap-3">
+                    <div className="p-2 bg-white/20 rounded-lg">
+                      <BarChart3 className="h-6 w-6" />
+                    </div>
+                    🏆 أفضل المنتجات أداءً
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-8">
+                  <ResponsiveContainer width="100%" height={400}>
+                    <BarChart data={topProducts}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <XAxis 
+                        dataKey="name" 
+                        stroke="#64748b"
+                        fontSize={12}
+                        tick={{ fill: '#64748b' }}
+                      />
+                      <YAxis 
+                        stroke="#64748b"
+                        fontSize={12}
+                        tick={{ fill: '#64748b' }}
+                      />
+                      <Tooltip 
+                        formatter={(value: any) => [`${Number(value).toFixed(2)} ر.س`, '💰 إجمالي المبيعات']}
+                        contentStyle={{ 
+                          backgroundColor: 'white', 
+                          border: '2px solid #e2e8f0', 
+                          borderRadius: '12px',
+                          boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+                        }}
+                      />
+                      <Bar 
+                        dataKey="revenue" 
+                        fill="url(#colorGradient)" 
+                        radius={[8, 8, 0, 0]}
+                      />
+                      <defs>
+                        <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.9}/>
+                          <stop offset="95%" stopColor="#34d399" stopOpacity={0.7}/>
+                        </linearGradient>
+                      </defs>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* آخر المعاملات المحسنة */}
+            <Card className="shadow-2xl border-0 bg-gradient-to-br from-white to-gray-50">
+              <CardHeader className="bg-gradient-to-r from-slate-700 to-gray-800 text-white rounded-t-2xl">
+                <CardTitle className="text-white text-xl font-bold flex items-center gap-3">
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    <FileText className="h-6 w-6" />
                   </div>
+                  📋 آخر العمليات المالية
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-8">
+                <div className="overflow-hidden rounded-xl border border-gray-200">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gradient-to-r from-slate-100 to-gray-200 border-none">
+                        <TableHead className="text-right font-bold text-slate-700 py-4">🏷️ النوع</TableHead>
+                        <TableHead className="text-right font-bold text-slate-700 py-4">💰 المبلغ</TableHead>
+                        <TableHead className="text-right font-bold text-slate-700 py-4">📅 التاريخ</TableHead>
+                        <TableHead className="text-right font-bold text-slate-700 py-4">📝 الملاحظات</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {[...salesArray.slice(-5), ...purchasesArray.slice(-5)]
+                        .sort((a: any, b: any) => new Date(b.createdAt || b.date).getTime() - new Date(a.createdAt || a.date).getTime())
+                        .slice(0, 8)
+                        .map((transaction: any, index: number) => (
+                        <TableRow key={index} className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200">
+                          <TableCell className="py-4">
+                            <Badge 
+                              variant={transaction.clientId ? "default" : "secondary"} 
+                              className={`px-4 py-2 text-sm font-bold rounded-full ${
+                                transaction.clientId 
+                                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300' 
+                                  : 'bg-rose-100 text-rose-800 border-rose-300'
+                              }`}
+                            >
+                              {transaction.clientId ? "💰 فاتورة مبيعات" : "🛒 فاتورة مشتريات"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className={`font-bold text-xl py-4 ${transaction.clientId ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            {formatAmount(transaction.total)}
+                          </TableCell>
+                          <TableCell className="text-slate-600 font-medium py-4">
+                            {new Date(transaction.createdAt || transaction.date).toLocaleDateString('ar-SA')}
+                          </TableCell>
+                          <TableCell className="text-slate-700 py-4">
+                            {transaction.notes || '✅ عملية مكتملة بنجاح'}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
               </CardContent>
             </Card>
-          </div>
         </TabsContent>
-      </Tabs>
+
+          {/* تقارير المبيعات المحسنة */}
+          <TabsContent value="sales" className="space-y-8 mt-8">
+            <Card className="shadow-2xl border-0 bg-gradient-to-br from-emerald-50 to-green-50">
+              <CardHeader className="bg-gradient-to-r from-emerald-600 to-green-700 text-white rounded-t-2xl">
+                <CardTitle className="text-white text-2xl font-bold flex items-center gap-4">
+                  <div className="p-3 bg-white/20 rounded-xl">
+                    <DollarSign className="h-7 w-7" />
+                  </div>
+                  💰 تقرير المبيعات التفصيلي
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-8">
+                {/* شريط البحث المحسن */}
+                <div className="mb-8 flex items-center gap-4">
+                  <div className="relative flex-1 max-w-lg">
+                    <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-emerald-500 h-5 w-5" />
+                    <Input
+                      placeholder="🔍 البحث في فواتير المبيعات (رقم الفاتورة، اسم العميل، المبلغ)..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pr-12 h-12 border-2 border-emerald-200 focus:border-emerald-500 rounded-xl text-lg shadow-lg"
+                    />
+                  </div>
+                  <Button className="bg-emerald-500 hover:bg-emerald-600 h-12 px-6 rounded-xl shadow-lg">
+                    <Filter className="ml-2 h-5 w-5" />
+                    تصفية
+                  </Button>
+                </div>
+
+                {/* الجدول المحسن */}
+                <div className="overflow-hidden rounded-2xl border-2 border-emerald-200 shadow-xl">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gradient-to-r from-emerald-500 to-green-600 border-none">
+                        <TableHead className="text-right font-bold text-white py-6 text-lg">📄 رقم الفاتورة</TableHead>
+                        <TableHead className="text-right font-bold text-white py-6 text-lg">📅 التاريخ</TableHead>
+                        <TableHead className="text-right font-bold text-white py-6 text-lg">👤 العميل</TableHead>
+                        <TableHead className="text-right font-bold text-white py-6 text-lg">💰 المبلغ الإجمالي</TableHead>
+                        <TableHead className="text-right font-bold text-white py-6 text-lg">✅ حالة الدفع</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {salesArray.slice(0, 12).map((sale: any) => (
+                        <TableRow key={sale.id} className="hover:bg-emerald-50 transition-all duration-200 border-b border-emerald-100">
+                          <TableCell className="font-bold text-blue-600 py-4 text-lg">
+                            #{sale.id.toString().padStart(4, '0')}
+                          </TableCell>
+                          <TableCell className="text-gray-700 font-medium py-4">
+                            {new Date(sale.date || sale.createdAt).toLocaleDateString('ar-SA')}
+                          </TableCell>
+                          <TableCell className="font-bold text-gray-800 py-4">
+                            {clientsArray.find((c: any) => c.id === sale.clientId)?.name || 'عميل غير محدد'}
+                          </TableCell>
+                          <TableCell className="font-bold text-emerald-600 text-2xl py-4">
+                            {formatAmount(sale.total)}
+                          </TableCell>
+                          <TableCell className="py-4">
+                            <Badge className="bg-emerald-200 text-emerald-800 border-emerald-400 px-4 py-2 text-sm font-bold rounded-full">
+                              ✅ مدفوعة بالكامل
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* تقارير المشتريات المحسنة */}
+          <TabsContent value="purchases" className="space-y-8 mt-8">
+            <Card className="shadow-2xl border-0 bg-gradient-to-br from-rose-50 to-red-50">
+              <CardHeader className="bg-gradient-to-r from-rose-600 to-red-700 text-white rounded-t-2xl">
+                <CardTitle className="text-white text-2xl font-bold flex items-center gap-4">
+                  <div className="p-3 bg-white/20 rounded-xl">
+                    <ShoppingCart className="h-7 w-7" />
+                  </div>
+                  🛒 تقرير المشتريات التفصيلي
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-8">
+                <div className="overflow-hidden rounded-2xl border-2 border-rose-200 shadow-xl">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gradient-to-r from-rose-500 to-red-600 border-none">
+                        <TableHead className="text-right font-bold text-white py-6 text-lg">📄 رقم الفاتورة</TableHead>
+                        <TableHead className="text-right font-bold text-white py-6 text-lg">📅 التاريخ</TableHead>
+                        <TableHead className="text-right font-bold text-white py-6 text-lg">🏪 المورد</TableHead>
+                        <TableHead className="text-right font-bold text-white py-6 text-lg">💰 المبلغ الإجمالي</TableHead>
+                        <TableHead className="text-right font-bold text-white py-6 text-lg">📦 حالة الاستلام</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {purchasesArray.slice(0, 12).map((purchase: any) => (
+                        <TableRow key={purchase.id} className="hover:bg-rose-50 transition-all duration-200 border-b border-rose-100">
+                          <TableCell className="font-bold text-blue-600 py-4 text-lg">
+                            #{purchase.id.toString().padStart(4, '0')}
+                          </TableCell>
+                          <TableCell className="text-gray-700 font-medium py-4">
+                            {new Date(purchase.date || purchase.createdAt).toLocaleDateString('ar-SA')}
+                          </TableCell>
+                          <TableCell className="font-bold text-gray-800 py-4">
+                            {purchase.supplierName || 'مورد غير محدد'}
+                          </TableCell>
+                          <TableCell className="font-bold text-rose-600 text-2xl py-4">
+                            {formatAmount(purchase.total)}
+                          </TableCell>
+                          <TableCell className="py-4">
+                            <Badge className="bg-rose-200 text-rose-800 border-rose-400 px-4 py-2 text-sm font-bold rounded-full">
+                              ✅ مستلمة بالكامل
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* تقارير المخزون المحسنة */}
+          <TabsContent value="inventory" className="space-y-8 mt-8">
+            <Card className="shadow-2xl border-0 bg-gradient-to-br from-cyan-50 to-blue-50">
+              <CardHeader className="bg-gradient-to-r from-cyan-600 to-blue-700 text-white rounded-t-2xl">
+                <CardTitle className="text-white text-2xl font-bold flex items-center gap-4">
+                  <div className="p-3 bg-white/20 rounded-xl">
+                    <Package className="h-7 w-7" />
+                  </div>
+                  📦 تقرير المخزون والمنتجات
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-8">
+                <div className="overflow-hidden rounded-2xl border-2 border-cyan-200 shadow-xl">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gradient-to-r from-cyan-500 to-blue-600 border-none">
+                        <TableHead className="text-right font-bold text-white py-6 text-lg">🏷️ اسم المنتج</TableHead>
+                        <TableHead className="text-right font-bold text-white py-6 text-lg">🔢 الكود</TableHead>
+                        <TableHead className="text-right font-bold text-white py-6 text-lg">📊 الكمية المتوفرة</TableHead>
+                        <TableHead className="text-right font-bold text-white py-6 text-lg">💰 سعر البيع</TableHead>
+                        <TableHead className="text-right font-bold text-white py-6 text-lg">💎 القيمة الإجمالية</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {productsArray.slice(0, 12).map((product: any) => (
+                        <TableRow key={product.id} className="hover:bg-cyan-50 transition-all duration-200 border-b border-cyan-100">
+                          <TableCell className="font-bold text-gray-800 py-4 text-lg">{product.name}</TableCell>
+                          <TableCell className="text-blue-600 font-mono font-bold py-4">{product.code}</TableCell>
+                          <TableCell className="font-bold text-center py-4">
+                            <span className={`px-4 py-2 rounded-full text-lg font-bold ${
+                              (product.quantity || 0) > 10 ? 'bg-emerald-200 text-emerald-800 border-2 border-emerald-300' : 
+                              (product.quantity || 0) > 5 ? 'bg-amber-200 text-amber-800 border-2 border-amber-300' :
+                              'bg-rose-200 text-rose-800 border-2 border-rose-300'
+                            }`}>
+                              {product.quantity || 0}
+                            </span>
+                          </TableCell>
+                          <TableCell className="font-bold text-cyan-600 py-4 text-xl">{formatAmount(product.salePrice)}</TableCell>
+                          <TableCell className="font-bold text-purple-600 text-2xl py-4">
+                            {formatAmount((product.quantity || 0) * parseFloat(product.salePrice || '0'))}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* التحليل المالي المحسن */}
+          <TabsContent value="financial" className="space-y-8 mt-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* بيان الأرباح والخسائر */}
+              <Card className="shadow-2xl border-0 bg-gradient-to-br from-emerald-50 to-green-50">
+                <CardHeader className="bg-gradient-to-r from-emerald-600 to-green-700 text-white rounded-t-2xl">
+                  <CardTitle className="text-white text-2xl font-bold flex items-center gap-4">
+                    <div className="p-3 bg-white/20 rounded-xl">
+                      <TrendingUp className="h-7 w-7" />
+                    </div>
+                    📊 بيان الأرباح والخسائر
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-8 space-y-6">
+                  <div className="flex justify-between items-center p-6 bg-emerald-100 rounded-2xl border-2 border-emerald-300 shadow-lg">
+                    <span className="font-bold text-emerald-800 text-xl">💰 إجمالي الإيرادات</span>
+                    <span className="font-bold text-emerald-700 text-3xl">{formatAmount(totalRevenue)}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-6 bg-rose-100 rounded-2xl border-2 border-rose-300 shadow-lg">
+                    <span className="font-bold text-rose-800 text-xl">🛒 إجمالي المصروفات</span>
+                    <span className="font-bold text-rose-700 text-3xl">{formatAmount(totalCosts)}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-6 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-2xl border-3 border-blue-400 shadow-xl">
+                    <span className="font-bold text-blue-900 text-2xl">📈 صافي الربح</span>
+                    <span className={`font-bold text-4xl ${netProfit >= 0 ? 'text-blue-700' : 'text-red-700'}`}>
+                      {formatAmount(netProfit)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center p-6 bg-purple-100 rounded-2xl border-2 border-purple-300 shadow-lg">
+                    <span className="font-bold text-purple-800 text-xl">📊 هامش الربح</span>
+                    <span className="font-bold text-purple-700 text-3xl">{profitMargin.toFixed(1)}%</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* المؤشرات الرئيسية للأداء */}
+              <Card className="shadow-2xl border-0 bg-gradient-to-br from-purple-50 to-indigo-50">
+                <CardHeader className="bg-gradient-to-r from-purple-600 to-indigo-700 text-white rounded-t-2xl">
+                  <CardTitle className="text-white text-2xl font-bold flex items-center gap-4">
+                    <div className="p-3 bg-white/20 rounded-xl">
+                      <BarChart3 className="h-7 w-7" />
+                    </div>
+                    🎯 المؤشرات الرئيسية للأداء
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-8">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="text-center p-8 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-2xl border-2 border-blue-300 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                      <div className="text-5xl font-bold text-blue-700 mb-4">{salesArray.length}</div>
+                      <div className="text-lg text-blue-800 font-bold">📋 إجمالي الفواتير</div>
+                    </div>
+                    <div className="text-center p-8 bg-gradient-to-br from-emerald-100 to-green-100 rounded-2xl border-2 border-emerald-300 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                      <div className="text-5xl font-bold text-emerald-700 mb-4">{clientsArray.length}</div>
+                      <div className="text-lg text-emerald-800 font-bold">👥 العملاء المسجلين</div>
+                    </div>
+                    <div className="text-center p-8 bg-gradient-to-br from-purple-100 to-violet-100 rounded-2xl border-2 border-purple-300 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                      <div className="text-5xl font-bold text-purple-700 mb-4">{productsArray.length}</div>
+                      <div className="text-lg text-purple-800 font-bold">📦 المنتجات المتوفرة</div>
+                    </div>
+                    <div className="text-center p-8 bg-gradient-to-br from-orange-100 to-amber-100 rounded-2xl border-2 border-orange-300 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                      <div className="text-4xl font-bold text-orange-700 mb-4">
+                        {salesArray.length > 0 ? formatAmount(totalRevenue / salesArray.length) : '0 ر.س'}
+                      </div>
+                      <div className="text-lg text-orange-800 font-bold">💳 متوسط قيمة الفاتورة</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
 
         {/* الآلة الحاسبة */}
         <Calculator />
