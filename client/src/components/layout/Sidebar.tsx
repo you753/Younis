@@ -114,7 +114,7 @@ const navigationItems: NavItem[] = [
     children: [
       { title: 'إعدادات عامة', icon: Settings, href: '/settings/general' },
       { title: 'معلومات الشركة', icon: FileText, href: '/settings/company' },
-      { title: 'إعدادات المستخدمين', icon: Users, href: '/settings/users' },
+
       { title: 'إعدادات النظام', icon: Settings, href: '/settings/system' },
       { title: 'النسخ الاحتياطي', icon: FileText, href: '/settings/backup' },
       { title: 'الأمان والصلاحيات', icon: Settings, href: '/settings/security' }
