@@ -2,8 +2,14 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { PrinterIcon, Download } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 
 const SimpleInvoiceReport: React.FC = () => {
+  // جلب بيانات المستخدم الحالي
+  const { data: currentUser } = useQuery({
+    queryKey: ['/api/auth/me'],
+    enabled: true
+  });
   
   const handlePrint = () => {
     window.print();
@@ -44,11 +50,41 @@ const SimpleInvoiceReport: React.FC = () => {
                 </div>
               </div>
 
-              {/* Company Logo */}
+              {/* Company Logo and User Avatar */}
               <div className="flex flex-col items-center mx-8">
-                <div className="w-20 h-20 border-2 border-gray-800 flex items-center justify-center mb-2 bg-white">
-                  <div className="text-4xl">🏢</div>
+                {/* Company Logo */}
+                <div className="w-20 h-20 border-2 border-gray-800 flex items-center justify-center mb-2 bg-white overflow-hidden">
+                  <img 
+                    src="/uploads/company/logo.png" 
+                    alt="شعار الشركة" 
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.parentElement?.querySelector('.fallback-logo')?.classList.remove('hidden');
+                    }}
+                  />
+                  <div className="text-4xl hidden fallback-logo">🏢</div>
                 </div>
+                <p className="text-xs text-gray-600 text-center mb-2">شعار الشركة</p>
+                
+                {/* User Avatar */}
+                <div className="w-16 h-16 border-2 border-gray-600 rounded-full flex items-center justify-center bg-white overflow-hidden">
+                  {currentUser?.avatar ? (
+                    <img 
+                      src={currentUser.avatar} 
+                      alt="صورة المستخدم" 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.parentElement?.querySelector('.fallback-avatar')?.classList.remove('hidden');
+                      }}
+                    />
+                  ) : null}
+                  <div className={`text-2xl ${currentUser?.avatar ? 'hidden' : 'flex'} fallback-avatar items-center justify-center`}>👤</div>
+                </div>
+                <p className="text-xs text-gray-600 text-center mt-1">
+                  {currentUser?.fullName || 'المستخدم'}
+                </p>
               </div>
 
               {/* Right Company Info */}
