@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { BarChart3, FileText, TrendingUp, Download, Calendar, Filter, DollarSign, Package, Users, ShoppingCart, PrinterIcon, Search, Eye } from 'lucide-react';
 import Calculator from '@/components/Calculator';
+import InvoiceReport from '@/components/InvoiceReport';
 import {
   LineChart,
   Line,
@@ -276,10 +277,14 @@ export default function Reports() {
 
         {/* التقارير التفصيلية المحسنة */}
         <Tabs value={selectedReport} onValueChange={setSelectedReport} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 h-16 bg-gradient-to-r from-gray-100 to-slate-200 rounded-2xl p-2 shadow-lg">
+          <TabsList className="grid w-full grid-cols-6 h-16 bg-gradient-to-r from-gray-100 to-slate-200 rounded-2xl p-2 shadow-lg">
             <TabsTrigger value="overview" className="flex items-center gap-2 h-12 rounded-xl font-bold data-[state=active]:bg-white data-[state=active]:shadow-md transition-all">
               <BarChart3 className="h-4 w-4" />
               📊 نظرة عامة
+            </TabsTrigger>
+            <TabsTrigger value="invoice" className="flex items-center gap-2 h-12 rounded-xl font-bold data-[state=active]:bg-white data-[state=active]:shadow-md transition-all">
+              <FileText className="h-4 w-4" />
+              📄 تقرير فاتورة
             </TabsTrigger>
             <TabsTrigger value="sales" className="flex items-center gap-2 h-12 rounded-xl font-bold data-[state=active]:bg-white data-[state=active]:shadow-md transition-all">
               <DollarSign className="h-4 w-4" />
@@ -467,7 +472,12 @@ export default function Reports() {
                 </div>
               </CardContent>
             </Card>
-        </TabsContent>
+          </TabsContent>
+
+          {/* تقرير الفاتورة المطابق للصورة */}
+          <TabsContent value="invoice" className="mt-8">
+            <InvoiceReport />
+          </TabsContent>
 
           {/* تقارير المبيعات المحسنة */}
           <TabsContent value="sales" className="space-y-8 mt-8">
