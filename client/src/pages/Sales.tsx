@@ -11,6 +11,7 @@ import { Plus, FileText, TrendingUp, DollarSign, Edit, Trash2, Printer, Download
 import EnhancedSaleForm from '@/components/forms/EnhancedSaleForm';
 import Calculator from '@/components/Calculator';
 import InvoiceActions from '@/components/InvoiceActions';
+import SearchBox from '@/components/SearchBox';
 
 export default function Sales() {
   const { setCurrentPage } = useAppStore();
@@ -109,15 +110,12 @@ export default function Sales() {
 
         {/* شريط البحث */}
         <div className="mt-4">
-          <div className="relative max-w-md">
-            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="ابحث في المبيعات، العملاء، المبالغ..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pr-10"
-            />
-          </div>
+          <SearchBox
+            placeholder="ابحث في المبيعات، العملاء، المبالغ..."
+            value={searchTerm}
+            onChange={setSearchTerm}
+            className="max-w-md"
+          />
           {searchTerm && (
             <p className="text-sm text-gray-500 mt-2">
               عرض {filteredSales.length} من أصل {Array.isArray(sales) ? sales.length : 0} فاتورة

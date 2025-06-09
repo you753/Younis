@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Users, DollarSign, CreditCard, Edit, Trash2, Save, Building, UserPlus, Group, Search } from 'lucide-react';
+import SearchBox from '@/components/SearchBox';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -101,6 +102,16 @@ export default function Clients() {
                 <Plus className="ml-2 h-4 w-4" />
                 إضافة عميل نقدي
               </Button>
+            </div>
+
+            {/* شريط البحث */}
+            <div className="mt-4">
+              <SearchBox
+                placeholder="ابحث في العملاء بالاسم، الهاتف، البريد الإلكتروني..."
+                value={localSearchQuery}
+                onChange={setLocalSearchQuery}
+                className="max-w-md"
+              />
             </div>
 
             {/* Cash Clients Statistics */}
