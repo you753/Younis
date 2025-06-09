@@ -27,26 +27,26 @@ const InvoiceReport = ({
   const invoiceItems = [
     {
       id: 1,
-      invoiceNumber: "INV-0001",
-      date: "4/6/5202",
+      invoiceNumber: "فات-0001",
+      date: "٤/٦/٢٠٢٥",
       description: "مؤسسة فاطمة عبدالله الحازمي التجارية",
-      amount: "15.00",
+      amount: "١٥.٠٠",
       status: "مدفوع مؤجل"
     },
     {
       id: 2,
-      invoiceNumber: "INV-0002",
-      date: "5/6/5202",
+      invoiceNumber: "فات-0002",
+      date: "٥/٦/٢٠٢٥",
       description: "مؤسسة فاطمة عبدالله الحازمي التجارية",
-      amount: "1250.00",
+      amount: "١٢٥٠.٠٠",
       status: "مدفوع مؤجل"
     },
     {
       id: 3,
-      invoiceNumber: "INV-0003",
-      date: "5/6/5202",
+      invoiceNumber: "فات-0003",
+      date: "٥/٦/٢٠٢٥",
       description: "مؤسسة فاطمة عبدالله الحازمي التجارية",
-      amount: "15.00",
+      amount: "١٥.٠٠",
       status: "مدفوع مؤجل"
     }
   ];
@@ -86,17 +86,17 @@ const InvoiceReport = ({
               {/* معلومات الشركة بالإنجليزية */}
               <div className="text-left flex-1" dir="ltr">
                 <h1 className="text-sm font-normal text-gray-800 mb-1">
-                  Fatima Abdullah Al Hazmi Trading Establishment
+                  مؤسسة فاطمة عبدالله الحازمي التجارية
                 </h1>
                 <p className="text-sm text-gray-600 mb-1">
-                  Kingdom Of Saudi Arabia,Jeddah,Abraq Al-
+                  المملكة العربية السعودية، جدة، أبرق
                 </p>
                 <p className="text-sm text-gray-600 mb-1">
-                  Raghama District
+                  منطقة الرغامة
                 </p>
                 <div className="text-sm text-gray-600 space-y-1">
-                  <p>VAT No: 311852766100003</p>
-                  <p>Mobile: 0552490756</p>
+                  <p>رقم ضريبة القيمة المضافة: 311852766100003</p>
+                  <p>الجوال: 0552490756</p>
                 </div>
               </div>
 
@@ -135,7 +135,7 @@ const InvoiceReport = ({
 
             <div className="flex justify-between items-center">
               <div className="text-sm text-gray-600">
-                فنترة التاريخ: {dateRange}
+                فترة التاريخ: ٣١/١٢/٢٠٢٥ - ٠١/٠١/٢٠٢٤
               </div>
               <div className="flex gap-4">
                 <Button 
@@ -171,13 +171,13 @@ const InvoiceReport = ({
                 </tr>
               </thead>
               <tbody>
-                {invoiceItems.map((item) => (
+                {invoiceItems.map((item, index) => (
                   <tr key={item.id} className="hover:bg-gray-50">
-                    <td className="border border-gray-400 p-2 text-center text-sm">{item.id}</td>
+                    <td className="border border-gray-400 p-2 text-center text-sm">{index + 1}</td>
                     <td className="border border-gray-400 p-2 text-center text-sm">{item.invoiceNumber}</td>
                     <td className="border border-gray-400 p-2 text-center text-sm">{item.date}</td>
                     <td className="border border-gray-400 p-2 text-center text-sm">{item.description}</td>
-                    <td className="border border-gray-400 p-2 text-center text-sm font-mono">{item.amount}</td>
+                    <td className="border border-gray-400 p-2 text-center text-sm">{item.amount}</td>
                     <td className="border border-gray-400 p-2 text-center text-sm">{item.status}</td>
                   </tr>
                 ))}
@@ -189,7 +189,7 @@ const InvoiceReport = ({
           <div className="border border-gray-400 p-4 mt-0">
             <div className="text-center">
               <span className="text-sm">
-                المجموع الإجمالي للمبلغ: {invoiceItems.reduce((sum, item) => sum + parseFloat(item.amount), 0).toFixed(2)} ريال
+                المجموع الإجمالي للمبلغ: ١٢٨٠.٠٠ ريال
               </span>
             </div>
           </div>
