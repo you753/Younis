@@ -1,5 +1,5 @@
 import { 
-  users, suppliers, clients, products, sales, purchases, employees, deductions, salaries, productCategories, quotes, salesReturns, purchaseReturns,
+  users, suppliers, clients, products, sales, purchases, employees, deductions, salaries, productCategories, quotes, salesReturns, purchaseReturns, supplierPaymentVouchers,
   type User, type InsertUser,
   type Supplier, type InsertSupplier,
   type Client, type InsertClient,
@@ -12,7 +12,8 @@ import {
   type ProductCategory, type InsertProductCategory,
   type Quote, type InsertQuote,
   type SalesReturn, type InsertSalesReturn,
-  type PurchaseReturn, type InsertPurchaseReturn
+  type PurchaseReturn, type InsertPurchaseReturn,
+  type SupplierPaymentVoucher, type InsertSupplierPaymentVoucher
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql, desc } from "drizzle-orm";
@@ -103,6 +104,14 @@ export interface IStorage {
   createPurchaseReturn(purchaseReturn: InsertPurchaseReturn): Promise<PurchaseReturn>;
   updatePurchaseReturn(id: number, purchaseReturn: Partial<InsertPurchaseReturn>): Promise<PurchaseReturn | undefined>;
   deletePurchaseReturn(id: number): Promise<boolean>;
+
+  // Supplier Payment Vouchers
+  getSupplierPaymentVoucher(id: number): Promise<SupplierPaymentVoucher | undefined>;
+  getAllSupplierPaymentVouchers(): Promise<SupplierPaymentVoucher[]>;
+  getSupplierPaymentVouchersBySupplierId(supplierId: number): Promise<SupplierPaymentVoucher[]>;
+  createSupplierPaymentVoucher(voucher: InsertSupplierPaymentVoucher): Promise<SupplierPaymentVoucher>;
+  updateSupplierPaymentVoucher(id: number, voucher: Partial<InsertSupplierPaymentVoucher>): Promise<SupplierPaymentVoucher | undefined>;
+  deleteSupplierPaymentVoucher(id: number): Promise<boolean>;
 
   // Dashboard stats
   getDashboardStats(): Promise<{
