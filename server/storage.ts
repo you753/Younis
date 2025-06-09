@@ -124,9 +124,7 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
-  async getAllUsers(): Promise<User[]> {
-    return await db.select().from(users);
-  }
+
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db
@@ -145,10 +143,7 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
-  async deleteUser(id: number): Promise<boolean> {
-    const result = await db.delete(users).where(eq(users.id, id));
-    return (result.rowCount ?? 0) > 0;
-  }
+
 
   // Suppliers
   async getSupplier(id: number): Promise<Supplier | undefined> {
