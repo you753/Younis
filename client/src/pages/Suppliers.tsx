@@ -469,12 +469,90 @@ export default function Suppliers() {
               </div>
               <OnboardingTrigger tourName="suppliers" />
             </div>
+
+            {/* شريط البحث المحلي */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="relative">
+                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    placeholder="البحث عن مورد (الاسم، الهاتف، البريد الإلكتروني...)"
+                    value={localSearchQuery}
+                    onChange={(e) => setLocalSearchQuery(e.target.value)}
+                    className="pr-10 text-right"
+                  />
+                </div>
+                {localSearchQuery && (
+                  <div className="mt-3 text-sm text-gray-600">
+                    النتائج: {filteredSuppliers.length} من أصل {suppliers.length} مورد
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* نتائج البحث */}
+            {localSearchQuery && filteredSuppliers.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>نتائج البحث ({filteredSuppliers.length})</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {filteredSuppliers.map((supplier) => (
+                      <div 
+                        key={supplier.id}
+                        className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="flex-1 text-right">
+                          <div className="font-medium text-gray-900">{supplier.name}</div>
+                          <div className="text-sm text-gray-500">
+                            {supplier.phone && <span>📞 {supplier.phone}</span>}
+                            {supplier.phone && supplier.email && <span className="mx-2">•</span>}
+                            {supplier.email && <span>✉️ {supplier.email}</span>}
+                          </div>
+                          {supplier.address && (
+                            <div className="text-xs text-gray-400 mt-1">📍 {supplier.address}</div>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            عرض
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* رسالة عدم وجود نتائج */}
+            {localSearchQuery && filteredSuppliers.length === 0 && (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <div className="text-gray-400 mb-3">
+                    <Search className="h-12 w-12 mx-auto" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">لا توجد نتائج</h3>
+                  <p className="text-gray-500 mb-4">لم نجد أي موردين يطابقون البحث "{localSearchQuery}"</p>
+                  <Button variant="outline" onClick={() => setLocalSearchQuery('')}>
+                    مسح البحث
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
             <div data-onboarding="add-supplier">
               <SupplierForm />
             </div>
-            <div data-onboarding="suppliers-table">
-              <SuppliersTable />
-            </div>
+            {!localSearchQuery && (
+              <div data-onboarding="suppliers-table">
+                <SuppliersTable />
+              </div>
+            )}
           </div>
         );
     }
