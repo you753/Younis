@@ -77,9 +77,9 @@ const InvoiceReport = ({
   };
 
   return (
-    <div className="min-h-screen bg-white p-8" dir="rtl">
+    <div className="min-h-screen bg-white p-8 arabic-text" dir="rtl" lang="ar">
       <Card className="max-w-full mx-auto shadow-lg border border-gray-300">
-        <CardContent className="p-0">
+        <CardContent className="p-0 arabic-text">
           {/* Header */}
           <div className="bg-white border-b border-gray-300 p-6">
             <div className="flex justify-between items-start mb-6">
@@ -159,7 +159,7 @@ const InvoiceReport = ({
 
           {/* الجدول مطابق للصورة */}
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse border border-gray-400" style={{ fontFamily: 'Arial, sans-serif' }}>
+            <table className="w-full border-collapse border border-gray-400" style={{ fontFamily: 'Cairo, Tahoma, Arial, sans-serif', unicodeBidi: 'bidi-override', direction: 'rtl' }}>
               <thead>
                 <tr className="bg-gray-100">
                   <th className="border border-gray-400 p-2 text-center text-sm font-bold">#</th>

@@ -1,4 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap');
+
+/* Arabic text rendering fix */
+.arabic-text {
+  font-family: 'Cairo', 'Tahoma', 'Arial Unicode MS', sans-serif !important;
+  direction: rtl !important;
+  unicode-bidi: embed !important;
+  text-align: center !important;
+}
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
