@@ -168,6 +168,20 @@ export const purchaseReturns = pgTable("purchase_returns", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const supplierPaymentVouchers = pgTable("supplier_payment_vouchers", {
+  id: serial("id").primaryKey(),
+  supplierId: integer("supplier_id").references(() => suppliers.id).notNull(),
+  voucherNumber: text("voucher_number").notNull().unique(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  paymentMethod: text("payment_method").notNull(), // cash, bank_transfer, check, credit_card
+  paymentDate: date("payment_date").notNull(),
+  description: text("description"),
+  reference: text("reference"), // رقم الشيك أو المرجع البنكي
+  status: text("status").notNull().default("pending"), // pending, approved, paid, cancelled
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -235,6 +249,11 @@ export const insertPurchaseReturnSchema = createInsertSchema(purchaseReturns).om
   createdAt: true,
 });
 
+export const insertSupplierPaymentVoucherSchema = createInsertSchema(supplierPaymentVouchers).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -274,3 +293,6 @@ export type InsertSalesReturn = z.infer<typeof insertSalesReturnSchema>;
 
 export type PurchaseReturn = typeof purchaseReturns.$inferSelect;
 export type InsertPurchaseReturn = z.infer<typeof insertPurchaseReturnSchema>;
+
+export type SupplierPaymentVoucher = typeof supplierPaymentVouchers.$inferSelect;
+export type InsertSupplierPaymentVoucher = z.infer<typeof insertSupplierPaymentVoucherSchema>;
