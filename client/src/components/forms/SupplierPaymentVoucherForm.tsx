@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, CalendarDays, CreditCard, Banknote, Check, FileText } from 'lucide-react';
-import type { SupplierPaymentVoucher } from '@shared/schema';
+import type { SupplierPaymentVoucher, Supplier } from '@shared/schema';
 
 const paymentVoucherSchema = z.object({
   supplierId: z.number().min(1, 'يجب اختيار مورد'),
@@ -73,6 +73,11 @@ export default function SupplierPaymentVoucherForm({
 }: SupplierPaymentVoucherFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // استعلام للحصول على قائمة الموردين
+  const { data: suppliers = [] } = useQuery<Supplier[]>({
+    queryKey: ['/api/suppliers']
+  });
 
   const form = useForm<PaymentVoucherForm>({
     resolver: zodResolver(paymentVoucherSchema),
@@ -174,6 +179,31 @@ export default function SupplierPaymentVoucherForm({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="supplierId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>اختر المورد</FormLabel>
+                    <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value > 0 ? field.value.toString() : ""}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر المورد" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {suppliers.map((supplier) => (
+                          <SelectItem key={supplier.id} value={supplier.id.toString()}>
+                            {supplier.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name="voucherNumber"
