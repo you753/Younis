@@ -10,6 +10,22 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+      /* Force Arabic text rendering */
+      * {
+        font-synthesis: none;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      .arabic-content {
+        font-family: 'Amiri', 'Cairo', 'Tahoma', 'Arial Unicode MS', sans-serif !important;
+        direction: rtl !important;
+        unicode-bidi: bidi-override !important;
+        text-align: right !important;
+        line-height: 1.6 !important;
+      }
+    </style>
   </head>
   <body dir="rtl">
     <div id="root"></div>
