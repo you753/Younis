@@ -12,7 +12,8 @@ import {
   insertEmployeeSchema,
   insertDeductionSchema,
   insertSalarySchema,
-  insertProductCategorySchema
+  insertProductCategorySchema,
+  insertSupplierPaymentVoucherSchema
 } from "@shared/schema";
 import { uploadMiddleware, transcribeAudio } from "./voice";
 import { handleAIChat } from "./ai-chat";
@@ -863,6 +864,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting purchase return:', error);
       res.status(500).json({ error: 'Failed to delete purchase return' });
+    }
+  });
+
+  // Supplier Payment Vouchers routes
+  app.get('/api/supplier-payment-vouchers', async (req, res) => {
+    try {
+      const vouchers = await storage.getAllSupplierPaymentVouchers();
+      res.json(vouchers);
+    } catch (error) {
+      console.error('Error fetching supplier payment vouchers:', error);
+      res.status(500).json({ error: 'Failed to fetch supplier payment vouchers' });
+    }
+  });
+
+  app.get('/api/supplier-payment-vouchers/supplier/:supplierId', async (req, res) => {
+    try {
+      const supplierId = parseInt(req.params.supplierId);
+      const vouchers = await storage.getSupplierPaymentVouchersBySupplierId(supplierId);
+      res.json(vouchers);
+    } catch (error) {
+      console.error('Error fetching supplier payment vouchers:', error);
+      res.status(500).json({ error: 'Failed to fetch supplier payment vouchers' });
+    }
+  });
+
+  app.post('/api/supplier-payment-vouchers', async (req, res) => {
+    try {
+      const validatedData = insertSupplierPaymentVoucherSchema.parse(req.body);
+      const voucher = await storage.createSupplierPaymentVoucher(validatedData);
+      res.status(201).json(voucher);
+    } catch (error) {
+      console.error('Error creating supplier payment voucher:', error);
+      res.status(500).json({ error: 'Failed to create supplier payment voucher' });
+    }
+  });
+
+  app.put('/api/supplier-payment-vouchers/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updateData = req.body;
+      
+      const voucher = await storage.updateSupplierPaymentVoucher(id, updateData);
+      
+      if (!voucher) {
+        return res.status(404).json({ error: 'Supplier payment voucher not found' });
+      }
+      
+      res.json(voucher);
+    } catch (error) {
+      console.error('Error updating supplier payment voucher:', error);
+      res.status(500).json({ error: 'Failed to update supplier payment voucher' });
+    }
+  });
+
+  app.delete('/api/supplier-payment-vouchers/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteSupplierPaymentVoucher(id);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'Supplier payment voucher not found' });
+      }
+      
+      res.json({ message: 'Supplier payment voucher deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting supplier payment voucher:', error);
+      res.status(500).json({ error: 'Failed to delete supplier payment voucher' });
     }
   });
 

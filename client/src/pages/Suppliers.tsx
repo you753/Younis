@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import SupplierForm from '@/components/forms/SupplierForm';
 import SuppliersTable from '@/components/tables/SuppliersTable';
+import SupplierPaymentVoucherForm from '@/components/forms/SupplierPaymentVoucherForm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
