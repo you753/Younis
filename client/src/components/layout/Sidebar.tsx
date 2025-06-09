@@ -28,7 +28,8 @@ const navigationItems: NavItem[] = [
       { title: 'قائمة الموردين', icon: Truck, href: '/suppliers' },
       { title: 'إضافة مورد', icon: Plus, href: '/suppliers/add' },
       { title: 'فئات الموردين', icon: Tags, href: '/supplier-categories' },
-      { title: 'تقييم الموردين', icon: BarChart3, href: '/supplier-evaluation' }
+      { title: 'تقييم الموردين', icon: BarChart3, href: '/supplier-evaluation' },
+      { title: 'سندات الصرف', icon: FileText, href: '/supplier-payment-vouchers' }
     ]
   },
   { 
