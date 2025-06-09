@@ -4,10 +4,13 @@ import { useNotification } from '@/hooks/useNotification';
 import { Button } from '@/components/ui/button';
 import { Edit, Trash2, Truck } from 'lucide-react';
 import type { Supplier } from '@shared/schema';
+import { useState } from 'react';
+import EditSupplierModal from '@/components/modals/EditSupplierModal';
 
 export default function SuppliersTable() {
   const { success, error } = useNotification();
   const queryClient = useQueryClient();
+  const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
 
   const { data: suppliers = [], isLoading } = useQuery<Supplier[]>({
     queryKey: ['/api/suppliers']
@@ -108,13 +111,17 @@ export default function SuppliersTable() {
                   {supplier.email || '-'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 arabic-numbers">
-                  {formatCurrency(supplier.balance)}
+                  {formatCurrency(supplier.balance || '0')}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {new Date(supplier.createdAt).toLocaleDateString('ar-SA')}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2 space-x-reverse">
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setEditingSupplier(supplier)}
+                  >
                     <Edit className="h-4 w-4 ml-1" />
                     تعديل
                   </Button>
@@ -134,6 +141,11 @@ export default function SuppliersTable() {
           </tbody>
         </table>
       </div>
+      
+      <EditSupplierModal 
+        supplier={editingSupplier} 
+        onClose={() => setEditingSupplier(null)} 
+      />
     </div>
   );
 }
