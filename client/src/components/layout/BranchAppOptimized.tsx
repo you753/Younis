@@ -99,6 +99,159 @@ const BranchDashboardContent = memo(({ branch, stats }: { branch?: Branch; stats
         ))}
       </div>
 
+      {/* تقارير مختصرة */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* تقرير المبيعات اليومية */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-green-600" />
+              تقرير المبيعات اليومية
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">مبيعات اليوم</span>
+                <span className="font-bold text-green-600">{stats.todaySales || '0.00'} ر.س</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">عدد الفواتير</span>
+                <span className="font-bold">{stats.todayInvoices || 0}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">متوسط الفاتورة</span>
+                <span className="font-bold">{stats.averageInvoice || '0.00'} ر.س</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-green-600 h-2 rounded-full transition-all duration-500" 
+                  style={{ width: `${Math.min((stats.todaySales || 0) / (stats.dailyTarget || 1000) * 100, 100)}%` }}
+                ></div>
+              </div>
+              <p className="text-xs text-gray-500">الهدف اليومي: {stats.dailyTarget || '1000.00'} ر.س</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* تقرير المخزون */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Warehouse className="h-5 w-5 text-orange-600" />
+              حالة المخزون
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">إجمالي القيمة</span>
+                <span className="font-bold text-orange-600">{stats.inventoryValue || '0.00'} ر.س</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">أصناف متاحة</span>
+                <span className="font-bold text-green-600">{stats.availableProducts || 0}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">أصناف منخفضة</span>
+                <span className="font-bold text-red-600">{stats.lowStockProducts || 0}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">أصناف نفدت</span>
+                <span className="font-bold text-gray-600">{stats.outOfStockProducts || 0}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* تقارير إضافية */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        {/* أفضل المنتجات مبيعاً */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5 text-blue-600" />
+              أفضل المنتجات مبيعاً
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {[
+                { name: "ثوب مطرز", sales: 25, revenue: "1250.00" },
+                { name: "عباءة فاخرة", sales: 18, revenue: "900.00" },
+                { name: "قميص قطني", sales: 12, revenue: "480.00" }
+              ].map((product, index) => (
+                <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                  <div>
+                    <p className="font-medium text-sm">{product.name}</p>
+                    <p className="text-xs text-gray-500">{product.sales} قطعة</p>
+                  </div>
+                  <span className="font-bold text-blue-600">{product.revenue} ر.س</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* أحدث المعاملات */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-purple-600" />
+              أحدث المعاملات
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {[
+                { type: "مبيعة", amount: "150.00", time: "منذ 5 دقائق", status: "مكتملة" },
+                { type: "مبيعة", amount: "75.50", time: "منذ 15 دقيقة", status: "مكتملة" },
+                { type: "مرتجع", amount: "25.00", time: "منذ 30 دقيقة", status: "معالج" }
+              ].map((transaction, index) => (
+                <div key={index} className="flex justify-between items-center p-2 border-b border-gray-100">
+                  <div>
+                    <p className="font-medium text-sm">{transaction.type}</p>
+                    <p className="text-xs text-gray-500">{transaction.time}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-sm">{transaction.amount} ر.س</p>
+                    <p className="text-xs text-green-600">{transaction.status}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* تنبيهات المخزون */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+              تنبيهات المخزون
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {[
+                { name: "ثوب أبيض", stock: 5, status: "منخفض", color: "text-orange-600" },
+                { name: "عباءة سوداء", stock: 0, status: "نفد", color: "text-red-600" },
+                { name: "قميص أزرق", stock: 2, status: "منخفض", color: "text-orange-600" }
+              ].map((item, index) => (
+                <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                  <div>
+                    <p className="font-medium text-sm">{item.name}</p>
+                    <p className="text-xs text-gray-500">الكمية: {item.stock}</p>
+                  </div>
+                  <span className={`text-xs font-bold ${item.color}`}>{item.status}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* اختصارات سريعة */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer">
@@ -221,6 +374,16 @@ const OptimizedSidebar = memo(({ branchId, isOpen, onToggle }: { branchId: numbe
         { title: 'حالة المخزون', icon: Warehouse, href: `/branch-app/${branchId}/inventory` },
         { title: 'حركة المخزون', icon: FileText, href: `/branch-app/${branchId}/inventory-movement` },
         { title: 'نقل المخزون', icon: Package, href: `/branch-app/${branchId}/inventory-transfer` }
+      ]
+    },
+    { 
+      title: 'التقارير', 
+      icon: BarChart3,
+      children: [
+        { title: 'تقارير شاملة', icon: BarChart3, href: `/branch-app/${branchId}/reports` },
+        { title: 'تقرير المبيعات', icon: ShoppingCart, href: `/branch-app/${branchId}/sales-report` },
+        { title: 'تقرير المخزون', icon: Warehouse, href: `/branch-app/${branchId}/inventory-report` },
+        { title: 'تقرير الأرباح', icon: DollarSign, href: `/branch-app/${branchId}/profit-report` }
       ]
     }
   ], [branchId]);
@@ -370,13 +533,13 @@ export default function BranchAppOptimized({ branchId }: BranchAppProps) {
             <Route path="/products" component={() => <BranchProductsContent branchId={branchId} />} />
             <Route path="/sales" component={() => <BranchSalesContent branchId={branchId} />} />
             <Route path="/clients" component={() => <BranchClientsContent branchId={branchId} />} />
-            <Route path="/suppliers" component={BranchSuppliers} />
-            <Route path="/purchases" component={BranchPurchases} />
-            <Route path="/inventory" component={BranchInventory} />
-            <Route path="/employees" component={BranchEmployees} />
-            <Route path="/reports" component={BranchReports} />
-            <Route path="/users" component={BranchUsers} />
-            <Route path="/system" component={BranchSystem} />
+            <Route path="/suppliers" component={() => <BranchSuppliers branchId={branchId} />} />
+            <Route path="/purchases" component={() => <BranchPurchases branchId={branchId} />} />
+            <Route path="/inventory" component={() => <BranchInventory branchId={branchId} />} />
+            <Route path="/employees" component={() => <BranchEmployees branchId={branchId} />} />
+            <Route path="/reports" component={() => <BranchReports branchId={branchId} />} />
+            <Route path="/users" component={() => <BranchUsers branchId={branchId} />} />
+            <Route path="/system" component={() => <BranchSystem branchId={branchId} />} />
             <Route path="/" component={() => <BranchDashboardContent branch={branch} stats={stats} />} />
           </Router>
         </main>
