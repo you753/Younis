@@ -43,6 +43,8 @@ import DailyReports from "@/pages/DailyReports";
 import InventoryOpeningBalances from "@/pages/InventoryOpeningBalances";
 import Branches from "@/pages/Branches";
 import BranchManagement from "@/pages/BranchManagement";
+import BranchDashboard from "@/pages/branch/BranchDashboard";
+import BranchProducts from "@/pages/branch/BranchProducts";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
