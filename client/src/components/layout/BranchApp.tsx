@@ -82,7 +82,7 @@ export default function BranchApp({ branchId }: BranchAppProps) {
     });
   }, []);
 
-  const navigationItems = useMemo(() => [
+  const navigationItems = [
     { title: 'لوحة التحكم', icon: Home, href: `/branch-app/${branchId}/dashboard` },
     { title: 'نظام إدارة منفصل', icon: Settings, href: `/branch-app/${branchId}/system` },
     { title: 'إدارة المستخدمين', icon: Users, href: `/branch-app/${branchId}/users` },
@@ -188,7 +188,7 @@ export default function BranchApp({ branchId }: BranchAppProps) {
         { title: 'الأمان والصلاحيات', icon: Settings, href: `/branch-app/${branchId}/settings/security` }
       ]
     }
-  ], [branchId]);
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50" dir="rtl">
