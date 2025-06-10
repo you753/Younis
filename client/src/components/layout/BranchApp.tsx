@@ -83,7 +83,7 @@ export default function BranchApp({ branchId }: BranchAppProps) {
   };
 
   const navigationItems = [
-    { title: 'لوحة التحكم', icon: Home, href: '/' },
+    { title: 'لوحة التحكم', icon: Home, href: '/dashboard' },
     { title: 'إدارة المستخدمين', icon: Users, href: '/users' },
     { 
       title: 'الموردين', 
@@ -317,6 +317,9 @@ export default function BranchApp({ branchId }: BranchAppProps) {
         {/* المحتوى الرئيسي */}
         <main className="flex-1 overflow-y-auto">
           <Router>
+            <Route path="/dashboard">
+              <BranchDashboardContent branch={branch} stats={stats} />
+            </Route>
             <Route path="/">
               <BranchDashboardContent branch={branch} stats={stats} />
             </Route>
