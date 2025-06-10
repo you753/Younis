@@ -185,11 +185,11 @@ export default function BranchApp({ branchId }: BranchAppProps) {
       title: 'الإعدادات', 
       icon: Settings,
       children: [
-        { title: 'إعدادات عامة', icon: Settings, href: '/settings/general' },
-        { title: 'معلومات الشركة', icon: FileText, href: '/settings/company' },
-        { title: 'إعدادات النظام', icon: Settings, href: '/settings/system' },
-        { title: 'النسخ الاحتياطي', icon: FileText, href: '/settings/backup' },
-        { title: 'الأمان والصلاحيات', icon: Settings, href: '/settings/security' }
+        { title: 'إعدادات عامة', icon: Settings, href: `/branch-app/${branchId}/settings/general` },
+        { title: 'معلومات الشركة', icon: FileText, href: `/branch-app/${branchId}/settings/company` },
+        { title: 'إعدادات النظام', icon: Settings, href: `/branch-app/${branchId}/settings/system` },
+        { title: 'النسخ الاحتياطي', icon: FileText, href: `/branch-app/${branchId}/settings/backup` },
+        { title: 'الأمان والصلاحيات', icon: Settings, href: `/branch-app/${branchId}/settings/security` }
       ]
     }
   ];
@@ -321,50 +321,50 @@ export default function BranchApp({ branchId }: BranchAppProps) {
 
         {/* المحتوى الرئيسي */}
         <main className="flex-1 overflow-y-auto">
-          <Router base={`/branch-app/${branchId}`}>
-            <Route path="/dashboard">
+          <Router>
+            <Route path={`/branch-app/${branchId}/dashboard`}>
               <BranchDashboardContent branch={branch} stats={stats} />
             </Route>
-            <Route path="/">
+            <Route path={`/branch-app/${branchId}`}>
               <BranchDashboardContent branch={branch} stats={stats} />
             </Route>
-            <Route path="/products">
+            <Route path={`/branch-app/${branchId}/products`}>
               <BranchProductsContent branchId={branchId} />
             </Route>
-            <Route path="/sales">
+            <Route path={`/branch-app/${branchId}/sales`}>
               <BranchSalesContent branchId={branchId} />
             </Route>
-            <Route path="/clients">
+            <Route path={`/branch-app/${branchId}/clients`}>
               <BranchClientsContent branchId={branchId} />
             </Route>
-            <Route path="/suppliers">
+            <Route path={`/branch-app/${branchId}/suppliers`}>
               <BranchSuppliers branchId={branchId} />
             </Route>
-            <Route path="/purchases">
+            <Route path={`/branch-app/${branchId}/purchases`}>
               <BranchPurchases branchId={branchId} />
             </Route>
-            <Route path="/inventory">
+            <Route path={`/branch-app/${branchId}/inventory`}>
               <BranchInventory branchId={branchId} />
             </Route>
-            <Route path="/reports">
+            <Route path={`/branch-app/${branchId}/reports`}>
               <BranchReports branchId={branchId} />
             </Route>
-            <Route path="/employees">
+            <Route path={`/branch-app/${branchId}/employees`}>
               <BranchEmployees branchId={branchId} />
             </Route>
-            <Route path="/settings">
+            <Route path={`/branch-app/${branchId}/settings`}>
               <BranchSettings branchId={branchId} />
             </Route>
-            <Route path="/users">
+            <Route path={`/branch-app/${branchId}/users`}>
               <BranchUsers branchId={branchId} />
             </Route>
-            <Route path="/accounts">
+            <Route path={`/branch-app/${branchId}/accounts`}>
               <BranchAccounts branchId={branchId} />
             </Route>
-            <Route path="/product-categories">
+            <Route path={`/branch-app/${branchId}/product-categories`}>
               <BranchProductCategories branchId={branchId} />
             </Route>
-            <Route path="/system">
+            <Route path={`/branch-app/${branchId}/system`}>
               <BranchSystem branchId={branchId} />
             </Route>
           </Router>
