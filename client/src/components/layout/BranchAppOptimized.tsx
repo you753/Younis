@@ -278,8 +278,7 @@ export default function BranchApp({ branchId }: BranchAppProps) {
         { title: 'تقارير المبيعات', icon: BarChart3, href: `/branch-app/${branchId}/reports/sales` },
       ]
     },
-    { title: 'الحسابات', icon: DollarSign, href: `/branch-app/${branchId}/accounts` },
-    { title: 'الإعدادات', icon: Settings, href: `/branch-app/${branchId}/settings` }
+    { title: 'الحسابات', icon: DollarSign, href: `/branch-app/${branchId}/accounts` }
   ];
 
   return (

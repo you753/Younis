@@ -48,6 +48,7 @@ import BranchProducts from "@/pages/branch/BranchProducts";
 import BranchSales from "@/pages/branch/BranchSales";
 import BranchClients from "@/pages/branch/BranchClients";
 import BranchApp from "@/components/layout/BranchAppOptimized";
+import BranchSettings from "@/pages/BranchSettings";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -165,14 +166,13 @@ function Router() {
         <Route path="/settings" component={Settings} />
         <Route path="/settings/general" component={Settings} />
         <Route path="/settings/company" component={Settings} />
+        <Route path="/settings/branches" component={BranchSettings} />
         <Route path="/settings/users" component={Settings} />
         <Route path="/settings/system" component={Settings} />
         <Route path="/settings/backup" component={Settings} />
         <Route path="/settings/security" component={Settings} />
-        <Route path="/settings/system" component={Settings} />
         <Route path="/settings/printing" component={Settings} />
         <Route path="/settings/taxes" component={Settings} />
-        <Route path="/settings/backup" component={Settings} />
         
         {/* الملف الشخصي */}
         <Route path="/profile" component={Profile} />
