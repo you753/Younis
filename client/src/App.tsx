@@ -47,7 +47,7 @@ import BranchDashboard from "@/pages/branch/BranchDashboard";
 import BranchProducts from "@/pages/branch/BranchProducts";
 import BranchSales from "@/pages/branch/BranchSales";
 import BranchClients from "@/pages/branch/BranchClients";
-import BranchApp from "@/components/layout/BranchApp";
+import BranchApp from "@/components/layout/BranchAppOptimized";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
