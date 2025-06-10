@@ -11,7 +11,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Package, Edit, Trash2, Calculator, DollarSign, Archive, Search } from 'lucide-react';
+import { Plus, Package, Edit, Trash2, Calculator, DollarSign, Archive, Search, Upload } from 'lucide-react';
+import ExcelImportDialog from '@/components/ExcelImportDialog';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -34,6 +35,7 @@ export default function InventoryOpeningBalances() {
   const [showForm, setShowForm] = useState(false);
   const [editingBalance, setEditingBalance] = useState<InventoryOpeningBalance | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showImportDialog, setShowImportDialog] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -235,10 +237,20 @@ export default function InventoryOpeningBalances() {
           <h2 className="text-2xl font-bold text-gray-900 mb-2">الأرصدة الافتتاحية للمخزون</h2>
           <p className="text-gray-600">إدارة الأرصدة الافتتاحية للمنتجات والمخزون</p>
         </div>
-        <Button onClick={handleAdd} className="btn-accounting-primary">
-          <Plus className="ml-2 h-4 w-4" />
-          إضافة رصيد افتتاحي
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => setShowImportDialog(true)} 
+            variant="outline" 
+            className="text-green-600 hover:text-green-700 border-green-300 hover:bg-green-50"
+          >
+            <Upload className="ml-2 h-4 w-4" />
+            استيراد من Excel
+          </Button>
+          <Button onClick={handleAdd} className="btn-accounting-primary">
+            <Plus className="ml-2 h-4 w-4" />
+            إضافة رصيد افتتاحي
+          </Button>
+        </div>
       </div>
 
       {/* Statistics Cards */}

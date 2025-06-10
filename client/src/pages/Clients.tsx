@@ -518,9 +518,19 @@ export default function Clients() {
       default:
         return (
           <div className="space-y-6">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">إدارة العملاء</h2>
-              <p className="text-gray-600">إضافة وإدارة معلومات العملاء ومجموعاتهم</p>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">إدارة العملاء</h2>
+                <p className="text-gray-600">إضافة وإدارة معلومات العملاء ومجموعاتهم</p>
+              </div>
+              <Button 
+                onClick={() => setShowImportDialog(true)} 
+                variant="outline" 
+                className="text-green-600 hover:text-green-700 border-green-300 hover:bg-green-50"
+              >
+                <Upload className="ml-2 h-4 w-4" />
+                استيراد من Excel
+              </Button>
             </div>
 
             {/* شريط البحث المحلي */}
@@ -605,5 +615,28 @@ export default function Clients() {
     }
   };
 
-  return getPageContent();
+  return (
+    <div>
+      {getPageContent()}
+      
+      {/* Excel Import Dialog */}
+      <ExcelImportDialog
+        open={showImportDialog}
+        onOpenChange={setShowImportDialog}
+        title="استيراد العملاء من Excel"
+        instructions="يرجى التأكد من أن ملف Excel يحتوي على الأعمدة التالية: اسم العميل، الهاتف، البريد الإلكتروني، العنوان، الرقم الضريبي، ملاحظات"
+        apiEndpoint="/api/clients/import-excel"
+        templateData={[{
+          'اسم العميل': 'عميل تجريبي',
+          'الهاتف': '0501234567',
+          'البريد الإلكتروني': 'client@example.com',
+          'العنوان': 'الرياض، المملكة العربية السعودية',
+          'الرقم الضريبي': '123456789',
+          'ملاحظات': 'عميل مميز'
+        }]}
+        templateName="نموذج_استيراد_العملاء.xlsx"
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['/api/clients'] })}
+      />
+    </div>
+  );
 }
