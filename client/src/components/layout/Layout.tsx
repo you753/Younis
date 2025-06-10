@@ -1,3 +1,4 @@
+import { useLocation } from 'wouter';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import NotificationBar from '../NotificationBar';
@@ -9,6 +10,20 @@ interface LayoutProps {
 }
 
 export default function Layout({ children }: LayoutProps) {
+  const [location] = useLocation();
+  
+  // إخفاء الشريط الجانبي الرئيسي عند الدخول لتطبيق الفروع
+  const isBranchApp = location.startsWith('/branch-app/');
+  
+  if (isBranchApp) {
+    // عرض تطبيق الفرع بدون الشريط الجانبي الرئيسي
+    return (
+      <div className="min-h-screen bg-gray-50" dir="rtl">
+        {children}
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50" dir="rtl">
       <div className="flex">
