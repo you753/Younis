@@ -332,7 +332,6 @@ const OptimizedSidebar = memo(({ branchId, isOpen, onToggle }: { branchId: numbe
 
   const navigationItems = useMemo(() => [
     { title: 'لوحة التحكم', icon: Home, href: `/branch-app/${branchId}/dashboard` },
-    { title: 'نظام إدارة منفصل', icon: Settings, href: `/branch-app/${branchId}/system` },
     { title: 'إدارة المستخدمين', icon: Users, href: `/branch-app/${branchId}/users` },
     { 
       title: 'الموردين', 
@@ -340,6 +339,9 @@ const OptimizedSidebar = memo(({ branchId, isOpen, onToggle }: { branchId: numbe
       children: [
         { title: 'قائمة الموردين', icon: Truck, href: `/branch-app/${branchId}/suppliers` },
         { title: 'إضافة مورد', icon: Plus, href: `/branch-app/${branchId}/suppliers/add` },
+        { title: 'فئات الموردين', icon: Tags, href: `/branch-app/${branchId}/supplier-categories` },
+        { title: 'تقييم الموردين', icon: BarChart3, href: `/branch-app/${branchId}/supplier-evaluation` },
+        { title: 'سندات الصرف', icon: FileText, href: `/branch-app/${branchId}/supplier-payment-vouchers` }
       ]
     },
     { 
@@ -348,6 +350,9 @@ const OptimizedSidebar = memo(({ branchId, isOpen, onToggle }: { branchId: numbe
       children: [
         { title: 'قائمة العملاء', icon: UserCheck, href: `/branch-app/${branchId}/clients` },
         { title: 'عملاء نقدي', icon: Users, href: `/branch-app/${branchId}/cash-clients` },
+        { title: 'مجموعات العملاء', icon: Users, href: `/branch-app/${branchId}/client-groups` },
+        { title: 'حسابات العملاء', icon: FileText, href: `/branch-app/${branchId}/client-accounts` },
+        { title: 'سندات القبض', icon: FileText, href: `/branch-app/${branchId}/client-receipt-vouchers` }
       ]
     },
     { 
@@ -355,16 +360,30 @@ const OptimizedSidebar = memo(({ branchId, isOpen, onToggle }: { branchId: numbe
       icon: Package,
       children: [
         { title: 'إدارة الأصناف', icon: Package, href: `/branch-app/${branchId}/products` },
+        { title: 'إضافة صنف', icon: Plus, href: `/branch-app/${branchId}/products/add` },
         { title: 'فئات الأصناف', icon: Tags, href: `/branch-app/${branchId}/product-categories` },
-        { title: 'باركود الأصناف', icon: ScanBarcode, href: `/branch-app/${branchId}/barcodes` }
+        { title: 'الباركود', icon: ScanBarcode, href: `/branch-app/${branchId}/products/barcodes` }
+      ]
+    },
+    { 
+      title: 'المشتريات', 
+      icon: ShoppingCart,
+      children: [
+        { title: 'فواتير المشتريات', icon: ShoppingCart, href: `/branch-app/${branchId}/purchases` },
+        { title: 'مرتجعات المشتريات', icon: Minus, href: `/branch-app/${branchId}/purchase-returns` },
+        { title: 'طلبات الشراء', icon: List, href: `/branch-app/${branchId}/purchase-orders` },
+        { title: 'تقارير المشتريات', icon: BarChart3, href: `/branch-app/${branchId}/purchase-reports` }
       ]
     },
     { 
       title: 'المبيعات', 
       icon: ScanBarcode,
       children: [
-        { title: 'المبيعات', icon: ScanBarcode, href: `/branch-app/${branchId}/sales` },
+        { title: 'فواتير المبيعات', icon: ScanBarcode, href: `/branch-app/${branchId}/sales` },
         { title: 'مرتجعات المبيعات', icon: Minus, href: `/branch-app/${branchId}/sales-returns` },
+        { title: 'عروض الأسعار', icon: FileText, href: `/branch-app/${branchId}/quotes` },
+        { title: 'حاسبة الضريبة', icon: Percent, href: `/branch-app/${branchId}/tax-calculator` },
+        { title: 'تقارير المبيعات', icon: BarChart3, href: `/branch-app/${branchId}/sales-reports` }
       ]
     },
     { 
@@ -372,20 +391,40 @@ const OptimizedSidebar = memo(({ branchId, isOpen, onToggle }: { branchId: numbe
       icon: Warehouse,
       children: [
         { title: 'حالة المخزون', icon: Warehouse, href: `/branch-app/${branchId}/inventory` },
+        { title: 'الأرصدة الافتتاحية', icon: FileText, href: `/branch-app/${branchId}/inventory-opening-balances` },
+        { title: 'جرد المخزون', icon: List, href: `/branch-app/${branchId}/inventory-count` },
         { title: 'حركة المخزون', icon: FileText, href: `/branch-app/${branchId}/inventory-movement` },
-        { title: 'نقل المخزون', icon: Package, href: `/branch-app/${branchId}/inventory-transfer` }
+        { title: 'نقل المخزون', icon: Package, href: `/branch-app/${branchId}/inventory-transfer` },
+        { title: 'الباركود', icon: ScanBarcode, href: `/branch-app/${branchId}/inventory/barcodes` }
+      ]
+    },
+    { 
+      title: 'الموظفين', 
+      icon: UsersRound,
+      children: [
+        { title: 'إدارة الموظفين', icon: Users, href: `/branch-app/${branchId}/employees` },
+        { title: 'الحضور والانصراف', icon: FileText, href: `/branch-app/${branchId}/attendance` },
+        { title: 'الخصومات', icon: Minus, href: `/branch-app/${branchId}/deductions` },
+        { title: 'الرواتب', icon: DollarSign, href: `/branch-app/${branchId}/salaries` },
+        { title: 'الإجازات', icon: FileText, href: `/branch-app/${branchId}/holidays` },
+        { title: 'تقييم الأداء', icon: BarChart3, href: `/branch-app/${branchId}/performance` }
       ]
     },
     { 
       title: 'التقارير', 
       icon: BarChart3,
       children: [
-        { title: 'تقارير شاملة', icon: BarChart3, href: `/branch-app/${branchId}/reports` },
-        { title: 'تقرير المبيعات', icon: ShoppingCart, href: `/branch-app/${branchId}/sales-report` },
-        { title: 'تقرير المخزون', icon: Warehouse, href: `/branch-app/${branchId}/inventory-report` },
-        { title: 'تقرير الأرباح', icon: DollarSign, href: `/branch-app/${branchId}/profit-report` }
+        { title: 'التقارير اليومية', icon: FileText, href: `/branch-app/${branchId}/daily-reports` },
+        { title: 'تقارير المبيعات', icon: BarChart3, href: `/branch-app/${branchId}/reports/sales` },
+        { title: 'تقارير المشتريات', icon: ShoppingCart, href: `/branch-app/${branchId}/reports/purchases` },
+        { title: 'تقارير المخزون', icon: Warehouse, href: `/branch-app/${branchId}/reports/inventory` },
+        { title: 'تقارير العملاء', icon: UserCheck, href: `/branch-app/${branchId}/reports/clients` },
+        { title: 'تقارير الموردين', icon: Truck, href: `/branch-app/${branchId}/reports/suppliers` },
+        { title: 'التقارير المالية', icon: DollarSign, href: `/branch-app/${branchId}/reports/financial` },
+        { title: 'تقارير الموظفين', icon: Users, href: `/branch-app/${branchId}/reports/employees` }
       ]
-    }
+    },
+    { title: 'نظام إدارة منفصل', icon: Settings, href: `/branch-app/${branchId}/system` }
   ], [branchId]);
 
   const isActive = useCallback((href: string) => location === href, [location]);
