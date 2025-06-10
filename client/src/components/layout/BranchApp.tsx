@@ -32,6 +32,11 @@ import {
   Minus
 } from 'lucide-react';
 import type { Branch } from '@shared/schema';
+import BranchSuppliers from '@/pages/branch/BranchSuppliers';
+import BranchPurchases from '@/pages/branch/BranchPurchases';
+import BranchInventory from '@/pages/branch/BranchInventory';
+import BranchEmployees from '@/pages/branch/BranchEmployees';
+import BranchSettings from '@/pages/branch/BranchSettings';
 
 interface BranchAppProps {
   branchId: number;
@@ -319,8 +324,23 @@ export default function BranchApp({ branchId }: BranchAppProps) {
             <Route path="/clients">
               <BranchClientsContent branchId={branchId} />
             </Route>
+            <Route path="/suppliers">
+              <BranchSuppliers branchId={branchId} />
+            </Route>
+            <Route path="/purchases">
+              <BranchPurchases branchId={branchId} />
+            </Route>
+            <Route path="/inventory">
+              <BranchInventory branchId={branchId} />
+            </Route>
             <Route path="/reports">
               <BranchReportsContent branchId={branchId} />
+            </Route>
+            <Route path="/employees">
+              <BranchEmployeesContent branchId={branchId} />
+            </Route>
+            <Route path="/settings">
+              <BranchSettingsContent branchId={branchId} />
             </Route>
           </Router>
         </main>
