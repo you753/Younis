@@ -15,7 +15,21 @@ import {
   ArrowRight,
   Menu,
   X,
-  LogOut
+  LogOut,
+  UserCheck,
+  Truck,
+  ScanBarcode,
+  Warehouse,
+  FileText,
+  Settings,
+  ChevronDown,
+  UsersRound,
+  DollarSign,
+  Tags,
+  List,
+  Plus,
+  Percent,
+  Minus
 } from 'lucide-react';
 import type { Branch } from '@shared/schema';
 
@@ -26,6 +40,7 @@ interface BranchAppProps {
 export default function BranchApp({ branchId }: BranchAppProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [location, setLocation] = useLocation();
+  const [expandedItems, setExpandedItems] = useState<string[]>(['الموردين', 'العملاء', 'الأصناف', 'المشتريات', 'المبيعات', 'المخزون', 'الموظفين', 'التقارير']);
 
   const { data: branch } = useQuery<Branch>({
     queryKey: [`/api/branches/${branchId}`]
@@ -46,6 +61,123 @@ export default function BranchApp({ branchId }: BranchAppProps) {
   const exitBranch = () => {
     setLocation('/branch-management');
   };
+
+  const toggleExpanded = (title: string) => {
+    setExpandedItems(prev => {
+      if (prev.includes(title)) {
+        return prev.filter(item => item !== title);
+      } else {
+        return [title];
+      }
+    });
+  };
+
+  const navigationItems = [
+    { title: 'لوحة التحكم', icon: Home, href: '/' },
+    { title: 'إدارة المستخدمين', icon: Users, href: '/users' },
+    { 
+      title: 'الموردين', 
+      icon: Truck,
+      children: [
+        { title: 'قائمة الموردين', icon: Truck, href: '/suppliers' },
+        { title: 'إضافة مورد', icon: Plus, href: '/suppliers/add' },
+        { title: 'فئات الموردين', icon: Tags, href: '/supplier-categories' },
+        { title: 'تقييم الموردين', icon: BarChart3, href: '/supplier-evaluation' },
+        { title: 'سندات الصرف', icon: FileText, href: '/supplier-payment-vouchers' }
+      ]
+    },
+    { 
+      title: 'العملاء', 
+      icon: UserCheck,
+      children: [
+        { title: 'قائمة العملاء', icon: UserCheck, href: '/clients' },
+        { title: 'عملاء نقدي', icon: Users, href: '/cash-clients' },
+        { title: 'مجموعات العملاء', icon: Users, href: '/client-groups' },
+        { title: 'حسابات العملاء', icon: FileText, href: '/client-accounts' },
+        { title: 'سندات القبض', icon: FileText, href: '/client-receipt-vouchers' }
+      ]
+    },
+    { 
+      title: 'الأصناف', 
+      icon: Package,
+      children: [
+        { title: 'إدارة الأصناف', icon: Package, href: '/products' },
+        { title: 'إضافة صنف', icon: Plus, href: '/products/add' },
+        { title: 'فئات الأصناف', icon: Tags, href: '/product-categories' },
+        { title: 'الباركود', icon: ScanBarcode, href: '/products/barcodes' }
+      ]
+    },
+    { 
+      title: 'المشتريات', 
+      icon: ShoppingCart,
+      children: [
+        { title: 'فواتير المشتريات', icon: ShoppingCart, href: '/purchases' },
+        { title: 'مرتجعات المشتريات', icon: Minus, href: '/purchase-returns' },
+        { title: 'طلبات الشراء', icon: List, href: '/purchase-orders' },
+        { title: 'تقارير المشتريات', icon: BarChart3, href: '/purchase-reports' }
+      ]
+    },
+    { 
+      title: 'المبيعات', 
+      icon: ScanBarcode,
+      children: [
+        { title: 'فواتير المبيعات', icon: ScanBarcode, href: '/sales' },
+        { title: 'مرتجعات المبيعات', icon: Minus, href: '/sales-returns' },
+        { title: 'عروض الأسعار', icon: FileText, href: '/quotes' },
+        { title: 'حاسبة الضريبة', icon: Percent, href: '/tax-calculator' },
+        { title: 'تقارير المبيعات', icon: BarChart3, href: '/sales-reports' }
+      ]
+    },
+    { 
+      title: 'المخزون', 
+      icon: Warehouse,
+      children: [
+        { title: 'حالة المخزون', icon: Warehouse, href: '/inventory' },
+        { title: 'الأرصدة الافتتاحية', icon: FileText, href: '/inventory-opening-balances' },
+        { title: 'جرد المخزون', icon: List, href: '/inventory-count' },
+        { title: 'حركة المخزون', icon: FileText, href: '/inventory-movement' },
+        { title: 'نقل المخزون', icon: Package, href: '/inventory-transfer' },
+        { title: 'الباركود', icon: ScanBarcode, href: '/inventory/barcodes' }
+      ]
+    },
+    { 
+      title: 'الموظفين', 
+      icon: UsersRound,
+      children: [
+        { title: 'إدارة الموظفين', icon: Users, href: '/employees' },
+        { title: 'الحضور والانصراف', icon: FileText, href: '/attendance' },
+        { title: 'الخصومات', icon: Minus, href: '/deductions' },
+        { title: 'الرواتب', icon: DollarSign, href: '/salaries' },
+        { title: 'الإجازات', icon: FileText, href: '/holidays' },
+        { title: 'تقييم الأداء', icon: BarChart3, href: '/performance' }
+      ]
+    },
+    { 
+      title: 'التقارير', 
+      icon: BarChart3,
+      children: [
+        { title: 'التقارير اليومية', icon: FileText, href: '/daily-reports' },
+        { title: 'تقارير المبيعات', icon: BarChart3, href: '/reports/sales' },
+        { title: 'تقارير المشتريات', icon: ShoppingCart, href: '/reports/purchases' },
+        { title: 'تقارير المخزون', icon: Warehouse, href: '/reports/inventory' },
+        { title: 'تقارير العملاء', icon: UserCheck, href: '/reports/clients' },
+        { title: 'تقارير الموردين', icon: Truck, href: '/reports/suppliers' },
+        { title: 'التقارير المالية', icon: DollarSign, href: '/reports/financial' },
+        { title: 'تقارير الموظفين', icon: Users, href: '/reports/employees' }
+      ]
+    },
+    { 
+      title: 'الإعدادات', 
+      icon: Settings,
+      children: [
+        { title: 'إعدادات عامة', icon: Settings, href: '/settings/general' },
+        { title: 'معلومات الشركة', icon: FileText, href: '/settings/company' },
+        { title: 'إعدادات النظام', icon: Settings, href: '/settings/system' },
+        { title: 'النسخ الاحتياطي', icon: FileText, href: '/settings/backup' },
+        { title: 'الأمان والصلاحيات', icon: Settings, href: '/settings/security' }
+      ]
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50" dir="rtl">
@@ -91,55 +223,64 @@ export default function BranchApp({ branchId }: BranchAppProps) {
 
           {/* قائمة التنقل */}
           <nav className="flex-1 overflow-y-auto p-2">
-            {/* لوحة التحكم */}
-            <Button
-              variant="ghost"
-              className={`w-full ${sidebarOpen ? 'justify-start' : 'justify-center'} p-3 mb-2 ${location === '/' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
-              onClick={() => setLocation('/')}
-            >
-              <Home className="h-4 w-4" />
-              {sidebarOpen && <span className="mr-3">لوحة التحكم</span>}
-            </Button>
+            {navigationItems.map((item) => {
+              const Icon = item.icon;
+              const isExpanded = expandedItems.includes(item.title);
+              const isActive = location === item.href;
 
-            {/* المنتجات */}
-            <Button
-              variant="ghost"
-              className={`w-full ${sidebarOpen ? 'justify-start' : 'justify-center'} p-3 mb-2 ${location === '/products' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
-              onClick={() => setLocation('/products')}
-            >
-              <Package className="h-4 w-4" />
-              {sidebarOpen && <span className="mr-3">المنتجات</span>}
-            </Button>
-
-            {/* المبيعات */}
-            <Button
-              variant="ghost"
-              className={`w-full ${sidebarOpen ? 'justify-start' : 'justify-center'} p-3 mb-2 ${location === '/sales' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
-              onClick={() => setLocation('/sales')}
-            >
-              <ShoppingCart className="h-4 w-4" />
-              {sidebarOpen && <span className="mr-3">المبيعات</span>}
-            </Button>
-
-            {/* العملاء */}
-            <Button
-              variant="ghost"
-              className={`w-full ${sidebarOpen ? 'justify-start' : 'justify-center'} p-3 mb-2 ${location === '/clients' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
-              onClick={() => setLocation('/clients')}
-            >
-              <Users className="h-4 w-4" />
-              {sidebarOpen && <span className="mr-3">العملاء</span>}
-            </Button>
-
-            {/* التقارير */}
-            <Button
-              variant="ghost"
-              className={`w-full ${sidebarOpen ? 'justify-start' : 'justify-center'} p-3 mb-2 ${location === '/reports' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
-              onClick={() => setLocation('/reports')}
-            >
-              <BarChart3 className="h-4 w-4" />
-              {sidebarOpen && <span className="mr-3">التقارير</span>}
-            </Button>
+              if (item.children) {
+                return (
+                  <div key={item.title} className="mb-1">
+                    <Button
+                      variant="ghost"
+                      className={`w-full ${sidebarOpen ? 'justify-between' : 'justify-center'} p-3 text-gray-700 hover:bg-gray-100`}
+                      onClick={() => sidebarOpen && toggleExpanded(item.title)}
+                    >
+                      <div className="flex items-center">
+                        <Icon className="h-4 w-4" />
+                        {sidebarOpen && <span className="mr-3">{item.title}</span>}
+                      </div>
+                      {sidebarOpen && (
+                        <ChevronDown className={`h-4 w-4 transform transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                      )}
+                    </Button>
+                    
+                    {sidebarOpen && isExpanded && (
+                      <div className="mr-4 mt-1 space-y-1">
+                        {item.children.map((child) => {
+                          const ChildIcon = child.icon;
+                          const isChildActive = location === child.href;
+                          
+                          return (
+                            <Button
+                              key={child.title}
+                              variant="ghost"
+                              className={`w-full justify-start p-2 text-sm ${isChildActive ? 'bg-blue-50 text-blue-700' : 'text-gray-600'} hover:bg-gray-100`}
+                              onClick={() => setLocation(child.href)}
+                            >
+                              <ChildIcon className="h-3 w-3" />
+                              <span className="mr-2">{child.title}</span>
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              } else {
+                return (
+                  <Button
+                    key={item.title}
+                    variant="ghost"
+                    className={`w-full ${sidebarOpen ? 'justify-start' : 'justify-center'} p-3 mb-1 ${isActive ? 'bg-blue-50 text-blue-700' : 'text-gray-700'} hover:bg-gray-100`}
+                    onClick={() => setLocation(item.href!)}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {sidebarOpen && <span className="mr-3">{item.title}</span>}
+                  </Button>
+                );
+              }
+            })}
           </nav>
 
           {/* معلومات الفرع */}
