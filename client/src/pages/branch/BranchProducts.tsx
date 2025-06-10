@@ -20,7 +20,21 @@ import {
   Download,
   Upload
 } from 'lucide-react';
-import type { Product, ProductCategory } from '@shared/schema';
+// استخدام نوع البيانات الصحيح من المخطط
+interface BranchProduct {
+  id: number;
+  name: string | null;
+  code: string | null;
+  barcode: string | null;
+  description: string | null;
+  category: string | null;
+  purchasePrice: string | null;
+  salePrice: string | null;
+  quantity: number | null;
+  minQuantity: number | null;
+  branchId: number | null;
+  createdAt: Date;
+}
 
 interface BranchProductsProps {
   params: { branchId: string };
@@ -34,7 +48,7 @@ export default function BranchProducts({ params }: BranchProductsProps) {
   const queryClient = useQueryClient();
 
   // استرجاع منتجات الفرع
-  const { data: products = [], isLoading } = useQuery<Product[]>({
+  const { data: products = [], isLoading } = useQuery<BranchProduct[]>({
     queryKey: [`/api/branches/${branchId}/products`],
     queryFn: async () => {
       // في الوقت الحالي سنجلب جميع المنتجات، لاحقاً يمكن تصفيتها حسب الفرع
@@ -42,11 +56,6 @@ export default function BranchProducts({ params }: BranchProductsProps) {
       if (!response.ok) throw new Error('فشل في جلب المنتجات');
       return response.json();
     }
-  });
-
-  // استرجاع فئات المنتجات
-  const { data: categories = [] } = useQuery<ProductCategory[]>({
-    queryKey: ['/api/product-categories']
   });
 
   // تصفية المنتجات
@@ -79,11 +88,6 @@ export default function BranchProducts({ params }: BranchProductsProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">جميع الفئات</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.id.toString()}>
-                    {category.name}
-                  </SelectItem>
-                ))}
               </SelectContent>
             </Select>
           </div>
@@ -208,9 +212,8 @@ export default function BranchProducts({ params }: BranchProductsProps) {
                   </thead>
                   <tbody>
                     {filteredProducts.map((product) => {
-                      const category = categories.find(c => c.id === product.categoryId);
                       const stockStatus = (product.quantity || 0) === 0 ? 'نفد' : 
-                                        (product.quantity || 0) < (product.minStock || 5) ? 'قريب النفاد' : 'متوفر';
+                                        (product.quantity || 0) < (product.minQuantity || 5) ? 'قريب النفاد' : 'متوفر';
                       const stockColor = stockStatus === 'نفد' ? 'destructive' : 
                                        stockStatus === 'قريب النفاد' ? 'secondary' : 'default';
                       
@@ -234,23 +237,20 @@ export default function BranchProducts({ params }: BranchProductsProps) {
                           </td>
                           <td className="py-3 px-4">
                             <Badge variant="outline">
-                              {category?.name || 'غير مصنف'}
+                              {product.category || 'غير مصنف'}
                             </Badge>
                           </td>
                           <td className="py-3 px-4">
                             <div className="text-sm">
-                              <div className="font-medium">{product.price} ر.س</div>
-                              {product.cost && (
-                                <div className="text-gray-500">التكلفة: {product.cost} ر.س</div>
+                              <div className="font-medium">{product.salePrice || '0'} ر.س</div>
+                              {product.purchasePrice && (
+                                <div className="text-gray-500">التكلفة: {product.purchasePrice} ر.س</div>
                               )}
                             </div>
                           </td>
                           <td className="py-3 px-4">
                             <div className="text-sm">
                               <div className="font-medium">{product.quantity || 0}</div>
-                              {product.unit && (
-                                <div className="text-gray-500">{product.unit}</div>
-                              )}
                             </div>
                           </td>
                           <td className="py-3 px-4">

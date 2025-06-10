@@ -128,6 +128,10 @@ function Router() {
         <Route path="/branch-management" component={BranchManagement} />
         <Route path="/branch-management/:branchId" component={BranchManagement} />
         
+        {/* نظام الفروع المنفصل */}
+        <Route path="/branch/:branchId/dashboard" component={BranchDashboard} />
+        <Route path="/branch/:branchId/products" component={BranchProducts} />
+        
         {/* الموظفين */}
         <Route path="/employees" component={Employees} />
         <Route path="/deductions" component={Deductions} />
