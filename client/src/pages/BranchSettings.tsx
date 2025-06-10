@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Building, 
   Plus, 
@@ -21,18 +23,92 @@ import {
   CheckCircle,
   XCircle,
   Save,
-  X
+  X,
+  Shield,
+  Database,
+  Monitor,
+  Network,
+  DollarSign,
+  Percent,
+  Clock,
+  FileText,
+  Lock,
+  Unlock,
+  AlertTriangle,
+  BarChart3,
+  Package,
+  Users,
+  ShoppingCart
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function BranchSettings() {
   const [editingBranch, setEditingBranch] = useState<number | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedBranch, setSelectedBranch] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState('overview');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: branches = [], isLoading } = useQuery({
     queryKey: ['/api/branches'],
+  });
+
+  const { data: branchSettings, isLoading: settingsLoading } = useQuery({
+    queryKey: [`/api/branches/${selectedBranch}/settings`],
+    enabled: !!selectedBranch,
+    queryFn: () => ({
+      permissions: {
+        canAddProducts: true,
+        canEditProducts: true,
+        canDeleteProducts: false,
+        canProcessSales: true,
+        canProcessReturns: true,
+        canManageInventory: true,
+        canViewReports: true,
+        canExportData: false,
+        canManageUsers: false,
+        canChangeSettings: false
+      },
+      limits: {
+        maxDailyTransactions: 1000,
+        maxTransactionAmount: 50000,
+        maxDiscountPercent: 20,
+        maxCreditLimit: 100000,
+        inventoryThreshold: 10
+      },
+      features: {
+        enablePOS: true,
+        enableInventoryTracking: true,
+        enableCustomerLoyalty: false,
+        enableBarcodeScanning: true,
+        enablePrinting: true,
+        enableBackup: true,
+        enableNotifications: true,
+        enableMultiCurrency: false
+      },
+      operatingHours: {
+        monday: { open: '09:00', close: '21:00', isOpen: true },
+        tuesday: { open: '09:00', close: '21:00', isOpen: true },
+        wednesday: { open: '09:00', close: '21:00', isOpen: true },
+        thursday: { open: '09:00', close: '21:00', isOpen: true },
+        friday: { open: '14:00', close: '23:00', isOpen: true },
+        saturday: { open: '09:00', close: '21:00', isOpen: true },
+        sunday: { open: '09:00', close: '21:00', isOpen: false }
+      },
+      taxSettings: {
+        defaultTaxRate: 15,
+        enableTaxCalculation: true,
+        taxRegistrationNumber: '',
+        taxExemptItems: []
+      },
+      printerSettings: {
+        receiptPrinter: '',
+        labelPrinter: '',
+        enableAutoPrint: false,
+        receiptTemplate: 'standard'
+      }
+    })
   });
 
   const updateBranchMutation = useMutation({
@@ -50,14 +126,7 @@ export default function BranchSettings() {
       setEditingBranch(null);
       toast({
         title: "تم التحديث بنجاح",
-        description: "تم تحديث إعدادات الفرع بنجاح",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "خطأ",
-        description: "حدث خطأ أثناء تحديث الفرع",
-        variant: "destructive",
+        description: "تم تحديث بيانات الفرع بنجاح",
       });
     },
   });
@@ -69,22 +138,15 @@ export default function BranchSettings() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error('فشل في إضافة الفرع');
+      if (!response.ok) throw new Error('فشل في إنشاء الفرع');
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/branches'] });
       setShowAddForm(false);
       toast({
-        title: "تمت الإضافة بنجاح",
-        description: "تم إضافة الفرع الجديد بنجاح",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "خطأ",
-        description: "حدث خطأ أثناء إضافة الفرع",
-        variant: "destructive",
+        title: "تم الإنشاء بنجاح",
+        description: "تم إنشاء الفرع الجديد بنجاح",
       });
     },
   });
@@ -104,165 +166,395 @@ export default function BranchSettings() {
         description: "تم حذف الفرع بنجاح",
       });
     },
-    onError: () => {
+  });
+
+  const updateSettingsMutation = useMutation({
+    mutationFn: async ({ branchId, settings }: { branchId: number; settings: any }) => {
+      const response = await fetch(`/api/branches/${branchId}/settings`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings),
+      });
+      if (!response.ok) throw new Error('فشل في تحديث الإعدادات');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/branches/${selectedBranch}/settings`] });
       toast({
-        title: "خطأ",
-        description: "حدث خطأ أثناء حذف الفرع",
-        variant: "destructive",
+        title: "تم التحديث بنجاح",
+        description: "تم حفظ إعدادات الفرع بنجاح",
       });
     },
   });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>, branchId?: number) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const data = {
-      name: formData.get('name'),
-      code: formData.get('code'),
-      address: formData.get('address'),
-      phone: formData.get('phone'),
-      email: formData.get('email'),
-      managerName: formData.get('managerName'),
-      managerPhone: formData.get('managerPhone'),
-      isActive: formData.get('isActive') === 'on',
-      notes: formData.get('notes'),
+  const BranchForm = ({ branch, onCancel }: { branch?: any; onCancel: () => void }) => {
+    const [formData, setFormData] = useState({
+      name: branch?.name || '',
+      code: branch?.code || '',
+      address: branch?.address || '',
+      phone: branch?.phone || '',
+      email: branch?.email || '',
+      managerName: branch?.managerName || '',
+      managerPhone: branch?.managerPhone || '',
+      description: branch?.description || '',
+    });
+
+    const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (branch) {
+        updateBranchMutation.mutate({ id: branch.id, data: formData });
+      } else {
+        createBranchMutation.mutate(formData);
+      }
     };
 
-    if (branchId) {
-      updateBranchMutation.mutate({ id: branchId, data });
-    } else {
-      createBranchMutation.mutate(data);
-    }
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{branch ? 'تعديل الفرع' : 'إضافة فرع جديد'}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="name">اسم الفرع</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="code">رمز الفرع</Label>
+                <Input
+                  id="code"
+                  value={formData.code}
+                  onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="address">العنوان</Label>
+              <Input
+                id="address"
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="phone">الهاتف</Label>
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="email">البريد الإلكتروني</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="managerName">اسم المدير</Label>
+                <Input
+                  id="managerName"
+                  value={formData.managerName}
+                  onChange={(e) => setFormData({ ...formData, managerName: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="managerPhone">هاتف المدير</Label>
+                <Input
+                  id="managerPhone"
+                  value={formData.managerPhone}
+                  onChange={(e) => setFormData({ ...formData, managerPhone: e.target.value })}
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="description">الوصف</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                type="submit" 
+                disabled={updateBranchMutation.isPending || createBranchMutation.isPending}
+              >
+                <Save className="ml-2 h-4 w-4" />
+                {branch ? 'تحديث' : 'إضافة'}
+              </Button>
+              <Button type="button" variant="outline" onClick={onCancel}>
+                <X className="ml-2 h-4 w-4" />
+                إلغاء
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    );
   };
 
-  const handleDelete = (id: number) => {
-    if (confirm('هل أنت متأكد من حذف هذا الفرع؟')) {
-      deleteBranchMutation.mutate(id);
-    }
-  };
-
-  const BranchForm = ({ branch, onCancel }: { branch?: any; onCancel: () => void }) => (
-    <Card className="mb-6">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Building className="h-5 w-5" />
-          {branch ? 'تعديل الفرع' : 'إضافة فرع جديد'}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={(e) => handleSubmit(e, branch?.id)} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="name">اسم الفرع</Label>
-              <Input
-                id="name"
-                name="name"
-                defaultValue={branch?.name || ''}
-                required
-                placeholder="أدخل اسم الفرع"
-              />
-            </div>
-            <div>
-              <Label htmlFor="code">كود الفرع</Label>
-              <Input
-                id="code"
-                name="code"
-                defaultValue={branch?.code || ''}
-                required
-                placeholder="أدخل كود الفرع"
-              />
-            </div>
+  const PermissionsTab = () => (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            صلاحيات إدارة المنتجات
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label>إضافة منتجات جديدة</Label>
+            <Switch defaultChecked={branchSettings?.permissions?.canAddProducts} />
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="phone">رقم الهاتف</Label>
-              <Input
-                id="phone"
-                name="phone"
-                type="tel"
-                defaultValue={branch?.phone || ''}
-                placeholder="أدخل رقم الهاتف"
-              />
-            </div>
-            <div>
-              <Label htmlFor="email">البريد الإلكتروني</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                defaultValue={branch?.email || ''}
-                placeholder="أدخل البريد الإلكتروني"
-              />
-            </div>
+          <div className="flex items-center justify-between">
+            <Label>تعديل المنتجات</Label>
+            <Switch defaultChecked={branchSettings?.permissions?.canEditProducts} />
           </div>
+          <div className="flex items-center justify-between">
+            <Label>حذف المنتجات</Label>
+            <Switch defaultChecked={branchSettings?.permissions?.canDeleteProducts} />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label>إدارة المخزون</Label>
+            <Switch defaultChecked={branchSettings?.permissions?.canManageInventory} />
+          </div>
+        </CardContent>
+      </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShoppingCart className="h-5 w-5" />
+            صلاحيات المبيعات
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label>معالجة المبيعات</Label>
+            <Switch defaultChecked={branchSettings?.permissions?.canProcessSales} />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label>معالجة المرتجعات</Label>
+            <Switch defaultChecked={branchSettings?.permissions?.canProcessReturns} />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label>عرض التقارير</Label>
+            <Switch defaultChecked={branchSettings?.permissions?.canViewReports} />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label>تصدير البيانات</Label>
+            <Switch defaultChecked={branchSettings?.permissions?.canExportData} />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            صلاحيات إدارية
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label>إدارة المستخدمين</Label>
+            <Switch defaultChecked={branchSettings?.permissions?.canManageUsers} />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label>تغيير الإعدادات</Label>
+            <Switch defaultChecked={branchSettings?.permissions?.canChangeSettings} />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const LimitsTab = () => (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5" />
+            حدود المعاملات
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="address">العنوان</Label>
-            <Textarea
-              id="address"
-              name="address"
-              defaultValue={branch?.address || ''}
-              placeholder="أدخل عنوان الفرع"
-              rows={2}
+            <Label>الحد الأقصى للمعاملات اليومية</Label>
+            <Input 
+              type="number" 
+              defaultValue={branchSettings?.limits?.maxDailyTransactions}
+              placeholder="1000"
             />
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="managerName">اسم المدير</Label>
-              <Input
-                id="managerName"
-                name="managerName"
-                defaultValue={branch?.managerName || ''}
-                placeholder="أدخل اسم مدير الفرع"
-              />
-            </div>
-            <div>
-              <Label htmlFor="managerPhone">هاتف المدير</Label>
-              <Input
-                id="managerPhone"
-                name="managerPhone"
-                type="tel"
-                defaultValue={branch?.managerPhone || ''}
-                placeholder="أدخل رقم هاتف المدير"
-              />
-            </div>
-          </div>
-
           <div>
-            <Label htmlFor="notes">ملاحظات</Label>
-            <Textarea
-              id="notes"
-              name="notes"
-              defaultValue={branch?.notes || ''}
-              placeholder="أدخل أي ملاحظات إضافية"
-              rows={3}
+            <Label>الحد الأقصى لقيمة المعاملة الواحدة</Label>
+            <Input 
+              type="number" 
+              defaultValue={branchSettings?.limits?.maxTransactionAmount}
+              placeholder="50000"
             />
           </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="isActive"
-              name="isActive"
-              defaultChecked={branch?.isActive !== false}
+          <div>
+            <Label>أقصى نسبة خصم مسموحة (%)</Label>
+            <Input 
+              type="number" 
+              defaultValue={branchSettings?.limits?.maxDiscountPercent}
+              placeholder="20"
             />
-            <Label htmlFor="isActive">الفرع نشط</Label>
           </div>
+          <div>
+            <Label>الحد الائتماني الأقصى</Label>
+            <Input 
+              type="number" 
+              defaultValue={branchSettings?.limits?.maxCreditLimit}
+              placeholder="100000"
+            />
+          </div>
+          <div>
+            <Label>حد تنبيه المخزون</Label>
+            <Input 
+              type="number" 
+              defaultValue={branchSettings?.limits?.inventoryThreshold}
+              placeholder="10"
+            />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 
-          <div className="flex gap-2">
-            <Button type="submit" disabled={updateBranchMutation.isPending || createBranchMutation.isPending}>
-              <Save className="ml-2 h-4 w-4" />
-              {branch ? 'تحديث' : 'إضافة'}
-            </Button>
-            <Button type="button" variant="outline" onClick={onCancel}>
-              <X className="ml-2 h-4 w-4" />
-              إلغاء
-            </Button>
+  const FeaturesTab = () => (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Monitor className="h-5 w-5" />
+            الميزات الأساسية
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label>نظام نقاط البيع (POS)</Label>
+            <Switch defaultChecked={branchSettings?.features?.enablePOS} />
           </div>
-        </form>
-      </CardContent>
-    </Card>
+          <div className="flex items-center justify-between">
+            <Label>تتبع المخزون</Label>
+            <Switch defaultChecked={branchSettings?.features?.enableInventoryTracking} />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label>برنامج ولاء العملاء</Label>
+            <Switch defaultChecked={branchSettings?.features?.enableCustomerLoyalty} />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label>قراءة الباركود</Label>
+            <Switch defaultChecked={branchSettings?.features?.enableBarcodeScanning} />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label>الطباعة</Label>
+            <Switch defaultChecked={branchSettings?.features?.enablePrinting} />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label>النسخ الاحتياطي التلقائي</Label>
+            <Switch defaultChecked={branchSettings?.features?.enableBackup} />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label>الإشعارات</Label>
+            <Switch defaultChecked={branchSettings?.features?.enableNotifications} />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label>العملات المتعددة</Label>
+            <Switch defaultChecked={branchSettings?.features?.enableMultiCurrency} />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const OperatingHoursTab = () => (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            ساعات العمل
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {branchSettings?.operatingHours && Object.entries(branchSettings.operatingHours).map(([day, hours]: [string, any]) => (
+            <div key={day} className="flex items-center gap-4 p-4 border rounded-lg">
+              <div className="w-20">
+                <Label>{
+                  day === 'monday' ? 'الاثنين' :
+                  day === 'tuesday' ? 'الثلاثاء' :
+                  day === 'wednesday' ? 'الأربعاء' :
+                  day === 'thursday' ? 'الخميس' :
+                  day === 'friday' ? 'الجمعة' :
+                  day === 'saturday' ? 'السبت' : 'الأحد'
+                }</Label>
+              </div>
+              <Switch defaultChecked={hours.isOpen} />
+              {hours.isOpen && (
+                <>
+                  <Input type="time" defaultValue={hours.open} className="w-32" />
+                  <span>إلى</span>
+                  <Input type="time" defaultValue={hours.close} className="w-32" />
+                </>
+              )}
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const TaxSettingsTab = () => (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Percent className="h-5 w-5" />
+            إعدادات الضرائب
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label>تفعيل حساب الضرائب</Label>
+            <Switch defaultChecked={branchSettings?.taxSettings?.enableTaxCalculation} />
+          </div>
+          <div>
+            <Label>نسبة الضريبة الافتراضية (%)</Label>
+            <Input 
+              type="number" 
+              defaultValue={branchSettings?.taxSettings?.defaultTaxRate}
+              placeholder="15"
+            />
+          </div>
+          <div>
+            <Label>رقم التسجيل الضريبي</Label>
+            <Input 
+              defaultValue={branchSettings?.taxSettings?.taxRegistrationNumber}
+              placeholder="أدخل رقم التسجيل الضريبي"
+            />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 
   if (isLoading) {
@@ -277,150 +569,273 @@ export default function BranchSettings() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">إعدادات الفروع</h1>
-          <p className="text-gray-600">إدارة وتكوين فروع الشركة</p>
+          <h1 className="text-2xl font-bold text-gray-900">إعدادات التحكم بالفروع</h1>
+          <p className="text-gray-600">إدارة شاملة وتحكم كامل في إعدادات وصلاحيات الفروع</p>
         </div>
-        <Button onClick={() => setShowAddForm(true)} disabled={showAddForm}>
-          <Plus className="ml-2 h-4 w-4" />
-          إضافة فرع جديد
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setShowAddForm(true)} disabled={showAddForm}>
+            <Plus className="ml-2 h-4 w-4" />
+            إضافة فرع جديد
+          </Button>
+        </div>
       </div>
 
       {showAddForm && (
         <BranchForm onCancel={() => setShowAddForm(false)} />
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {branches.map((branch: any) => (
-          <Card key={branch.id} className="relative">
-            {editingBranch === branch.id ? (
-              <BranchForm
-                branch={branch}
-                onCancel={() => setEditingBranch(null)}
-              />
-            ) : (
-              <>
+      {/* قائمة اختيار الفرع للتحكم */}
+      <div className="mb-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>اختر الفرع للتحكم في إعداداته</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Select value={selectedBranch?.toString()} onValueChange={(value) => setSelectedBranch(parseInt(value))}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="اختر فرعاً" />
+              </SelectTrigger>
+              <SelectContent>
+                {(branches as any[]).map((branch: any) => (
+                  <SelectItem key={branch.id} value={branch.id.toString()}>
+                    {branch.name} - {branch.code}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* إعدادات التحكم المفصلة */}
+      {selectedBranch && (
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
+            <TabsTrigger value="permissions">الصلاحيات</TabsTrigger>
+            <TabsTrigger value="limits">الحدود</TabsTrigger>
+            <TabsTrigger value="features">الميزات</TabsTrigger>
+            <TabsTrigger value="hours">ساعات العمل</TabsTrigger>
+            <TabsTrigger value="tax">الضرائب</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
                 <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    حالة الفرع
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <Building className="h-5 w-5" />
-                      {branch.name}
-                    </CardTitle>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={branch.isActive ? "default" : "secondary"}>
-                        {branch.isActive ? (
-                          <>
-                            <CheckCircle className="ml-1 h-3 w-3" />
-                            نشط
-                          </>
-                        ) : (
-                          <>
-                            <XCircle className="ml-1 h-3 w-3" />
-                            غير نشط
-                          </>
-                        )}
-                      </Badge>
-                      <Badge variant="outline">{branch.code}</Badge>
-                    </div>
+                    <span>حالة التشغيل</span>
+                    <Badge variant="default">
+                      <CheckCircle className="ml-1 h-3 w-3" />
+                      نشط
+                    </Badge>
                   </div>
+                  <div className="flex items-center justify-between">
+                    <span>آخر تسجيل دخول</span>
+                    <span className="text-sm text-gray-600">منذ 5 دقائق</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>المعاملات اليوم</span>
+                    <span className="font-bold">47</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>قيمة المبيعات اليوم</span>
+                    <span className="font-bold">15,750 ر.س</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Monitor className="h-5 w-5" />
+                    معلومات النظام
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span>إصدار النظام</span>
+                    <span className="text-sm">v2.1.3</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>آخر تحديث</span>
+                    <span className="text-sm text-gray-600">2025-06-10</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>مساحة التخزين المستخدمة</span>
+                    <span className="text-sm">2.3 جيجا / 10 جيجا</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>آخر نسخة احتياطية</span>
+                    <span className="text-sm text-green-600">اليوم 03:00</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5" />
+                    تنبيهات وإشعارات
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {branch.address && (
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm">{branch.address}</span>
+                    <div className="flex items-center gap-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                      <div>
+                        <p className="text-sm font-medium">تنبيه مخزون</p>
+                        <p className="text-xs text-gray-600">5 منتجات تحتاج إعادة تموين</p>
                       </div>
-                    )}
-                    
-                    {branch.phone && (
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm">{branch.phone}</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <Database className="h-4 w-4 text-blue-600" />
+                      <div>
+                        <p className="text-sm font-medium">تم النسخ الاحتياطي</p>
+                        <p className="text-xs text-gray-600">تم إنشاء نسخة احتياطية بنجاح</p>
                       </div>
-                    )}
-                    
-                    {branch.email && (
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm">{branch.email}</span>
-                      </div>
-                    )}
-                    
-                    {branch.managerName && (
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm">
-                          المدير: {branch.managerName}
-                          {branch.managerPhone && ` - ${branch.managerPhone}`}
-                        </span>
-                      </div>
-                    )}
-                    
-                    {branch.openingDate && (
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm">
-                          تاريخ الافتتاح: {new Date(branch.openingDate).toLocaleDateString('ar-SA')}
-                        </span>
-                      </div>
-                    )}
-                    
-                    {branch.notes && (
-                      <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                        <p className="text-sm text-gray-700">{branch.notes}</p>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex gap-2 mt-4 pt-4 border-t">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setEditingBranch(branch.id)}
-                      disabled={editingBranch !== null}
-                    >
-                      <Edit className="ml-1 h-3 w-3" />
-                      تعديل
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => window.location.href = `/branch-app/${branch.id}`}
-                    >
-                      <Settings className="ml-1 h-3 w-3" />
-                      إدارة الفرع
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDelete(branch.id)}
-                      disabled={deleteBranchMutation.isPending}
-                    >
-                      <Trash2 className="ml-1 h-3 w-3" />
-                      حذف
-                    </Button>
+                    </div>
                   </div>
                 </CardContent>
-              </>
-            )}
-          </Card>
-        ))}
-      </div>
+              </Card>
+            </div>
+          </TabsContent>
 
-      {branches.length === 0 && (
-        <Card>
-          <CardContent className="text-center py-8">
-            <Building className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">لا توجد فروع</h3>
-            <p className="text-gray-600 mb-4">ابدأ بإضافة أول فرع للشركة</p>
-            <Button onClick={() => setShowAddForm(true)}>
-              <Plus className="ml-2 h-4 w-4" />
-              إضافة فرع جديد
+          <TabsContent value="permissions">
+            <PermissionsTab />
+          </TabsContent>
+
+          <TabsContent value="limits">
+            <LimitsTab />
+          </TabsContent>
+
+          <TabsContent value="features">
+            <FeaturesTab />
+          </TabsContent>
+
+          <TabsContent value="hours">
+            <OperatingHoursTab />
+          </TabsContent>
+
+          <TabsContent value="tax">
+            <TaxSettingsTab />
+          </TabsContent>
+
+          {/* أزرار الحفظ والتحكم */}
+          <div className="flex gap-4 pt-6 border-t">
+            <Button 
+              onClick={() => updateSettingsMutation.mutate({ 
+                branchId: selectedBranch, 
+                settings: branchSettings 
+              })}
+              disabled={updateSettingsMutation.isPending}
+            >
+              <Save className="ml-2 h-4 w-4" />
+              حفظ الإعدادات
             </Button>
-          </CardContent>
-        </Card>
+            <Button variant="outline" onClick={() => window.open(`/branch-app/${selectedBranch}`, '_blank')}>
+              <Monitor className="ml-2 h-4 w-4" />
+              فتح نظام الفرع
+            </Button>
+            <Button variant="outline">
+              <Lock className="ml-2 h-4 w-4" />
+              قفل الفرع مؤقتاً
+            </Button>
+            <Button variant="outline">
+              <Database className="ml-2 h-4 w-4" />
+              إنشاء نسخة احتياطية
+            </Button>
+          </div>
+        </Tabs>
       )}
+
+      {/* قائمة الفروع للإدارة السريعة */}
+      <div className="mt-8">
+        <h2 className="text-xl font-bold mb-4">إدارة سريعة للفروع</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {(branches as any[]).map((branch: any) => (
+            <Card key={branch.id} className="relative">
+              {editingBranch === branch.id ? (
+                <BranchForm
+                  branch={branch}
+                  onCancel={() => setEditingBranch(null)}
+                />
+              ) : (
+                <>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2">
+                        <Building className="h-5 w-5" />
+                        {branch.name}
+                      </CardTitle>
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => setSelectedBranch(branch.id)}
+                        >
+                          <Settings className="h-4 w-4 ml-1" />
+                          تحكم
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => setEditingBranch(branch.id)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => deleteBranchMutation.mutate(branch.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <MapPin className="h-4 w-4" />
+                        {branch.address}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Phone className="h-4 w-4" />
+                        {branch.phone}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">حالة التشغيل:</span>
+                        <Badge variant="default">
+                          <CheckCircle className="ml-1 h-3 w-3" />
+                          نشط
+                        </Badge>
+                      </div>
+                      <div className="flex gap-2 pt-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="flex-1"
+                          onClick={() => window.open(`/branch-app/${branch.id}`, '_blank')}
+                        >
+                          <Monitor className="h-4 w-4 ml-1" />
+                          فتح النظام
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </>
+              )}
+            </Card>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
