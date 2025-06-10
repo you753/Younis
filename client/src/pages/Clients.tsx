@@ -16,8 +16,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Users, DollarSign, CreditCard, Edit, Trash2, Save, Building, UserPlus, Group, Search } from 'lucide-react';
+import { Plus, Users, DollarSign, CreditCard, Edit, Trash2, Save, Building, UserPlus, Group, Search, Upload } from 'lucide-react';
 import SearchBox from '@/components/SearchBox';
+import ExcelImportDialog from '@/components/ExcelImportDialog';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -39,6 +40,7 @@ export default function Clients() {
   const [showCashClientForm, setShowCashClientForm] = useState(false);
   const [editingGroup, setEditingGroup] = useState<any>(null);
   const [localSearchQuery, setLocalSearchQuery] = useState('');
+  const [showImportDialog, setShowImportDialog] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
