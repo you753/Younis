@@ -84,10 +84,12 @@ export default function BranchApp({ branchId }: BranchAppProps) {
     });
   };
 
+
+
   const navigationItems = [
-    { title: 'لوحة التحكم', icon: Home, href: '/dashboard' },
-    { title: 'نظام إدارة منفصل', icon: Settings, href: '/system' },
-    { title: 'إدارة المستخدمين', icon: Users, href: '/users' },
+    { title: 'لوحة التحكم', icon: Home, href: `/branch-app/${branchId}/dashboard` },
+    { title: 'نظام إدارة منفصل', icon: Settings, href: `/branch-app/${branchId}/system` },
+    { title: 'إدارة المستخدمين', icon: Users, href: `/branch-app/${branchId}/users` },
     { 
       title: 'الموردين', 
       icon: Truck,
@@ -319,7 +321,7 @@ export default function BranchApp({ branchId }: BranchAppProps) {
 
         {/* المحتوى الرئيسي */}
         <main className="flex-1 overflow-y-auto">
-          <Router>
+          <Router base={`/branch-app/${branchId}`}>
             <Route path="/dashboard">
               <BranchDashboardContent branch={branch} stats={stats} />
             </Route>
