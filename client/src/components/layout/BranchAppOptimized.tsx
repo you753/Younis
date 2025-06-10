@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo, memo } from 'react';
 import { Route, Router } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
@@ -48,157 +48,124 @@ interface BranchAppProps {
   branchId: number;
 }
 
-// نوافذ المحتوى منفصلة لتحسين الأداء
-function BranchDashboardContent({ branch, stats }: { branch?: Branch; stats: any }) {
-  return (
-    <div className="p-6">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">إجمالي المنتجات</p>
-                <p className="text-2xl font-bold">{stats.totalProducts}</p>
-              </div>
-              <Package className="h-8 w-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">إجمالي المبيعات</p>
-                <p className="text-2xl font-bold">{stats.totalSales} ر.س</p>
-              </div>
-              <BarChart3 className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">عدد العملاء</p>
-                <p className="text-2xl font-bold">{stats.totalClients}</p>
-              </div>
-              <Users className="h-8 w-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">قيمة المخزون</p>
-                <p className="text-2xl font-bold">{stats.inventoryValue} ر.س</p>
-              </div>
-              <Warehouse className="h-8 w-8 text-orange-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+// مكونات محسنة للأداء
+const BranchDashboardContent = memo(({ branch, stats }: { branch?: Branch; stats: any }) => {
+  const dashboardCards = useMemo(() => [
+    {
+      title: "إجمالي المنتجات",
+      value: stats.totalProducts || 0,
+      icon: Package,
+      color: "text-blue-600",
+      bgColor: "bg-blue-50"
+    },
+    {
+      title: "إجمالي المبيعات",
+      value: `${stats.totalSales || '0.00'} ر.س`,
+      icon: BarChart3,
+      color: "text-green-600",
+      bgColor: "bg-green-50"
+    },
+    {
+      title: "عدد العملاء",
+      value: stats.totalClients || 0,
+      icon: Users,
+      color: "text-purple-600",
+      bgColor: "bg-purple-50"
+    },
+    {
+      title: "قيمة المخزون",
+      value: `${stats.inventoryValue || '0.00'} ر.س`,
+      icon: Warehouse,
+      color: "text-orange-600",
+      bgColor: "bg-orange-50"
+    }
+  ], [stats]);
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>مبيعات اليوم</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-green-600">{stats.todaySales} ر.س</div>
-            <p className="text-sm text-gray-600 mt-2">زيادة {stats.monthlyGrowth}% عن الشهر الماضي</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>معلومات الفرع</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-gray-600">اسم الفرع:</span>
-                <span className="font-medium">{branch?.name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">كود الفرع:</span>
-                <span className="font-medium">{branch?.code}</span>
-              </div>
-              {branch?.address && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">العنوان:</span>
-                  <span className="font-medium">{branch.address}</span>
+  return (
+    <div className="p-4 lg:p-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {dashboardCards.map((card) => (
+          <Card key={card.title} className={`${card.bgColor} border-0 shadow-sm hover:shadow-md transition-shadow duration-200`}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-600 mb-1">{card.title}</p>
+                  <p className="text-lg lg:text-xl font-bold text-gray-900">{card.value}</p>
                 </div>
-              )}
-            </div>
+                <card.icon className={`h-6 w-6 lg:h-8 lg:w-8 ${card.color}`} />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* اختصارات سريعة */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer">
+          <CardContent className="p-4 text-center">
+            <ShoppingCart className="h-6 w-6 text-green-600 mx-auto mb-2" />
+            <p className="text-sm font-medium">مبيعة جديدة</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer">
+          <CardContent className="p-4 text-center">
+            <Package className="h-6 w-6 text-blue-600 mx-auto mb-2" />
+            <p className="text-sm font-medium">إدارة المنتجات</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer">
+          <CardContent className="p-4 text-center">
+            <Users className="h-6 w-6 text-purple-600 mx-auto mb-2" />
+            <p className="text-sm font-medium">العملاء</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer">
+          <CardContent className="p-4 text-center">
+            <Warehouse className="h-6 w-6 text-orange-600 mx-auto mb-2" />
+            <p className="text-sm font-medium">المخزون</p>
           </CardContent>
         </Card>
       </div>
     </div>
   );
-}
+});
 
-function BranchProductsContent({ branchId }: { branchId: number }) {
-  return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">إدارة المنتجات - الفرع {branchId}</h1>
-      <div className="bg-gray-100 p-8 rounded-lg text-center">
-        <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-        <p className="text-gray-600">محتوى إدارة المنتجات</p>
-      </div>
+const BranchProductsContent = memo(({ branchId }: { branchId: number }) => (
+  <div className="p-6">
+    <h1 className="text-2xl font-bold mb-6">إدارة المنتجات - الفرع {branchId}</h1>
+    <div className="bg-gray-100 p-8 rounded-lg text-center">
+      <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+      <p className="text-gray-600">محتوى إدارة المنتجات</p>
     </div>
-  );
-}
+  </div>
+));
 
-function BranchSalesContent({ branchId }: { branchId: number }) {
-  return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">المبيعات - الفرع {branchId}</h1>
-      <div className="bg-gray-100 p-8 rounded-lg text-center">
-        <BarChart3 className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-        <p className="text-gray-600">محتوى المبيعات</p>
-      </div>
+const BranchSalesContent = memo(({ branchId }: { branchId: number }) => (
+  <div className="p-6">
+    <h1 className="text-2xl font-bold mb-6">المبيعات - الفرع {branchId}</h1>
+    <div className="bg-gray-100 p-8 rounded-lg text-center">
+      <BarChart3 className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+      <p className="text-gray-600">محتوى المبيعات</p>
     </div>
-  );
-}
+  </div>
+));
 
-function BranchClientsContent({ branchId }: { branchId: number }) {
-  return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">العملاء - الفرع {branchId}</h1>
-      <div className="bg-gray-100 p-8 rounded-lg text-center">
-        <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-        <p className="text-gray-600">محتوى العملاء</p>
-      </div>
+const BranchClientsContent = memo(({ branchId }: { branchId: number }) => (
+  <div className="p-6">
+    <h1 className="text-2xl font-bold mb-6">العملاء - الفرع {branchId}</h1>
+    <div className="bg-gray-100 p-8 rounded-lg text-center">
+      <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+      <p className="text-gray-600">محتوى العملاء</p>
     </div>
-  );
-}
+  </div>
+));
 
-export default function BranchApp({ branchId }: BranchAppProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+const OptimizedSidebar = memo(({ branchId, isOpen, onToggle }: { branchId: number; isOpen: boolean; onToggle: () => void }) => {
   const [location, setLocation] = useLocation();
-  const [expandedItems, setExpandedItems] = useState<string[]>(['الموردين', 'العملاء', 'الأصناف', 'المشتريات', 'المبيعات']);
-
-  const { data: branch } = useQuery<Branch>({
-    queryKey: [`/api/branches/${branchId}`],
-    staleTime: 5 * 60 * 1000, // 5 minutes cache
-  });
-
-  const stats = {
-    totalProducts: 15,
-    totalSales: '25,480.00',
-    totalClients: 8,
-    inventoryValue: '45,200.00',
-    todaySales: '3,250.00',
-    monthlyGrowth: 12
-  };
-
-  const exitBranch = useCallback(() => {
-    setLocation('/branch-management');
-  }, [setLocation]);
+  const [expandedItems, setExpandedItems] = useState<string[]>(['الموردين', 'العملاء', 'الأصناف', 'المبيعات', 'المخزون']);
 
   const toggleExpanded = useCallback((title: string) => {
     setExpandedItems(prev => {
@@ -210,7 +177,7 @@ export default function BranchApp({ branchId }: BranchAppProps) {
     });
   }, []);
 
-  const navigationItems = [
+  const navigationItems = useMemo(() => [
     { title: 'لوحة التحكم', icon: Home, href: `/branch-app/${branchId}/dashboard` },
     { title: 'نظام إدارة منفصل', icon: Settings, href: `/branch-app/${branchId}/system` },
     { title: 'إدارة المستخدمين', icon: Users, href: `/branch-app/${branchId}/users` },
@@ -236,21 +203,14 @@ export default function BranchApp({ branchId }: BranchAppProps) {
       children: [
         { title: 'إدارة الأصناف', icon: Package, href: `/branch-app/${branchId}/products` },
         { title: 'فئات الأصناف', icon: Tags, href: `/branch-app/${branchId}/product-categories` },
-      ]
-    },
-    { 
-      title: 'المشتريات', 
-      icon: ShoppingCart,
-      children: [
-        { title: 'فواتير المشتريات', icon: ShoppingCart, href: `/branch-app/${branchId}/purchases` },
-        { title: 'مرتجعات المشتريات', icon: Minus, href: `/branch-app/${branchId}/purchase-returns` },
+        { title: 'باركود الأصناف', icon: ScanBarcode, href: `/branch-app/${branchId}/barcodes` }
       ]
     },
     { 
       title: 'المبيعات', 
       icon: ScanBarcode,
       children: [
-        { title: 'فواتير المبيعات', icon: ScanBarcode, href: `/branch-app/${branchId}/sales` },
+        { title: 'المبيعات', icon: ScanBarcode, href: `/branch-app/${branchId}/sales` },
         { title: 'مرتجعات المبيعات', icon: Minus, href: `/branch-app/${branchId}/sales-returns` },
       ]
     },
@@ -259,204 +219,172 @@ export default function BranchApp({ branchId }: BranchAppProps) {
       icon: Warehouse,
       children: [
         { title: 'حالة المخزون', icon: Warehouse, href: `/branch-app/${branchId}/inventory` },
-        { title: 'جرد المخزون', icon: List, href: `/branch-app/${branchId}/inventory-count` },
+        { title: 'حركة المخزون', icon: FileText, href: `/branch-app/${branchId}/inventory-movement` },
+        { title: 'نقل المخزون', icon: Package, href: `/branch-app/${branchId}/inventory-transfer` }
       ]
-    },
-    { 
-      title: 'الموظفين', 
-      icon: UsersRound,
-      children: [
-        { title: 'إدارة الموظفين', icon: Users, href: `/branch-app/${branchId}/employees` },
-        { title: 'الرواتب', icon: DollarSign, href: `/branch-app/${branchId}/salaries` },
-      ]
-    },
-    { 
-      title: 'التقارير', 
-      icon: BarChart3,
-      children: [
-        { title: 'التقارير اليومية', icon: FileText, href: `/branch-app/${branchId}/reports` },
-        { title: 'تقارير المبيعات', icon: BarChart3, href: `/branch-app/${branchId}/reports/sales` },
-      ]
-    },
-    { title: 'الحسابات', icon: DollarSign, href: `/branch-app/${branchId}/accounts` }
-  ];
+    }
+  ], [branchId]);
+
+  const isActive = useCallback((href: string) => location === href, [location]);
 
   return (
-    <div className="min-h-screen bg-gray-50" dir="rtl">
-      <div className="flex h-screen">
-        {/* الشريط الجانبي */}
-        <div className={`${sidebarOpen ? 'w-64' : 'w-16'} bg-white shadow-lg transition-all duration-300 flex flex-col`}>
-          {/* هيدر الفرع */}
-          <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-green-50 to-green-100">
-            <div className="flex items-center justify-between">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="text-green-600"
-              >
-                {sidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-              </Button>
-              {sidebarOpen && (
+    <div className={`fixed inset-y-0 left-0 z-50 w-80 bg-gradient-to-b from-blue-900 to-blue-800 text-white transform transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className="p-6 border-b border-blue-700">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Building className="h-6 w-6" />
+            <div>
+              <h2 className="font-bold">نظام الفرع {branchId}</h2>
+              <p className="text-xs text-blue-200">واجهة إدارة منفصلة</p>
+            </div>
+          </div>
+          <Button variant="ghost" size="sm" onClick={onToggle} className="text-white hover:bg-white/10">
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      <nav className="flex-1 overflow-y-auto p-4">
+        {navigationItems.map((item) => (
+          <div key={item.title} className="mb-2">
+            {item.children ? (
+              <div>
                 <Button
                   variant="ghost"
-                  size="sm"
-                  onClick={exitBranch}
-                  className="text-red-600 hover:text-red-700"
+                  className="w-full justify-between text-right p-3 text-white hover:bg-white/10 mb-1"
+                  onClick={() => toggleExpanded(item.title)}
                 >
-                  <LogOut className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-            
-            {sidebarOpen && (
-              <div className="mt-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <Building className="h-6 w-6 text-green-600" />
-                  <div>
-                    <h2 className="font-bold text-green-900 text-sm">{branch?.name || 'الفرع'}</h2>
-                    <Badge variant="outline" className="text-xs">{branch?.code}</Badge>
+                  <div className="flex items-center gap-3">
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.title}</span>
                   </div>
-                </div>
-                <p className="text-xs text-green-600">نظام إدارة منفصل</p>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${expandedItems.includes(item.title) ? 'rotate-180' : ''}`} />
+                </Button>
+                
+                {expandedItems.includes(item.title) && item.children && (
+                  <div className="mr-4 space-y-1 bg-white/5 rounded-lg p-2">
+                    {item.children.map((child) => (
+                      <Button
+                        key={child.href}
+                        variant="ghost"
+                        className={`w-full justify-start text-right p-2 text-sm text-white/90 hover:bg-white/10 hover:text-white ${
+                          isActive(child.href) ? 'bg-white/20 text-white' : ''
+                        }`}
+                        onClick={() => {
+                          setLocation(child.href);
+                          if (window.innerWidth < 1024) onToggle();
+                        }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <child.icon className="h-4 w-4" />
+                          <span>{child.title}</span>
+                        </div>
+                      </Button>
+                    ))}
+                  </div>
+                )}
               </div>
+            ) : (
+              <Button
+                variant="ghost"
+                className={`w-full justify-start text-right p-3 text-white hover:bg-white/10 ${
+                  isActive(item.href) ? 'bg-white/20' : ''
+                }`}
+                onClick={() => {
+                  setLocation(item.href);
+                  if (window.innerWidth < 1024) onToggle();
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <item.icon className="h-5 w-5" />
+                  <span>{item.title}</span>
+                </div>
+              </Button>
             )}
           </div>
+        ))}
+      </nav>
 
-          {/* قائمة التنقل */}
-          <nav className="flex-1 overflow-y-auto p-2">
-            {navigationItems.map((item) => {
-              const Icon = item.icon;
-              const isExpanded = expandedItems.includes(item.title);
-              const isActive = location === item.href;
+      <div className="p-4 border-t border-blue-700">
+        <Button 
+          variant="ghost" 
+          className="w-full text-white hover:bg-white/10"
+          onClick={() => window.location.href = '/'}
+        >
+          <ArrowRight className="ml-2 h-4 w-4" />
+          العودة للنظام الرئيسي
+        </Button>
+      </div>
+    </div>
+  );
+});
 
-              if (item.children) {
-                return (
-                  <div key={item.title} className="mb-1">
-                    <Button
-                      variant="ghost"
-                      className={`w-full ${sidebarOpen ? 'justify-between' : 'justify-center'} p-3 text-gray-700 hover:bg-gray-100`}
-                      onClick={() => sidebarOpen && toggleExpanded(item.title)}
-                    >
-                      <div className="flex items-center">
-                        <Icon className="h-4 w-4" />
-                        {sidebarOpen && <span className="mr-3">{item.title}</span>}
-                      </div>
-                      {sidebarOpen && (
-                        <ChevronDown className={`h-4 w-4 transform transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-                      )}
-                    </Button>
-                    
-                    {sidebarOpen && isExpanded && (
-                      <div className="mr-4 mt-1 space-y-1">
-                        {item.children.map((child) => {
-                          const ChildIcon = child.icon;
-                          const isChildActive = location === child.href;
-                          
-                          return (
-                            <Button
-                              key={child.title}
-                              variant="ghost"
-                              className={`w-full justify-start p-2 text-sm ${isChildActive ? 'bg-blue-50 text-blue-700' : 'text-gray-600'} hover:bg-gray-100`}
-                              onClick={() => window.location.href = child.href}
-                            >
-                              <ChildIcon className="h-3 w-3" />
-                              <span className="mr-2">{child.title}</span>
-                            </Button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                );
-              } else {
-                return (
-                  <Button
-                    key={item.title}
-                    variant="ghost"
-                    className={`w-full ${sidebarOpen ? 'justify-start' : 'justify-center'} p-3 mb-1 ${isActive ? 'bg-blue-50 text-blue-700' : 'text-gray-700'} hover:bg-gray-100`}
-                    onClick={() => window.location.href = item.href!}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {sidebarOpen && <span className="mr-3">{item.title}</span>}
-                  </Button>
-                );
-              }
-            })}
-          </nav>
+export default function BranchAppOptimized({ branchId }: BranchAppProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [location] = useLocation();
 
-          {/* معلومات الفرع */}
-          {sidebarOpen && branch && (
-            <div className="p-4 border-t border-gray-200 bg-gray-50">
-              <div className="text-xs text-gray-600 space-y-1">
-                {branch.address && (
-                  <div className="flex items-center gap-1">
-                    <Building className="h-3 w-3" />
-                    <span>{branch.address}</span>
-                  </div>
-                )}
-                {branch.phone && (
-                  <div className="flex items-center gap-1">
-                    <span>📞</span>
-                    <span>{branch.phone}</span>
-                  </div>
-                )}
+  const { data: branch } = useQuery({
+    queryKey: [`/api/branches/${branchId}`],
+    staleTime: 300000,
+  });
+
+  const { data: stats = {} } = useQuery({
+    queryKey: ['/api/dashboard/stats'],
+    staleTime: 60000,
+  });
+
+  const toggleSidebar = useCallback(() => {
+    setSidebarOpen(prev => !prev);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gray-50 relative">
+      <OptimizedSidebar branchId={branchId} isOpen={sidebarOpen} onToggle={toggleSidebar} />
+      
+      <div className={`transition-all duration-300 ${sidebarOpen ? 'mr-80' : ''}`}>
+        <header className="bg-white shadow-sm border-b px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="sm" onClick={toggleSidebar}>
+                <Menu className="h-5 w-5" />
+              </Button>
+              <div className="flex items-center gap-2">
+                <Building className="h-5 w-5 text-blue-600" />
+                <h1 className="font-bold text-gray-900">{branch?.name || `الفرع ${branchId}`}</h1>
+                <Badge variant="secondary">{branch?.code || `BR${branchId}`}</Badge>
               </div>
             </div>
-          )}
-        </div>
+            
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-green-600">نشط</Badge>
+              <Button variant="outline" size="sm" asChild>
+                <a href="/">النظام الرئيسي</a>
+              </Button>
+            </div>
+          </div>
+        </header>
 
-        {/* المحتوى الرئيسي */}
-        <main className="flex-1 overflow-y-auto">
-          <Router>
-            <Route path={`/branch-app/${branchId}/dashboard`}>
-              <BranchDashboardContent branch={branch} stats={stats} />
-            </Route>
-            <Route path={`/branch-app/${branchId}`}>
-              <BranchDashboardContent branch={branch} stats={stats} />
-            </Route>
-            <Route path={`/branch-app/${branchId}/products`}>
-              <BranchProductsContent branchId={branchId} />
-            </Route>
-            <Route path={`/branch-app/${branchId}/sales`}>
-              <BranchSalesContent branchId={branchId} />
-            </Route>
-            <Route path={`/branch-app/${branchId}/clients`}>
-              <BranchClientsContent branchId={branchId} />
-            </Route>
-            <Route path={`/branch-app/${branchId}/suppliers`}>
-              <BranchSuppliers branchId={branchId} />
-            </Route>
-            <Route path={`/branch-app/${branchId}/purchases`}>
-              <BranchPurchases branchId={branchId} />
-            </Route>
-            <Route path={`/branch-app/${branchId}/inventory`}>
-              <BranchInventory branchId={branchId} />
-            </Route>
-            <Route path={`/branch-app/${branchId}/reports`}>
-              <BranchReports branchId={branchId} />
-            </Route>
-            <Route path={`/branch-app/${branchId}/employees`}>
-              <BranchEmployees branchId={branchId} />
-            </Route>
-            <Route path={`/branch-app/${branchId}/settings`}>
-              <BranchSettings branchId={branchId} />
-            </Route>
-            <Route path={`/branch-app/${branchId}/users`}>
-              <BranchUsers branchId={branchId} />
-            </Route>
-            <Route path={`/branch-app/${branchId}/accounts`}>
-              <BranchAccounts branchId={branchId} />
-            </Route>
-            <Route path={`/branch-app/${branchId}/product-categories`}>
-              <BranchProductCategories branchId={branchId} />
-            </Route>
-            <Route path={`/branch-app/${branchId}/system`}>
-              <BranchSystem branchId={branchId} />
-            </Route>
+        <main className="overflow-auto">
+          <Router base={`/branch-app/${branchId}`}>
+            <Route path="/dashboard" component={() => <BranchDashboardContent branch={branch} stats={stats} />} />
+            <Route path="/products" component={() => <BranchProductsContent branchId={branchId} />} />
+            <Route path="/sales" component={() => <BranchSalesContent branchId={branchId} />} />
+            <Route path="/clients" component={() => <BranchClientsContent branchId={branchId} />} />
+            <Route path="/suppliers" component={BranchSuppliers} />
+            <Route path="/purchases" component={BranchPurchases} />
+            <Route path="/inventory" component={BranchInventory} />
+            <Route path="/employees" component={BranchEmployees} />
+            <Route path="/reports" component={BranchReports} />
+            <Route path="/users" component={BranchUsers} />
+            <Route path="/system" component={BranchSystem} />
+            <Route path="/" component={() => <BranchDashboardContent branch={branch} stats={stats} />} />
           </Router>
         </main>
       </div>
+
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40" onClick={toggleSidebar}></div>
+      )}
     </div>
   );
 }
