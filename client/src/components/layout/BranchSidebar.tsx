@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'wouter';
+import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -47,7 +47,13 @@ interface BranchSidebarProps {
 
 export default function BranchSidebar({ branchId, onClose }: BranchSidebarProps) {
   const [location, setLocation] = useLocation();
-  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
+  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({
+    'إدارة المخزون': true,
+    'المبيعات': true,
+    'الحسابات': true,
+    'الموظفين': true,
+    'التقارير': true
+  });
 
   const { data: branch } = useQuery<Branch>({
     queryKey: [`/api/branches/${branchId}`]
@@ -149,7 +155,7 @@ export default function BranchSidebar({ branchId, onClose }: BranchSidebarProps)
   ];
 
   return (
-    <div className="w-64 bg-white border-l border-gray-200 h-full flex flex-col">
+    <div className="w-64 bg-white h-full flex flex-col shadow-lg">
       {/* هيدر الفرع */}
       <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-green-50 to-green-100">
         <div className="flex items-center justify-between mb-3">
@@ -173,76 +179,116 @@ export default function BranchSidebar({ branchId, onClose }: BranchSidebarProps)
       </div>
 
       {/* قائمة التنقل */}
-      <nav className="flex-1 overflow-y-auto p-4">
-        <ul className="space-y-2">
-          {menuItems.map((item, index) => (
-            <li key={index}>
-              {item.children ? (
-                <div>
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      "w-full justify-start text-right h-auto p-3",
-                      "hover:bg-gray-100 transition-colors"
-                    )}
-                    onClick={() => toggleExpanded(item.title)}
-                  >
-                    <div className="flex items-center justify-between w-full">
-                      <div className="flex items-center gap-3">
-                        <item.icon className="h-4 w-4 text-gray-600" />
-                        <span className="text-sm font-medium text-gray-700">{item.title}</span>
-                      </div>
-                      {expandedItems[item.title] ? (
-                        <ChevronDown className="h-4 w-4 text-gray-500" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4 text-gray-500" />
-                      )}
-                    </div>
-                  </Button>
-                  {expandedItems[item.title] && (
-                    <ul className="mt-2 mr-6 space-y-1">
-                      {item.children.map((child, childIndex) => (
-                        <li key={childIndex}>
-                          <Button
-                            variant="ghost"
-                            className={cn(
-                              "w-full justify-start text-right h-auto p-2 text-sm",
-                              location === child.href
-                                ? "bg-blue-50 text-blue-700 border-r-2 border-blue-500"
-                                : "hover:bg-gray-50 text-gray-600"
-                            )}
-                            onClick={() => navigateTo(child.href)}
-                          >
-                            <div className="flex items-center gap-2">
-                              <child.icon className="h-3 w-3" />
-                              <span>{child.title}</span>
-                            </div>
-                          </Button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+      <nav className="flex-1 overflow-y-auto">
+        <div className="p-2">
+          {/* لوحة التحكم */}
+          <Button
+            variant="ghost"
+            className={cn(
+              "w-full justify-start text-right h-auto p-3 mb-2",
+              location === `/branch/${branchId}/dashboard`
+                ? "bg-blue-50 text-blue-700"
+                : "hover:bg-gray-100 text-gray-700"
+            )}
+            onClick={() => navigateTo(`/branch/${branchId}/dashboard`)}
+          >
+            <div className="flex items-center gap-3">
+              <Home className="h-4 w-4" />
+              <span className="text-sm font-medium">لوحة التحكم</span>
+            </div>
+          </Button>
+
+          {/* إدارة المخزون */}
+          <div className="mb-2">
+            <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              إدارة المخزون
+            </div>
+            <div className="space-y-1 mr-3">
+              <Button
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start text-right h-auto p-2 text-sm",
+                  location === `/branch/${branchId}/products`
+                    ? "bg-blue-50 text-blue-700"
+                    : "hover:bg-gray-50 text-gray-600"
+                )}
+                onClick={() => navigateTo(`/branch/${branchId}/products`)}
+              >
+                <div className="flex items-center gap-2">
+                  <Package className="h-3 w-3" />
+                  <span>المنتجات</span>
                 </div>
-              ) : (
-                <Button
-                  variant="ghost"
-                  className={cn(
-                    "w-full justify-start text-right h-auto p-3",
-                    location === item.href
-                      ? "bg-blue-50 text-blue-700 border-r-2 border-blue-500"
-                      : "hover:bg-gray-100 text-gray-700"
-                  )}
-                  onClick={() => navigateTo(item.href)}
-                >
-                  <div className="flex items-center gap-3">
-                    <item.icon className="h-4 w-4" />
-                    <span className="text-sm font-medium">{item.title}</span>
-                  </div>
-                </Button>
-              )}
-            </li>
-          ))}
-        </ul>
+              </Button>
+            </div>
+          </div>
+
+          {/* المبيعات */}
+          <div className="mb-2">
+            <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              المبيعات
+            </div>
+            <div className="space-y-1 mr-3">
+              <Button
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start text-right h-auto p-2 text-sm",
+                  location === `/branch/${branchId}/sales`
+                    ? "bg-blue-50 text-blue-700"
+                    : "hover:bg-gray-50 text-gray-600"
+                )}
+                onClick={() => navigateTo(`/branch/${branchId}/sales`)}
+              >
+                <div className="flex items-center gap-2">
+                  <ShoppingCart className="h-3 w-3" />
+                  <span>فواتير المبيعات</span>
+                </div>
+              </Button>
+            </div>
+          </div>
+
+          {/* العملاء */}
+          <div className="mb-2">
+            <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              العملاء
+            </div>
+            <div className="space-y-1 mr-3">
+              <Button
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start text-right h-auto p-2 text-sm",
+                  location === `/branch/${branchId}/clients`
+                    ? "bg-blue-50 text-blue-700"
+                    : "hover:bg-gray-50 text-gray-600"
+                )}
+                onClick={() => navigateTo(`/branch/${branchId}/clients`)}
+              >
+                <div className="flex items-center gap-2">
+                  <Users className="h-3 w-3" />
+                  <span>إدارة العملاء</span>
+                </div>
+              </Button>
+            </div>
+          </div>
+
+          {/* التقارير */}
+          <div className="mb-2">
+            <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              التقارير
+            </div>
+            <div className="space-y-1 mr-3">
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-right h-auto p-2 text-sm hover:bg-gray-50 text-gray-600"
+                onClick={() => navigateTo(`/branch/${branchId}/reports`)}
+              >
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="h-3 w-3" />
+                  <span>تقارير الفرع</span>
+                </div>
+              </Button>
+            </div>
+          </div>
+        </div>
       </nav>
 
       {/* معلومات الفرع */}
