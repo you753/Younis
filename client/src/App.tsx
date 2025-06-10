@@ -40,6 +40,7 @@ import TaxCalculator from "@/pages/TaxCalculator";
 import Profile from "@/pages/Profile";
 import ClientReceiptVouchers from "@/pages/ClientReceiptVouchers";
 import DailyReports from "@/pages/DailyReports";
+import InventoryOpeningBalances from "@/pages/InventoryOpeningBalances";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -110,6 +111,7 @@ function Router() {
         <Route path="/inventory-count" component={InventoryCount} />
         <Route path="/inventory-movement" component={InventoryMovement} />
         <Route path="/inventory-transfer" component={InventoryTransfer} />
+        <Route path="/inventory-opening-balances" component={InventoryOpeningBalances} />
         
         {/* الحسابات */}
         <Route path="/accounts" component={Accounts} />

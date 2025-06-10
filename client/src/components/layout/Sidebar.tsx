@@ -79,6 +79,7 @@ const navigationItems: NavItem[] = [
     icon: Warehouse,
     children: [
       { title: 'حالة المخزون', icon: Warehouse, href: '/inventory' },
+      { title: 'الأرصدة الافتتاحية', icon: FileText, href: '/inventory-opening-balances' },
       { title: 'جرد المخزون', icon: List, href: '/inventory-count' },
       { title: 'حركة المخزون', icon: FileText, href: '/inventory-movement' },
       { title: 'نقل المخزون', icon: Package, href: '/inventory-transfer' },
