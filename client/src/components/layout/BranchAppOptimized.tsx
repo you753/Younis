@@ -504,7 +504,7 @@ export default function BranchAppOptimized({ branchId }: BranchAppProps) {
     <div className="min-h-screen bg-gray-50 relative">
       <OptimizedSidebar branchId={branchId} isOpen={sidebarOpen} onToggle={toggleSidebar} />
       
-      <div className={`transition-all duration-300 ${sidebarOpen ? 'ml-80' : ''}`}>
+      <div className="w-full">
         <header className="bg-white shadow-sm border-b px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
