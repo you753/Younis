@@ -47,7 +47,7 @@ import BranchDashboard from "@/pages/branch/BranchDashboard";
 import BranchProducts from "@/pages/branch/BranchProducts";
 import BranchSales from "@/pages/branch/BranchSales";
 import BranchClients from "@/pages/branch/BranchClients";
-import BranchApp from "@/components/layout/BranchAppOptimized";
+import UltraFastBranchApp from "@/components/layout/UltraFastBranchApp";
 import BranchSettings from "@/pages/BranchSettings";
 
 function Router() {
@@ -134,7 +134,7 @@ function Router() {
         
         {/* التطبيق المنفصل للفرع */}
         <Route path="/branch-app/:branchId/*" component={({ params }: any) => {
-          return <BranchApp branchId={parseInt(params.branchId)} />;
+          return <UltraFastBranchApp branchId={parseInt(params.branchId)} />;
         }} />
         
         {/* نظام الفروع المنفصل (النسخة القديمة) */}
