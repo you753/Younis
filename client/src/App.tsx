@@ -41,6 +41,7 @@ import Profile from "@/pages/Profile";
 import ClientReceiptVouchers from "@/pages/ClientReceiptVouchers";
 import DailyReports from "@/pages/DailyReports";
 import InventoryOpeningBalances from "@/pages/InventoryOpeningBalances";
+import Branches from "@/pages/Branches";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -118,6 +119,9 @@ function Router() {
         <Route path="/journal-entries" component={Accounts} />
         <Route path="/accounts-payable" component={Accounts} />
         <Route path="/accounts-receivable" component={Accounts} />
+        
+        {/* الفروع */}
+        <Route path="/branches" component={Branches} />
         
         {/* الموظفين */}
         <Route path="/employees" component={Employees} />

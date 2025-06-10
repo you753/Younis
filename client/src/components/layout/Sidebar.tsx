@@ -4,7 +4,7 @@ import {
   Home, Users, UserCheck, Package, ShoppingCart, 
   ScanBarcode, Warehouse, FileText, BarChart3, 
   Settings, ChevronDown, X, Truck, UsersRound,
-  DollarSign, Tags, List, Plus, Percent, Minus
+  DollarSign, Tags, List, Plus, Percent, Minus, Building
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAppStore } from '@/lib/store';
@@ -85,6 +85,11 @@ const navigationItems: NavItem[] = [
       { title: 'نقل المخزون', icon: Package, href: '/inventory-transfer' },
       { title: 'الباركود', icon: ScanBarcode, href: '/inventory/barcodes' }
     ]
+  },
+  { 
+    title: 'الفروع', 
+    icon: Building, 
+    href: '/branches' 
   },
   { 
     title: 'الموظفين', 
