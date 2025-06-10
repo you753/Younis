@@ -13,7 +13,8 @@ import {
   insertDeductionSchema,
   insertSalarySchema,
   insertProductCategorySchema,
-  insertSupplierPaymentVoucherSchema
+  insertSupplierPaymentVoucherSchema,
+  insertClientReceiptVoucherSchema
 } from "@shared/schema";
 import { uploadMiddleware, transcribeAudio } from "./voice";
 import { handleAIChat } from "./ai-chat";
@@ -1010,6 +1011,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting supplier payment voucher:', error);
       res.status(500).json({ error: 'Failed to delete supplier payment voucher' });
+    }
+  });
+
+  // Client Receipt Vouchers routes
+  app.get('/api/client-receipt-vouchers', async (req, res) => {
+    try {
+      const vouchers = await storage.getAllClientReceiptVouchers();
+      res.json(vouchers);
+    } catch (error) {
+      console.error('Error fetching client receipt vouchers:', error);
+      res.status(500).json({ error: 'Failed to fetch client receipt vouchers' });
+    }
+  });
+
+  app.get('/api/client-receipt-vouchers/client/:clientId', async (req, res) => {
+    try {
+      const clientId = parseInt(req.params.clientId);
+      const vouchers = await storage.getClientReceiptVouchersByClientId(clientId);
+      res.json(vouchers);
+    } catch (error) {
+      console.error('Error fetching client receipt vouchers:', error);
+      res.status(500).json({ error: 'Failed to fetch client receipt vouchers' });
+    }
+  });
+
+  app.post('/api/client-receipt-vouchers', async (req, res) => {
+    try {
+      const validatedData = insertClientReceiptVoucherSchema.parse(req.body);
+      
+      // إنشاء سند القبض
+      const voucher = await storage.createClientReceiptVoucher(validatedData);
+      
+      // إضافة المبلغ إلى رصيد العميل (تقليل الدين)
+      const client = await storage.getClient(validatedData.clientId);
+      if (client) {
+        const currentBalance = parseFloat(client.balance || '0') || 0;
+        const voucherAmount = parseFloat(validatedData.amount);
+        const newBalance = (currentBalance - voucherAmount).toString();
+        
+        await storage.updateClient(validatedData.clientId, {
+          balance: newBalance
+        });
+        
+        console.log(`تم خصم ${voucherAmount} من دين العميل ${client.name}. الرصيد الجديد: ${newBalance}`);
+      }
+      
+      res.status(201).json(voucher);
+    } catch (error) {
+      console.error('Error creating client receipt voucher:', error);
+      res.status(500).json({ error: 'Failed to create client receipt voucher' });
+    }
+  });
+
+  app.put('/api/client-receipt-vouchers/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertClientReceiptVoucherSchema.partial().parse(req.body);
+      
+      const voucher = await storage.updateClientReceiptVoucher(id, validatedData);
+      
+      if (!voucher) {
+        return res.status(404).json({ error: 'Client receipt voucher not found' });
+      }
+      
+      res.json(voucher);
+    } catch (error) {
+      console.error('Error updating client receipt voucher:', error);
+      res.status(500).json({ error: 'Failed to update client receipt voucher' });
+    }
+  });
+
+  app.delete('/api/client-receipt-vouchers/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // الحصول على بيانات السند قبل الحذف لإعادة المبلغ للرصيد
+      const voucher = await storage.getClientReceiptVoucher(id);
+      if (!voucher) {
+        return res.status(404).json({ error: 'Client receipt voucher not found' });
+      }
+      
+      const success = await storage.deleteClientReceiptVoucher(id);
+      if (!success) {
+        return res.status(404).json({ error: 'Client receipt voucher not found' });
+      }
+      
+      // إعادة المبلغ إلى دين العميل
+      const client = await storage.getClient(voucher.clientId);
+      if (client) {
+        const currentBalance = parseFloat(client.balance || '0') || 0;
+        const voucherAmount = parseFloat(voucher.amount);
+        const newBalance = (currentBalance + voucherAmount).toString();
+        
+        await storage.updateClient(voucher.clientId, {
+          balance: newBalance
+        });
+        
+        console.log(`تم إعادة ${voucherAmount} إلى دين العميل ${client.name}. الرصيد الجديد: ${newBalance}`);
+      }
+      
+      res.json({ message: 'Client receipt voucher deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting client receipt voucher:', error);
+      res.status(500).json({ error: 'Failed to delete client receipt voucher' });
     }
   });
 

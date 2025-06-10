@@ -195,9 +195,8 @@ export const insertSupplierSchema = createInsertSchema(suppliers).omit({
 
 export const insertClientSchema = createInsertSchema(clients).omit({
   id: true,
-  balance: true,
   createdAt: true,
-}).partial();
+});
 
 export const insertProductSchema = createInsertSchema(products).omit({
   id: true,
