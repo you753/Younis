@@ -40,34 +40,38 @@ export default function BranchLayout({ branchId, children, title }: BranchLayout
   }
 
   return (
-    <div className="flex h-screen bg-gray-50" dir="rtl">
-      {/* الشريط الجانبي للفرع */}
-      <BranchSidebar branchId={branchId} />
-      
-      {/* المحتوى الرئيسي */}
-      <main className="flex-1 overflow-y-auto">
-        {/* هيدر الصفحة */}
-        {title && (
-          <div className="bg-white border-b border-gray-200 px-6 py-4">
-            <div className="flex items-center gap-3">
-              <Building className="h-6 w-6 text-green-600" />
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">{title}</h1>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span>الفرع:</span>
-                  <span className="font-medium text-green-700">{branch.name}</span>
-                  <span className="text-gray-400">({branch.code})</span>
+    <div className="min-h-screen bg-gray-50" dir="rtl">
+      <div className="flex h-screen">
+        {/* الشريط الجانبي للفرع */}
+        <div className="fixed right-0 top-0 h-full w-64 bg-white shadow-lg z-10">
+          <BranchSidebar branchId={branchId} />
+        </div>
+        
+        {/* المحتوى الرئيسي */}
+        <main className="flex-1 mr-64 overflow-y-auto">
+          {/* هيدر الصفحة */}
+          {title && (
+            <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-5">
+              <div className="flex items-center gap-3">
+                <Building className="h-6 w-6 text-green-600" />
+                <div>
+                  <h1 className="text-xl font-bold text-gray-900">{title}</h1>
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <span>الفرع:</span>
+                    <span className="font-medium text-green-700">{branch.name}</span>
+                    <span className="text-gray-400">({branch.code})</span>
+                  </div>
                 </div>
               </div>
             </div>
+          )}
+          
+          {/* محتوى الصفحة */}
+          <div className="p-6">
+            {children}
           </div>
-        )}
-        
-        {/* محتوى الصفحة */}
-        <div className="p-6">
-          {children}
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
