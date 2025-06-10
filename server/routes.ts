@@ -14,7 +14,8 @@ import {
   insertSalarySchema,
   insertProductCategorySchema,
   insertSupplierPaymentVoucherSchema,
-  insertClientReceiptVoucherSchema
+  insertClientReceiptVoucherSchema,
+  insertInventoryOpeningBalanceSchema
 } from "@shared/schema";
 import { uploadMiddleware, transcribeAudio } from "./voice";
 import { handleAIChat } from "./ai-chat";
@@ -1115,6 +1116,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting client receipt voucher:', error);
       res.status(500).json({ error: 'Failed to delete client receipt voucher' });
+    }
+  });
+
+  // Inventory Opening Balances routes
+  app.get('/api/inventory-opening-balances', async (req, res) => {
+    try {
+      const balances = await storage.getAllInventoryOpeningBalances();
+      res.json(balances);
+    } catch (error) {
+      console.error('Error fetching inventory opening balances:', error);
+      res.status(500).json({ error: 'Failed to fetch inventory opening balances' });
+    }
+  });
+
+  app.get('/api/inventory-opening-balances/product/:productId', async (req, res) => {
+    try {
+      const productId = parseInt(req.params.productId);
+      const balance = await storage.getInventoryOpeningBalanceByProductId(productId);
+      res.json(balance);
+    } catch (error) {
+      console.error('Error fetching inventory opening balance:', error);
+      res.status(500).json({ error: 'Failed to fetch inventory opening balance' });
+    }
+  });
+
+  app.post('/api/inventory-opening-balances', async (req, res) => {
+    try {
+      const validatedData = insertInventoryOpeningBalanceSchema.parse(req.body);
+      
+      // التحقق من وجود رصيد افتتاحي مسبق للمنتج
+      const existingBalance = await storage.getInventoryOpeningBalanceByProductId(validatedData.productId);
+      if (existingBalance) {
+        return res.status(400).json({ error: 'يوجد رصيد افتتاحي مسجل لهذا المنتج مسبقاً' });
+      }
+      
+      const balance = await storage.createInventoryOpeningBalance(validatedData);
+      res.status(201).json(balance);
+    } catch (error) {
+      console.error('Error creating inventory opening balance:', error);
+      res.status(500).json({ error: 'Failed to create inventory opening balance' });
+    }
+  });
+
+  app.put('/api/inventory-opening-balances/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertInventoryOpeningBalanceSchema.partial().parse(req.body);
+      
+      const balance = await storage.updateInventoryOpeningBalance(id, validatedData);
+      
+      if (!balance) {
+        return res.status(404).json({ error: 'Inventory opening balance not found' });
+      }
+      
+      res.json(balance);
+    } catch (error) {
+      console.error('Error updating inventory opening balance:', error);
+      res.status(500).json({ error: 'Failed to update inventory opening balance' });
+    }
+  });
+
+  app.delete('/api/inventory-opening-balances/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      const success = await storage.deleteInventoryOpeningBalance(id);
+      if (!success) {
+        return res.status(404).json({ error: 'Inventory opening balance not found' });
+      }
+      
+      res.json({ message: 'Inventory opening balance deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting inventory opening balance:', error);
+      res.status(500).json({ error: 'Failed to delete inventory opening balance' });
     }
   });
 

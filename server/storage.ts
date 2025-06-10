@@ -1,5 +1,5 @@
 import { 
-  users, suppliers, clients, products, sales, purchases, employees, deductions, salaries, productCategories, quotes, salesReturns, purchaseReturns, supplierPaymentVouchers, clientReceiptVouchers,
+  users, suppliers, clients, products, sales, purchases, employees, deductions, salaries, productCategories, quotes, salesReturns, purchaseReturns, supplierPaymentVouchers, clientReceiptVouchers, inventoryOpeningBalances,
   type User, type InsertUser,
   type Supplier, type InsertSupplier,
   type Client, type InsertClient,
@@ -14,7 +14,8 @@ import {
   type SalesReturn, type InsertSalesReturn,
   type PurchaseReturn, type InsertPurchaseReturn,
   type SupplierPaymentVoucher, type InsertSupplierPaymentVoucher,
-  type ClientReceiptVoucher, type InsertClientReceiptVoucher
+  type ClientReceiptVoucher, type InsertClientReceiptVoucher,
+  type InventoryOpeningBalance, type InsertInventoryOpeningBalance
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql, desc } from "drizzle-orm";
@@ -121,6 +122,14 @@ export interface IStorage {
   createClientReceiptVoucher(voucher: InsertClientReceiptVoucher): Promise<ClientReceiptVoucher>;
   updateClientReceiptVoucher(id: number, voucher: Partial<InsertClientReceiptVoucher>): Promise<ClientReceiptVoucher | undefined>;
   deleteClientReceiptVoucher(id: number): Promise<boolean>;
+
+  // Inventory Opening Balances
+  getInventoryOpeningBalance(id: number): Promise<InventoryOpeningBalance | undefined>;
+  getAllInventoryOpeningBalances(): Promise<InventoryOpeningBalance[]>;
+  getInventoryOpeningBalanceByProductId(productId: number): Promise<InventoryOpeningBalance | undefined>;
+  createInventoryOpeningBalance(balance: InsertInventoryOpeningBalance): Promise<InventoryOpeningBalance>;
+  updateInventoryOpeningBalance(id: number, balance: Partial<InsertInventoryOpeningBalance>): Promise<InventoryOpeningBalance | undefined>;
+  deleteInventoryOpeningBalance(id: number): Promise<boolean>;
 
   // Dashboard stats
   getDashboardStats(): Promise<{
@@ -621,6 +630,43 @@ export class DatabaseStorage implements IStorage {
 
   async deleteClientReceiptVoucher(id: number): Promise<boolean> {
     const result = await db.delete(clientReceiptVouchers).where(eq(clientReceiptVouchers.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  // Inventory Opening Balances
+  async getInventoryOpeningBalance(id: number): Promise<InventoryOpeningBalance | undefined> {
+    const [balance] = await db.select().from(inventoryOpeningBalances).where(eq(inventoryOpeningBalances.id, id));
+    return balance || undefined;
+  }
+
+  async getAllInventoryOpeningBalances(): Promise<InventoryOpeningBalance[]> {
+    return await db.select().from(inventoryOpeningBalances).orderBy(desc(inventoryOpeningBalances.createdAt));
+  }
+
+  async getInventoryOpeningBalanceByProductId(productId: number): Promise<InventoryOpeningBalance | undefined> {
+    const [balance] = await db.select().from(inventoryOpeningBalances).where(eq(inventoryOpeningBalances.productId, productId));
+    return balance || undefined;
+  }
+
+  async createInventoryOpeningBalance(insertBalance: InsertInventoryOpeningBalance): Promise<InventoryOpeningBalance> {
+    const [balance] = await db
+      .insert(inventoryOpeningBalances)
+      .values(insertBalance)
+      .returning();
+    return balance;
+  }
+
+  async updateInventoryOpeningBalance(id: number, updateData: Partial<InsertInventoryOpeningBalance>): Promise<InventoryOpeningBalance | undefined> {
+    const [balance] = await db
+      .update(inventoryOpeningBalances)
+      .set(updateData)
+      .where(eq(inventoryOpeningBalances.id, id))
+      .returning();
+    return balance || undefined;
+  }
+
+  async deleteInventoryOpeningBalance(id: number): Promise<boolean> {
+    const result = await db.delete(inventoryOpeningBalances).where(eq(inventoryOpeningBalances.id, id));
     return result.rowCount ? result.rowCount > 0 : false;
   }
 }
