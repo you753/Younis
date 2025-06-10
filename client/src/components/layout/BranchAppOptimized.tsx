@@ -391,7 +391,7 @@ const OptimizedSidebar = memo(({ branchId, isOpen, onToggle }: { branchId: numbe
   const isActive = useCallback((href: string) => location === href, [location]);
 
   return (
-    <div className={`fixed inset-y-0 left-0 z-50 w-80 bg-gradient-to-b from-blue-900 to-blue-800 text-white transform transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+    <div className={`fixed inset-y-0 right-0 z-50 w-80 bg-gradient-to-b from-blue-900 to-blue-800 text-white transform transition-transform duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
       <div className="p-6 border-b border-blue-700">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -504,7 +504,7 @@ export default function BranchAppOptimized({ branchId }: BranchAppProps) {
     <div className="min-h-screen bg-gray-50 relative">
       <OptimizedSidebar branchId={branchId} isOpen={sidebarOpen} onToggle={toggleSidebar} />
       
-      <div className={`transition-all duration-300 ${sidebarOpen ? 'mr-80' : ''}`}>
+      <div className={`transition-all duration-300 ${sidebarOpen ? 'ml-80' : ''}`}>
         <header className="bg-white shadow-sm border-b px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
