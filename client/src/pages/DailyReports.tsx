@@ -98,6 +98,11 @@ export default function DailyReports() {
   const formatCurrency = (amount: number) => 
     amount.toLocaleString('ar-SA', { style: 'currency', currency: 'SAR' });
 
+  const getUniquePaymentMethods = (vouchers: any[]) => {
+    const methods = vouchers.map(v => v.paymentMethod);
+    return methods.filter((method, index) => methods.indexOf(method) === index);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -239,7 +244,7 @@ export default function DailyReports() {
                           <TableCell>{vouchers.length}</TableCell>
                           <TableCell>
                             <div className="flex flex-wrap gap-1">
-                              {[...new Set(vouchers.map(v => v.paymentMethod))].map(method => (
+                              {getUniquePaymentMethods(vouchers).map(method => (
                                 <Badge key={method} variant="outline" className="text-xs">
                                   {getPaymentMethodLabel(method)}
                                 </Badge>
@@ -336,7 +341,7 @@ export default function DailyReports() {
                           <TableCell>{vouchers.length}</TableCell>
                           <TableCell>
                             <div className="flex flex-wrap gap-1">
-                              {[...new Set(vouchers.map(v => v.paymentMethod))].map(method => (
+                              {getUniquePaymentMethods(vouchers).map(method => (
                                 <Badge key={method} variant="outline" className="text-xs">
                                   {getPaymentMethodLabel(method)}
                                 </Badge>
