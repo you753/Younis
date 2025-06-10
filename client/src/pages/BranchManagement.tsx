@@ -137,7 +137,7 @@ export default function BranchManagement(props: any) {
 
                   <div className="pt-4">
                     <Button 
-                      onClick={() => setLocation(`/branch-management/${branch.id}`)}
+                      onClick={() => setLocation(`/branch/${branch.id}/dashboard`)}
                       className="w-full bg-green-600 hover:bg-green-700"
                     >
                       <ArrowRight className="ml-2 h-4 w-4" />
@@ -273,7 +273,7 @@ function BranchDashboard({ branch }: { branch: Branch }) {
             <h3 className="text-lg font-bold text-gray-900 mb-2">إدارة المنتجات</h3>
             <p className="text-gray-600 mb-4">مخزون الفرع والمنتجات الخاصة به</p>
             <Button 
-              onClick={() => setLocation(`/branch-products/${branch.id}`)}
+              onClick={() => setLocation(`/branch/${branch.id}/products`)}
               className="w-full"
             >
               إدارة المنتجات
@@ -290,7 +290,7 @@ function BranchDashboard({ branch }: { branch: Branch }) {
             <h3 className="text-lg font-bold text-gray-900 mb-2">إدارة المبيعات</h3>
             <p className="text-gray-600 mb-4">مبيعات الفرع وفواتير البيع</p>
             <Button 
-              onClick={() => setLocation(`/branch-sales/${branch.id}`)}
+              onClick={() => setLocation(`/branch/${branch.id}/sales`)}
               className="w-full bg-green-600 hover:bg-green-700"
             >
               إدارة المبيعات
@@ -307,7 +307,7 @@ function BranchDashboard({ branch }: { branch: Branch }) {
             <h3 className="text-lg font-bold text-gray-900 mb-2">إدارة العملاء</h3>
             <p className="text-gray-600 mb-4">عملاء الفرع وحساباتهم</p>
             <Button 
-              onClick={() => setLocation(`/branch-clients/${branch.id}`)}
+              onClick={() => setLocation(`/branch/${branch.id}/clients`)}
               className="w-full bg-purple-600 hover:bg-purple-700"
             >
               إدارة العملاء
@@ -324,7 +324,7 @@ function BranchDashboard({ branch }: { branch: Branch }) {
             <h3 className="text-lg font-bold text-gray-900 mb-2">تقارير الفرع</h3>
             <p className="text-gray-600 mb-4">تقارير مفصلة عن أداء الفرع</p>
             <Button 
-              onClick={() => setLocation(`/branch-reports/${branch.id}`)}
+              onClick={() => setLocation(`/branch/${branch.id}/reports`)}
               className="w-full bg-orange-600 hover:bg-orange-700"
             >
               عرض التقارير
@@ -341,7 +341,7 @@ function BranchDashboard({ branch }: { branch: Branch }) {
             <h3 className="text-lg font-bold text-gray-900 mb-2">إعدادات الفرع</h3>
             <p className="text-gray-600 mb-4">تخصيص إعدادات الفرع</p>
             <Button 
-              onClick={() => setLocation(`/branch-settings/${branch.id}`)}
+              onClick={() => setLocation(`/branch/${branch.id}/settings`)}
               variant="outline" 
               className="w-full"
             >
