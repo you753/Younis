@@ -36,6 +36,8 @@ import type { Branch } from '@shared/schema';
 import BranchSuppliers from '@/pages/branch/BranchSuppliers';
 import BranchSupplierAdd from '@/pages/branch/BranchSupplierAdd';
 import BranchSupplierCategories from '@/pages/branch/BranchSupplierCategories';
+import BranchSupplierEvaluation from '@/pages/branch/BranchSupplierEvaluation';
+import BranchSupplierPaymentVouchers from '@/pages/branch/BranchSupplierPaymentVouchers';
 import BranchPurchases from '@/pages/branch/BranchPurchases';
 import BranchInventory from '@/pages/branch/BranchInventory';
 import BranchEmployees from '@/pages/branch/BranchEmployees';
@@ -577,6 +579,8 @@ export default function BranchAppOptimized({ branchId }: BranchAppProps) {
             <Route path="/suppliers" component={() => <BranchSuppliers branchId={branchId} />} />
             <Route path="/suppliers/add" component={() => <BranchSupplierAdd branchId={branchId} />} />
             <Route path="/supplier-categories" component={() => <BranchSupplierCategories branchId={branchId} />} />
+            <Route path="/supplier-evaluation" component={() => <BranchSupplierEvaluation branchId={branchId} />} />
+            <Route path="/supplier-payment-vouchers" component={() => <BranchSupplierPaymentVouchers branchId={branchId} />} />
             <Route path="/purchases" component={() => <BranchPurchases branchId={branchId} />} />
             <Route path="/inventory" component={() => <BranchInventory branchId={branchId} />} />
             <Route path="/employees" component={() => <BranchEmployees branchId={branchId} />} />
