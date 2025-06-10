@@ -585,6 +585,44 @@ export class DatabaseStorage implements IStorage {
     const result = await db.delete(supplierPaymentVouchers).where(eq(supplierPaymentVouchers.id, id));
     return result.rowCount ? result.rowCount > 0 : false;
   }
+
+  // Client Receipt Vouchers
+  async getClientReceiptVoucher(id: number): Promise<ClientReceiptVoucher | undefined> {
+    const [voucher] = await db.select().from(clientReceiptVouchers).where(eq(clientReceiptVouchers.id, id));
+    return voucher || undefined;
+  }
+
+  async getAllClientReceiptVouchers(): Promise<ClientReceiptVoucher[]> {
+    return await db.select().from(clientReceiptVouchers).orderBy(desc(clientReceiptVouchers.createdAt));
+  }
+
+  async getClientReceiptVouchersByClientId(clientId: number): Promise<ClientReceiptVoucher[]> {
+    return await db.select().from(clientReceiptVouchers)
+      .where(eq(clientReceiptVouchers.clientId, clientId))
+      .orderBy(desc(clientReceiptVouchers.createdAt));
+  }
+
+  async createClientReceiptVoucher(insertVoucher: InsertClientReceiptVoucher): Promise<ClientReceiptVoucher> {
+    const [voucher] = await db
+      .insert(clientReceiptVouchers)
+      .values(insertVoucher)
+      .returning();
+    return voucher;
+  }
+
+  async updateClientReceiptVoucher(id: number, updateData: Partial<InsertClientReceiptVoucher>): Promise<ClientReceiptVoucher | undefined> {
+    const [voucher] = await db
+      .update(clientReceiptVouchers)
+      .set(updateData)
+      .where(eq(clientReceiptVouchers.id, id))
+      .returning();
+    return voucher || undefined;
+  }
+
+  async deleteClientReceiptVoucher(id: number): Promise<boolean> {
+    const result = await db.delete(clientReceiptVouchers).where(eq(clientReceiptVouchers.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
 }
 
 // Initialize database with sample data
