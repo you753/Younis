@@ -37,6 +37,7 @@ import BranchPurchases from '@/pages/branch/BranchPurchases';
 import BranchInventory from '@/pages/branch/BranchInventory';
 import BranchEmployees from '@/pages/branch/BranchEmployees';
 import BranchSettings from '@/pages/branch/BranchSettings';
+import BranchReports from '@/pages/branch/BranchReports';
 
 interface BranchAppProps {
   branchId: number;
@@ -334,13 +335,13 @@ export default function BranchApp({ branchId }: BranchAppProps) {
               <BranchInventory branchId={branchId} />
             </Route>
             <Route path="/reports">
-              <BranchReportsContent branchId={branchId} />
+              <BranchReports branchId={branchId} />
             </Route>
             <Route path="/employees">
-              <BranchEmployeesContent branchId={branchId} />
+              <BranchEmployees branchId={branchId} />
             </Route>
             <Route path="/settings">
-              <BranchSettingsContent branchId={branchId} />
+              <BranchSettings branchId={branchId} />
             </Route>
           </Router>
         </main>
