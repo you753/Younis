@@ -91,7 +91,10 @@ export default function BranchSupplierEvaluation({ branchId }: BranchSupplierEva
             <p className="text-gray-600">تقييم أداء موردي الفرع {branchId}</p>
           </div>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700">
+        <Button 
+          className="bg-blue-600 hover:bg-blue-700"
+          onClick={() => alert('سيتم إضافة وظيفة التقييم قريباً')}
+        >
           <Star className="h-4 w-4 mr-2" />
           إضافة تقييم جديد
         </Button>

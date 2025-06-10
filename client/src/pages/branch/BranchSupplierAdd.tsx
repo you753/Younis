@@ -42,10 +42,17 @@ export default function BranchSupplierAdd({ branchId }: BranchSupplierAddProps) 
 
   const createSupplierMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      return apiRequest('/api/suppliers', {
+      const response = await fetch('/api/suppliers', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify(data)
       });
+      if (!response.ok) {
+        throw new Error('Failed to create supplier');
+      }
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/suppliers'] });
