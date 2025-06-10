@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Route, Router } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
@@ -55,26 +55,24 @@ export default function BranchApp({ branchId }: BranchAppProps) {
   const [expandedItems, setExpandedItems] = useState<string[]>(['الموردين', 'العملاء', 'الأصناف', 'المشتريات', 'المبيعات', 'المخزون', 'الموظفين', 'التقارير']);
 
   const { data: branch } = useQuery<Branch>({
-    queryKey: [`/api/branches/${branchId}`]
+    queryKey: [`/api/branches/${branchId}`],
+    staleTime: 5 * 60 * 1000,
   });
 
-  const { data: stats } = useQuery({
-    queryKey: [`/api/branches/${branchId}/stats`],
-    queryFn: () => ({
-      totalProducts: 15,
-      totalSales: '25,480.00',
-      totalClients: 8,
-      inventoryValue: '45,200.00',
-      todaySales: '3,250.00',
-      monthlyGrowth: 12
-    })
-  });
+  const stats = useMemo(() => ({
+    totalProducts: 15,
+    totalSales: '25,480.00',
+    totalClients: 8,
+    inventoryValue: '45,200.00',
+    todaySales: '3,250.00',
+    monthlyGrowth: 12
+  }), []);
 
   const exitBranch = () => {
     setLocation('/branch-management');
   };
 
-  const toggleExpanded = (title: string) => {
+  const toggleExpanded = useCallback((title: string) => {
     setExpandedItems(prev => {
       if (prev.includes(title)) {
         return prev.filter(item => item !== title);
@@ -82,11 +80,9 @@ export default function BranchApp({ branchId }: BranchAppProps) {
         return [title];
       }
     });
-  };
+  }, []);
 
-
-
-  const navigationItems = [
+  const navigationItems = useMemo(() => [
     { title: 'لوحة التحكم', icon: Home, href: `/branch-app/${branchId}/dashboard` },
     { title: 'نظام إدارة منفصل', icon: Settings, href: `/branch-app/${branchId}/system` },
     { title: 'إدارة المستخدمين', icon: Users, href: `/branch-app/${branchId}/users` },
@@ -192,7 +188,7 @@ export default function BranchApp({ branchId }: BranchAppProps) {
         { title: 'الأمان والصلاحيات', icon: Settings, href: `/branch-app/${branchId}/settings/security` }
       ]
     }
-  ];
+  ], [branchId]);
 
   return (
     <div className="min-h-screen bg-gray-50" dir="rtl">
