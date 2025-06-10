@@ -1227,6 +1227,339 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Suppliers Excel Import
+  app.post('/api/suppliers/import-excel', excelUpload.single('excel'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'لا يوجد ملف Excel مرفق' });
+      }
+
+      const filePath = req.file.path;
+      
+      // قراءة ملف Excel
+      const workbook = XLSX.readFile(filePath);
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      
+      // تحويل البيانات إلى JSON
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+      
+      if (jsonData.length === 0) {
+        return res.status(400).json({ error: 'الملف فارغ أو لا يحتوي على بيانات صالحة' });
+      }
+
+      const results = {
+        total: jsonData.length,
+        success: 0,
+        failed: 0,
+        errors: [] as string[]
+      };
+
+      // معالجة كل صف في ملف Excel
+      for (let i = 0; i < jsonData.length; i++) {
+        const row = jsonData[i] as any;
+        
+        try {
+          // استخراج البيانات من الصف
+          const supplierData = {
+            name: row['اسم المورد'] || row['name'] || row['Name'] || row['المورد'],
+            phone: row['الهاتف'] || row['phone'] || row['Phone'] || row['رقم الهاتف'] || '',
+            email: row['البريد الإلكتروني'] || row['email'] || row['Email'] || '',
+            address: row['العنوان'] || row['address'] || row['Address'] || '',
+            taxNumber: row['الرقم الضريبي'] || row['taxNumber'] || row['Tax Number'] || '',
+            contactPerson: row['الشخص المسؤول'] || row['contactPerson'] || row['Contact Person'] || '',
+            notes: row['ملاحظات'] || row['notes'] || row['Notes'] || ''
+          };
+
+          // التحقق من البيانات المطلوبة
+          if (!supplierData.name) {
+            results.failed++;
+            (results.errors as string[]).push(`الصف ${i + 1}: اسم المورد مطلوب`);
+            continue;
+          }
+
+          // التحقق من عدم وجود مورد بنفس الاسم
+          const existingSuppliers = await storage.getAllSuppliers();
+          const duplicateName = existingSuppliers.find(s => s.name === supplierData.name);
+          
+          if (duplicateName) {
+            results.failed++;
+            (results.errors as string[]).push(`الصف ${i + 1}: المورد "${supplierData.name}" موجود مسبقاً`);
+            continue;
+          }
+
+          // إنشاء المورد
+          await storage.createSupplier(supplierData);
+          results.success++;
+          
+        } catch (error) {
+          results.failed++;
+          (results.errors as string[]).push(`الصف ${i + 1}: ${error instanceof Error ? error.message : 'خطأ غير معروف'}`);
+        }
+      }
+
+      // حذف الملف المؤقت
+      try {
+        fs.unlinkSync(filePath);
+      } catch (error) {
+        console.error('Error deleting temporary file:', error);
+      }
+
+      res.json({
+        message: `تم استيراد ${results.success} مورد من أصل ${results.total}`,
+        results
+      });
+
+    } catch (error) {
+      console.error('Error importing suppliers from Excel:', error);
+      
+      // حذف الملف المؤقت في حالة الخطأ
+      if (req.file) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (unlinkError) {
+          console.error('Error deleting temporary file after error:', unlinkError);
+        }
+      }
+      
+      res.status(500).json({ 
+        error: 'حدث خطأ أثناء استيراد الموردين من ملف Excel',
+        details: error instanceof Error ? error.message : 'خطأ غير معروف'
+      });
+    }
+  });
+
+  // Clients Excel Import
+  app.post('/api/clients/import-excel', excelUpload.single('excel'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'لا يوجد ملف Excel مرفق' });
+      }
+
+      const filePath = req.file.path;
+      
+      // قراءة ملف Excel
+      const workbook = XLSX.readFile(filePath);
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      
+      // تحويل البيانات إلى JSON
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+      
+      if (jsonData.length === 0) {
+        return res.status(400).json({ error: 'الملف فارغ أو لا يحتوي على بيانات صالحة' });
+      }
+
+      const results = {
+        total: jsonData.length,
+        success: 0,
+        failed: 0,
+        errors: [] as string[]
+      };
+
+      // معالجة كل صف في ملف Excel
+      for (let i = 0; i < jsonData.length; i++) {
+        const row = jsonData[i] as any;
+        
+        try {
+          // استخراج البيانات من الصف
+          const clientData = {
+            name: row['اسم العميل'] || row['name'] || row['Name'] || row['العميل'],
+            phone: row['الهاتف'] || row['phone'] || row['Phone'] || row['رقم الهاتف'] || '',
+            email: row['البريد الإلكتروني'] || row['email'] || row['Email'] || '',
+            address: row['العنوان'] || row['address'] || row['Address'] || '',
+            taxNumber: row['الرقم الضريبي'] || row['taxNumber'] || row['Tax Number'] || '',
+            notes: row['ملاحظات'] || row['notes'] || row['Notes'] || ''
+          };
+
+          // التحقق من البيانات المطلوبة
+          if (!clientData.name) {
+            results.failed++;
+            (results.errors as string[]).push(`الصف ${i + 1}: اسم العميل مطلوب`);
+            continue;
+          }
+
+          // التحقق من عدم وجود عميل بنفس الاسم
+          const existingClients = await storage.getAllClients();
+          const duplicateName = existingClients.find(c => c.name === clientData.name);
+          
+          if (duplicateName) {
+            results.failed++;
+            (results.errors as string[]).push(`الصف ${i + 1}: العميل "${clientData.name}" موجود مسبقاً`);
+            continue;
+          }
+
+          // إنشاء العميل
+          await storage.createClient(clientData);
+          results.success++;
+          
+        } catch (error) {
+          results.failed++;
+          (results.errors as string[]).push(`الصف ${i + 1}: ${error instanceof Error ? error.message : 'خطأ غير معروف'}`);
+        }
+      }
+
+      // حذف الملف المؤقت
+      try {
+        fs.unlinkSync(filePath);
+      } catch (error) {
+        console.error('Error deleting temporary file:', error);
+      }
+
+      res.json({
+        message: `تم استيراد ${results.success} عميل من أصل ${results.total}`,
+        results
+      });
+
+    } catch (error) {
+      console.error('Error importing clients from Excel:', error);
+      
+      // حذف الملف المؤقت في حالة الخطأ
+      if (req.file) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (unlinkError) {
+          console.error('Error deleting temporary file after error:', unlinkError);
+        }
+      }
+      
+      res.status(500).json({ 
+        error: 'حدث خطأ أثناء استيراد العملاء من ملف Excel',
+        details: error instanceof Error ? error.message : 'خطأ غير معروف'
+      });
+    }
+  });
+
+  // Inventory Opening Balances Excel Import
+  app.post('/api/inventory-opening-balances/import-excel', excelUpload.single('excel'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'لا يوجد ملف Excel مرفق' });
+      }
+
+      const filePath = req.file.path;
+      
+      // قراءة ملف Excel
+      const workbook = XLSX.readFile(filePath);
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      
+      // تحويل البيانات إلى JSON
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+      
+      if (jsonData.length === 0) {
+        return res.status(400).json({ error: 'الملف فارغ أو لا يحتوي على بيانات صالحة' });
+      }
+
+      const results = {
+        total: jsonData.length,
+        success: 0,
+        failed: 0,
+        errors: [] as string[]
+      };
+
+      // جلب جميع المنتجات لمطابقة الأكواد
+      const allProducts = await storage.getAllProducts();
+
+      // معالجة كل صف في ملف Excel
+      for (let i = 0; i < jsonData.length; i++) {
+        const row = jsonData[i] as any;
+        
+        try {
+          // استخراج البيانات من الصف
+          const balanceData = {
+            productCode: row['كود المنتج'] || row['productCode'] || row['Product Code'] || row['الكود'],
+            productName: row['اسم المنتج'] || row['productName'] || row['Product Name'] || row['المنتج'],
+            openingQuantity: row['الكمية الافتتاحية'] || row['openingQuantity'] || row['Opening Quantity'] || '0',
+            unitCost: row['تكلفة الوحدة'] || row['unitCost'] || row['Unit Cost'] || '0',
+            location: row['الموقع'] || row['location'] || row['Location'] || '',
+            notes: row['ملاحظات'] || row['notes'] || row['Notes'] || '',
+            dateRecorded: row['تاريخ التسجيل'] || row['dateRecorded'] || row['Date Recorded'] || new Date().toISOString().split('T')[0]
+          };
+
+          // التحقق من البيانات المطلوبة
+          if (!balanceData.productCode && !balanceData.productName) {
+            results.failed++;
+            (results.errors as string[]).push(`الصف ${i + 1}: كود المنتج أو اسم المنتج مطلوب`);
+            continue;
+          }
+
+          // البحث عن المنتج
+          let product = null;
+          if (balanceData.productCode) {
+            product = allProducts.find(p => p.code === balanceData.productCode);
+          } else if (balanceData.productName) {
+            product = allProducts.find(p => p.name === balanceData.productName);
+          }
+
+          if (!product) {
+            results.failed++;
+            (results.errors as string[]).push(`الصف ${i + 1}: المنتج غير موجود في النظام`);
+            continue;
+          }
+
+          // التحقق من عدم وجود رصيد افتتاحي مسبق للمنتج
+          const existingBalance = await storage.getInventoryOpeningBalanceByProductId(product.id);
+          if (existingBalance) {
+            results.failed++;
+            (results.errors as string[]).push(`الصف ${i + 1}: يوجد رصيد افتتاحي مسجل للمنتج "${product.name}" مسبقاً`);
+            continue;
+          }
+
+          // حساب القيمة الإجمالية
+          const openingValue = (parseFloat(balanceData.openingQuantity) * parseFloat(balanceData.unitCost)).toString();
+
+          const insertData = {
+            productId: product.id,
+            openingQuantity: balanceData.openingQuantity.toString(),
+            unitCost: balanceData.unitCost.toString(),
+            openingValue,
+            location: balanceData.location || '',
+            notes: balanceData.notes || '',
+            dateRecorded: balanceData.dateRecorded
+          };
+
+          // إنشاء الرصيد الافتتاحي
+          await storage.createInventoryOpeningBalance(insertData);
+          results.success++;
+          
+        } catch (error) {
+          results.failed++;
+          (results.errors as string[]).push(`الصف ${i + 1}: ${error instanceof Error ? error.message : 'خطأ غير معروف'}`);
+        }
+      }
+
+      // حذف الملف المؤقت
+      try {
+        fs.unlinkSync(filePath);
+      } catch (error) {
+        console.error('Error deleting temporary file:', error);
+      }
+
+      res.json({
+        message: `تم استيراد ${results.success} رصيد افتتاحي من أصل ${results.total}`,
+        results
+      });
+
+    } catch (error) {
+      console.error('Error importing inventory opening balances from Excel:', error);
+      
+      // حذف الملف المؤقت في حالة الخطأ
+      if (req.file) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (unlinkError) {
+          console.error('Error deleting temporary file after error:', unlinkError);
+        }
+      }
+      
+      res.status(500).json({ 
+        error: 'حدث خطأ أثناء استيراد الأرصدة الافتتاحية من ملف Excel',
+        details: error instanceof Error ? error.message : 'خطأ غير معروف'
+      });
+    }
+  });
+
   // Products Excel Import
   app.post('/api/products/import-excel', excelUpload.single('excel'), async (req, res) => {
     try {
