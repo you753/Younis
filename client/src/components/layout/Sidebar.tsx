@@ -39,7 +39,8 @@ const navigationItems: NavItem[] = [
       { title: 'قائمة العملاء', icon: UserCheck, href: '/clients' },
       { title: 'عملاء نقدي', icon: Users, href: '/cash-clients' },
       { title: 'مجموعات العملاء', icon: Users, href: '/client-groups' },
-      { title: 'حسابات العملاء', icon: FileText, href: '/client-accounts' }
+      { title: 'حسابات العملاء', icon: FileText, href: '/client-accounts' },
+      { title: 'سندات القبض', icon: FileText, href: '/client-receipt-vouchers' }
     ]
   },
   { 
@@ -100,6 +101,7 @@ const navigationItems: NavItem[] = [
     title: 'التقارير', 
     icon: BarChart3,
     children: [
+      { title: 'التقارير اليومية', icon: FileText, href: '/daily-reports' },
       { title: 'تقارير المبيعات', icon: BarChart3, href: '/reports/sales' },
       { title: 'تقارير المشتريات', icon: ShoppingCart, href: '/reports/purchases' },
       { title: 'تقارير المخزون', icon: Warehouse, href: '/reports/inventory' },
