@@ -21,6 +21,7 @@ import { uploadMiddleware, transcribeAudio } from "./voice";
 import { handleAIChat } from "./ai-chat";
 import multer from 'multer';
 import path from 'path';
+import * as XLSX from 'xlsx';
 
 // تمديد نوع Request لإضافة الجلسة
 interface AuthenticatedRequest extends Request {
@@ -59,6 +60,39 @@ const avatarUpload = multer({
       return cb(null, true);
     } else {
       cb(new Error('يُسمح فقط بملفات الصور (JPEG, JPG, PNG, GIF)'));
+    }
+  }
+});
+
+// إعداد رفع ملفات Excel
+const excelStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadsDir = path.join(process.cwd(), 'uploads', 'excel');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'products-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const excelUpload = multer({
+  storage: excelStorage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+      'application/vnd.ms-excel', // .xls
+      'text/csv' // .csv
+    ];
+    
+    if (allowedTypes.includes(file.mimetype) || file.originalname.match(/\.(xlsx|xls|csv)$/i)) {
+      return cb(null, true);
+    } else {
+      cb(new Error('يُسمح فقط بملفات Excel (.xlsx, .xls) أو CSV'));
     }
   }
 });
@@ -1190,6 +1224,125 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting inventory opening balance:', error);
       res.status(500).json({ error: 'Failed to delete inventory opening balance' });
+    }
+  });
+
+  // Products Excel Import
+  app.post('/api/products/import-excel', excelUpload.single('excel'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'لا يوجد ملف Excel مرفق' });
+      }
+
+      const filePath = req.file.path;
+      
+      // قراءة ملف Excel
+      const workbook = XLSX.readFile(filePath);
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      
+      // تحويل البيانات إلى JSON
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+      
+      if (jsonData.length === 0) {
+        return res.status(400).json({ error: 'الملف فارغ أو لا يحتوي على بيانات صالحة' });
+      }
+
+      const results = {
+        total: jsonData.length,
+        success: 0,
+        failed: 0,
+        errors: []
+      };
+
+      // معالجة كل صف في ملف Excel
+      for (let i = 0; i < jsonData.length; i++) {
+        const row = jsonData[i] as any;
+        
+        try {
+          // استخراج البيانات من الصف (يدعم أسماء الأعمدة بالعربي والإنجليزي)
+          const productData = {
+            name: row['اسم المنتج'] || row['name'] || row['Name'] || row['اسم الصنف'] || row['المنتج'],
+            code: row['الكود'] || row['code'] || row['Code'] || row['رقم الصنف'] || row['كود المنتج'],
+            barcode: row['الباركود'] || row['barcode'] || row['Barcode'] || '',
+            description: row['الوصف'] || row['description'] || row['Description'] || '',
+            price: row['السعر'] || row['price'] || row['Price'] || row['سعر البيع'] || '0',
+            cost: row['التكلفة'] || row['cost'] || row['Cost'] || row['سعر التكلفة'] || '0',
+            categoryId: row['فئة المنتج'] || row['category'] || row['Category'] || row['الفئة'] || null,
+            unit: row['الوحدة'] || row['unit'] || row['Unit'] || row['وحدة القياس'] || 'قطعة',
+            minStock: row['الحد الأدنى'] || row['minStock'] || row['Min Stock'] || row['الحد الأدنى للمخزون'] || '0',
+            maxStock: row['الحد الأقصى'] || row['maxStock'] || row['Max Stock'] || row['الحد الأقصى للمخزون'] || '0'
+          };
+
+          // التحقق من البيانات المطلوبة
+          if (!productData.name || !productData.code) {
+            results.failed++;
+            results.errors.push(`الصف ${i + 1}: اسم المنتج والكود مطلوبان`);
+            continue;
+          }
+
+          // التحقق من عدم وجود منتج بنفس الكود
+          const existingProduct = await storage.getAllProducts();
+          const duplicateCode = existingProduct.find(p => p.code === productData.code);
+          
+          if (duplicateCode) {
+            results.failed++;
+            results.errors.push(`الصف ${i + 1}: كود المنتج "${productData.code}" موجود مسبقاً`);
+            continue;
+          }
+
+          // تحويل الأرقام إلى نص
+          const insertData = {
+            name: productData.name.toString(),
+            code: productData.code.toString(),
+            barcode: productData.barcode?.toString() || '',
+            description: productData.description?.toString() || '',
+            price: productData.price.toString(),
+            cost: productData.cost.toString(),
+            categoryId: productData.categoryId ? parseInt(productData.categoryId.toString()) : null,
+            unit: productData.unit?.toString() || 'قطعة',
+            minStock: productData.minStock.toString(),
+            maxStock: productData.maxStock.toString()
+          };
+
+          // إنشاء المنتج
+          await storage.createProduct(insertData);
+          results.success++;
+          
+        } catch (error) {
+          results.failed++;
+          results.errors.push(`الصف ${i + 1}: ${error instanceof Error ? error.message : 'خطأ غير معروف'}`);
+        }
+      }
+
+      // حذف الملف المؤقت
+      try {
+        fs.unlinkSync(filePath);
+      } catch (error) {
+        console.error('Error deleting temporary file:', error);
+      }
+
+      res.json({
+        message: `تم استيراد ${results.success} منتج من أصل ${results.total}`,
+        results
+      });
+
+    } catch (error) {
+      console.error('Error importing products from Excel:', error);
+      
+      // حذف الملف المؤقت في حالة الخطأ
+      if (req.file) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (unlinkError) {
+          console.error('Error deleting temporary file after error:', unlinkError);
+        }
+      }
+      
+      res.status(500).json({ 
+        error: 'حدث خطأ أثناء استيراد الأصناف من ملف Excel',
+        details: error instanceof Error ? error.message : 'خطأ غير معروف'
+      });
     }
   });
 
