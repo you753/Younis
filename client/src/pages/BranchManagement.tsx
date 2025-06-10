@@ -137,7 +137,7 @@ export default function BranchManagement(props: any) {
 
                   <div className="pt-4">
                     <Button 
-                      onClick={() => setLocation(`/branch/${branch.id}/dashboard`)}
+                      onClick={() => setLocation(`/branch-app/${branch.id}/`)}
                       className="w-full bg-green-600 hover:bg-green-700"
                     >
                       <ArrowRight className="ml-2 h-4 w-4" />
