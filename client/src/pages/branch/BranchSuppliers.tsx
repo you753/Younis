@@ -67,7 +67,10 @@ export default function BranchSuppliers({ branchId }: BranchSuppliersProps) {
             <p className="text-gray-600">إدارة موردي الفرع {branchId}</p>
           </div>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700">
+        <Button 
+          className="bg-blue-600 hover:bg-blue-700"
+          onClick={() => window.location.href = `/branch-app/${branchId}/suppliers/add`}
+        >
           <Plus className="h-4 w-4 mr-2" />
           إضافة مورد جديد
         </Button>
@@ -96,7 +99,10 @@ export default function BranchSuppliers({ branchId }: BranchSuppliersProps) {
               <Truck className="h-16 w-16 text-gray-300 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">لا توجد موردين</h3>
               <p className="text-gray-500 mb-6">لم يتم العثور على أي موردين مطابقين للبحث</p>
-              <Button className="bg-blue-600 hover:bg-blue-700">
+              <Button 
+                className="bg-blue-600 hover:bg-blue-700"
+                onClick={() => window.location.href = `/branch-app/${branchId}/suppliers/add`}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 إضافة أول مورد
               </Button>

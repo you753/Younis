@@ -40,7 +40,10 @@ export default function BranchSupplierCategories({ branchId }: BranchSupplierCat
             <p className="text-gray-600">إدارة فئات موردي الفرع {branchId}</p>
           </div>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700">
+        <Button 
+          className="bg-blue-600 hover:bg-blue-700"
+          onClick={() => alert('سيتم إضافة وظيفة إضافة فئة جديدة قريباً')}
+        >
           <Plus className="h-4 w-4 mr-2" />
           إضافة فئة جديدة
         </Button>

@@ -94,7 +94,10 @@ export default function BranchSupplierPaymentVouchers({ branchId }: BranchSuppli
             <p className="text-gray-600">إدارة سندات صرف موردي الفرع {branchId}</p>
           </div>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700">
+        <Button 
+          className="bg-blue-600 hover:bg-blue-700"
+          onClick={() => alert('سيتم إضافة وظيفة إنشاء سند صرف قريباً')}
+        >
           <Plus className="h-4 w-4 mr-2" />
           إضافة سند صرف جديد
         </Button>
@@ -156,7 +159,7 @@ export default function BranchSupplierPaymentVouchers({ branchId }: BranchSuppli
                           </div>
                           <div className="flex items-center gap-2 text-gray-600">
                             <DollarSign className="h-4 w-4" />
-                            <span>{voucher.amount.toFixed(2)} ر.س</span>
+                            <span>{(voucher.amount || 0).toFixed(2)} ر.س</span>
                           </div>
                           <div className="flex items-center gap-2 text-gray-600">
                             <Calendar className="h-4 w-4" />
