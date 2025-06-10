@@ -271,6 +271,23 @@ export const insertClientReceiptVoucherSchema = createInsertSchema(clientReceipt
   createdAt: true,
 });
 
+export const inventoryOpeningBalances = pgTable("inventory_opening_balances", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").references(() => products.id).notNull(),
+  openingQuantity: decimal("opening_quantity", { precision: 10, scale: 3 }).notNull().default("0"),
+  openingValue: decimal("opening_value", { precision: 10, scale: 2 }).notNull().default("0"),
+  unitCost: decimal("unit_cost", { precision: 10, scale: 2 }).notNull().default("0"),
+  location: text("location"), // موقع المخزن
+  notes: text("notes"),
+  dateRecorded: date("date_recorded").notNull().default(new Date().toISOString().split('T')[0]),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertInventoryOpeningBalanceSchema = createInsertSchema(inventoryOpeningBalances).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -316,3 +333,6 @@ export type InsertSupplierPaymentVoucher = z.infer<typeof insertSupplierPaymentV
 
 export type ClientReceiptVoucher = typeof clientReceiptVouchers.$inferSelect;
 export type InsertClientReceiptVoucher = z.infer<typeof insertClientReceiptVoucherSchema>;
+
+export type InventoryOpeningBalance = typeof inventoryOpeningBalances.$inferSelect;
+export type InsertInventoryOpeningBalance = z.infer<typeof insertInventoryOpeningBalanceSchema>;
