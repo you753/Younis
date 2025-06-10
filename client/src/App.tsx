@@ -45,6 +45,8 @@ import Branches from "@/pages/Branches";
 import BranchManagement from "@/pages/BranchManagement";
 import BranchDashboard from "@/pages/branch/BranchDashboard";
 import BranchProducts from "@/pages/branch/BranchProducts";
+import BranchSales from "@/pages/branch/BranchSales";
+import BranchClients from "@/pages/branch/BranchClients";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -131,6 +133,8 @@ function Router() {
         {/* نظام الفروع المنفصل */}
         <Route path="/branch/:branchId/dashboard" component={BranchDashboard} />
         <Route path="/branch/:branchId/products" component={BranchProducts} />
+        <Route path="/branch/:branchId/sales" component={BranchSales} />
+        <Route path="/branch/:branchId/clients" component={BranchClients} />
         
         {/* الموظفين */}
         <Route path="/employees" component={Employees} />

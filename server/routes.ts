@@ -1760,6 +1760,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Branch Stats API
+  app.get('/api/branches/:id/stats', async (req, res) => {
+    try {
+      const branchId = parseInt(req.params.id);
+      
+      // استرجاع إحصائيات الفرع
+      const stats = {
+        totalProducts: 0,
+        totalSales: '0.00',
+        totalClients: 0,
+        inventoryValue: '0.00',
+        todaySales: '0.00',
+        monthlyGrowth: 0
+      };
+      
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching branch stats:', error);
+      res.status(500).json({ error: 'Failed to fetch branch stats' });
+    }
+  });
+
   // Branches Excel Import
   app.post('/api/branches/import-excel', excelUpload.single('excel'), async (req, res) => {
     try {
