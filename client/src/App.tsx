@@ -38,6 +38,8 @@ import Deductions from "@/pages/Deductions";
 import Salaries from "@/pages/Salaries";
 import TaxCalculator from "@/pages/TaxCalculator";
 import Profile from "@/pages/Profile";
+import ClientReceiptVouchers from "@/pages/ClientReceiptVouchers";
+import DailyReports from "@/pages/DailyReports";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -82,6 +84,7 @@ function Router() {
         <Route path="/cash-clients" component={Clients} />
         <Route path="/client-groups" component={Clients} />
         <Route path="/client-accounts" component={Clients} />
+        <Route path="/client-receipt-vouchers" component={ClientReceiptVouchers} />
         <Route path="/products" component={Products} />
         <Route path="/products/add" component={Products} />
         <Route path="/products/edit/:id" component={Products} />
@@ -128,6 +131,7 @@ function Router() {
         <Route path="/reports/purchases" component={PurchasesReports} />
         <Route path="/reports/inventory" component={InventoryReports} />
         <Route path="/reports/financial" component={FinancialReports} />
+        <Route path="/daily-reports" component={DailyReports} />
         <Route path="/reports/clients" component={Reports} />
         <Route path="/reports/suppliers" component={Reports} />
         <Route path="/reports/employees" component={Reports} />
