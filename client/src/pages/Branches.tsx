@@ -27,7 +27,7 @@ const branchSchema = z.object({
   email: z.string().email('بريد إلكتروني غير صحيح').optional().or(z.literal('')),
   managerName: z.string().optional(),
   managerPhone: z.string().optional(),
-  openingDate: z.string().optional(),
+  openingDate: z.string().optional().or(z.literal('')),
   notes: z.string().optional(),
   isActive: z.boolean().default(true),
 });

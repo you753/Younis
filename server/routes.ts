@@ -1709,7 +1709,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/branches', async (req, res) => {
     try {
       const { insertBranchSchema } = await import('@shared/schema');
-      const validatedData = insertBranchSchema.parse(req.body);
+      const data = req.body;
+      
+      // تنظيف تاريخ الافتتاح
+      if (data.openingDate === '') {
+        data.openingDate = null;
+      }
+      
+      const validatedData = insertBranchSchema.parse(data);
       
       const branch = await storage.createBranch(validatedData);
       res.status(201).json(branch);
