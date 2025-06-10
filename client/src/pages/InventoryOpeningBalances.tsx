@@ -540,6 +540,26 @@ export default function InventoryOpeningBalances() {
           </Form>
         </DialogContent>
       </Dialog>
+
+      {/* Excel Import Dialog */}
+      <ExcelImportDialog
+        open={showImportDialog}
+        onOpenChange={setShowImportDialog}
+        title="استيراد الأرصدة الافتتاحية من Excel"
+        instructions="يرجى التأكد من أن ملف Excel يحتوي على الأعمدة التالية: رمز المنتج أو اسم المنتج، الكمية الافتتاحية، تكلفة الوحدة، الموقع، ملاحظات، تاريخ التسجيل"
+        apiEndpoint="/api/inventory-opening-balances/import-excel"
+        templateData={[{
+          'رمز المنتج': 'PRD001',
+          'اسم المنتج': 'منتج تجريبي',
+          'الكمية الافتتاحية': '100',
+          'تكلفة الوحدة': '25.50',
+          'الموقع': 'المستودع الرئيسي',
+          'ملاحظات': 'رصيد افتتاحي',
+          'تاريخ التسجيل': new Date().toISOString().split('T')[0]
+        }]}
+        templateName="نموذج_استيراد_الأرصدة_الافتتاحية.xlsx"
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['/api/inventory-opening-balances'] })}
+      />
     </div>
   );
 }
