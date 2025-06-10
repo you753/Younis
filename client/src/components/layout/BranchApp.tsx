@@ -30,7 +30,8 @@ import {
   Plus,
   Percent,
   Minus,
-  AlertTriangle
+  AlertTriangle,
+  Monitor
 } from 'lucide-react';
 import type { Branch } from '@shared/schema';
 import BranchSuppliers from '@/pages/branch/BranchSuppliers';
@@ -42,6 +43,7 @@ import BranchReports from '@/pages/branch/BranchReports';
 import BranchUsers from '@/pages/branch/BranchUsers';
 import BranchAccounts from '@/pages/branch/BranchAccounts';
 import BranchProductCategories from '@/pages/branch/BranchProductCategories';
+import BranchSystem from '@/pages/branch/BranchSystem';
 
 interface BranchAppProps {
   branchId: number;
@@ -84,6 +86,7 @@ export default function BranchApp({ branchId }: BranchAppProps) {
 
   const navigationItems = [
     { title: 'لوحة التحكم', icon: Home, href: '/dashboard' },
+    { title: 'نظام إدارة منفصل', icon: Settings, href: '/system' },
     { title: 'إدارة المستخدمين', icon: Users, href: '/users' },
     { 
       title: 'الموردين', 
@@ -358,6 +361,9 @@ export default function BranchApp({ branchId }: BranchAppProps) {
             </Route>
             <Route path="/product-categories">
               <BranchProductCategories branchId={branchId} />
+            </Route>
+            <Route path="/system">
+              <BranchSystem branchId={branchId} />
             </Route>
           </Router>
         </main>
