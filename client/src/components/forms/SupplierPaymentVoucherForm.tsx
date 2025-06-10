@@ -79,11 +79,18 @@ export default function SupplierPaymentVoucherForm({
     queryKey: ['/api/suppliers']
   });
 
+  // توليد رقم سند فريد
+  const generateVoucherNumber = () => {
+    const timestamp = Date.now();
+    const random = Math.floor(Math.random() * 1000);
+    return `SPV-${timestamp}-${random}`;
+  };
+
   const form = useForm<PaymentVoucherForm>({
     resolver: zodResolver(paymentVoucherSchema),
     defaultValues: {
       supplierId: supplierId || editingVoucher?.supplierId || 0,
-      voucherNumber: editingVoucher?.voucherNumber || '',
+      voucherNumber: editingVoucher?.voucherNumber || generateVoucherNumber(),
       amount: editingVoucher?.amount || '',
       paymentMethod: editingVoucher?.paymentMethod as any || 'cash',
       paymentDate: editingVoucher?.paymentDate || new Date().toISOString().split('T')[0],
@@ -211,9 +218,19 @@ export default function SupplierPaymentVoucherForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>رقم السند</FormLabel>
-                    <FormControl>
-                      <Input placeholder="أدخل رقم السند" {...field} />
-                    </FormControl>
+                    <div className="flex gap-2">
+                      <FormControl>
+                        <Input placeholder="أدخل رقم السند" {...field} />
+                      </FormControl>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => field.onChange(generateVoucherNumber())}
+                      >
+                        توليد رقم جديد
+                      </Button>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
