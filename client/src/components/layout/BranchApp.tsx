@@ -271,7 +271,7 @@ export default function BranchApp({ branchId }: BranchAppProps) {
                               key={child.title}
                               variant="ghost"
                               className={`w-full justify-start p-2 text-sm ${isChildActive ? 'bg-blue-50 text-blue-700' : 'text-gray-600'} hover:bg-gray-100`}
-                              onClick={() => setLocation(child.href)}
+                              onClick={() => window.location.href = child.href}
                             >
                               <ChildIcon className="h-3 w-3" />
                               <span className="mr-2">{child.title}</span>
@@ -288,7 +288,7 @@ export default function BranchApp({ branchId }: BranchAppProps) {
                     key={item.title}
                     variant="ghost"
                     className={`w-full ${sidebarOpen ? 'justify-start' : 'justify-center'} p-3 mb-1 ${isActive ? 'bg-blue-50 text-blue-700' : 'text-gray-700'} hover:bg-gray-100`}
-                    onClick={() => setLocation(item.href!)}
+                    onClick={() => window.location.href = item.href!}
                   >
                     <Icon className="h-4 w-4" />
                     {sidebarOpen && <span className="mr-3">{item.title}</span>}
