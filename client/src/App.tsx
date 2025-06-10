@@ -42,6 +42,7 @@ import ClientReceiptVouchers from "@/pages/ClientReceiptVouchers";
 import DailyReports from "@/pages/DailyReports";
 import InventoryOpeningBalances from "@/pages/InventoryOpeningBalances";
 import Branches from "@/pages/Branches";
+import BranchManagement from "@/pages/BranchManagement";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -122,6 +123,8 @@ function Router() {
         
         {/* الفروع */}
         <Route path="/branches" component={Branches} />
+        <Route path="/branch-management" component={BranchManagement} />
+        <Route path="/branch-management/:branchId" component={BranchManagement} />
         
         {/* الموظفين */}
         <Route path="/employees" component={Employees} />

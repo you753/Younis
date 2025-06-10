@@ -88,8 +88,11 @@ const navigationItems: NavItem[] = [
   },
   { 
     title: 'الفروع', 
-    icon: Building, 
-    href: '/branches' 
+    icon: Building,
+    children: [
+      { title: 'إدارة الفروع', icon: Building, href: '/branches' },
+      { title: 'نظام الفروع المنفصل', icon: Building, href: '/branch-management' }
+    ]
   },
   { 
     title: 'الموظفين', 
