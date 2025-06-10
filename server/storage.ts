@@ -1,5 +1,5 @@
 import { 
-  users, suppliers, clients, products, sales, purchases, employees, deductions, salaries, productCategories, quotes, salesReturns, purchaseReturns, supplierPaymentVouchers,
+  users, suppliers, clients, products, sales, purchases, employees, deductions, salaries, productCategories, quotes, salesReturns, purchaseReturns, supplierPaymentVouchers, clientReceiptVouchers,
   type User, type InsertUser,
   type Supplier, type InsertSupplier,
   type Client, type InsertClient,
@@ -13,7 +13,8 @@ import {
   type Quote, type InsertQuote,
   type SalesReturn, type InsertSalesReturn,
   type PurchaseReturn, type InsertPurchaseReturn,
-  type SupplierPaymentVoucher, type InsertSupplierPaymentVoucher
+  type SupplierPaymentVoucher, type InsertSupplierPaymentVoucher,
+  type ClientReceiptVoucher, type InsertClientReceiptVoucher
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql, desc } from "drizzle-orm";
@@ -112,6 +113,14 @@ export interface IStorage {
   createSupplierPaymentVoucher(voucher: InsertSupplierPaymentVoucher): Promise<SupplierPaymentVoucher>;
   updateSupplierPaymentVoucher(id: number, voucher: Partial<InsertSupplierPaymentVoucher>): Promise<SupplierPaymentVoucher | undefined>;
   deleteSupplierPaymentVoucher(id: number): Promise<boolean>;
+
+  // Client Receipt Vouchers
+  getClientReceiptVoucher(id: number): Promise<ClientReceiptVoucher | undefined>;
+  getAllClientReceiptVouchers(): Promise<ClientReceiptVoucher[]>;
+  getClientReceiptVouchersByClientId(clientId: number): Promise<ClientReceiptVoucher[]>;
+  createClientReceiptVoucher(voucher: InsertClientReceiptVoucher): Promise<ClientReceiptVoucher>;
+  updateClientReceiptVoucher(id: number, voucher: Partial<InsertClientReceiptVoucher>): Promise<ClientReceiptVoucher | undefined>;
+  deleteClientReceiptVoucher(id: number): Promise<boolean>;
 
   // Dashboard stats
   getDashboardStats(): Promise<{

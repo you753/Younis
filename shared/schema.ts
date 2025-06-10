@@ -253,6 +253,25 @@ export const insertSupplierPaymentVoucherSchema = createInsertSchema(supplierPay
   createdAt: true,
 });
 
+export const clientReceiptVouchers = pgTable("client_receipt_vouchers", {
+  id: serial("id").primaryKey(),
+  clientId: integer("client_id").references(() => clients.id).notNull(),
+  voucherNumber: text("voucher_number").unique().notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  paymentMethod: text("payment_method").notNull().default("cash"), // cash, bank_transfer, check, etc.
+  receiptDate: date("receipt_date").notNull(),
+  description: text("description"),
+  reference: text("reference"), // مرجع الاستلام (رقم الشيك، رقم التحويل، إلخ)
+  status: text("status").notNull().default("pending"), // pending, completed, cancelled
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertClientReceiptVoucherSchema = createInsertSchema(clientReceiptVouchers).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -295,3 +314,6 @@ export type InsertPurchaseReturn = z.infer<typeof insertPurchaseReturnSchema>;
 
 export type SupplierPaymentVoucher = typeof supplierPaymentVouchers.$inferSelect;
 export type InsertSupplierPaymentVoucher = z.infer<typeof insertSupplierPaymentVoucherSchema>;
+
+export type ClientReceiptVoucher = typeof clientReceiptVouchers.$inferSelect;
+export type InsertClientReceiptVoucher = z.infer<typeof insertClientReceiptVoucherSchema>;
