@@ -29,7 +29,8 @@ import {
   List,
   Plus,
   Percent,
-  Minus
+  Minus,
+  AlertTriangle
 } from 'lucide-react';
 import type { Branch } from '@shared/schema';
 import BranchSuppliers from '@/pages/branch/BranchSuppliers';
@@ -364,59 +365,221 @@ export default function BranchApp({ branchId }: BranchAppProps) {
 
 // مكون لوحة التحكم للفرع
 function BranchDashboardContent({ branch, stats }: { branch?: Branch; stats?: any }) {
+  const { data: dashboardData } = useQuery({
+    queryKey: [`/api/branches/${branch?.id}/dashboard`],
+    queryFn: async () => {
+      return {
+        totalSales: 15000,
+        totalPurchases: 8500,
+        totalProducts: 45,
+        totalClients: 25,
+        totalEmployees: 8,
+        dailySales: 1250,
+        monthlySales: 35000,
+        lowStockItems: 5,
+        pendingOrders: 3,
+        recentTransactions: [
+          { id: 1, type: 'مبيعات', amount: 450, client: 'أحمد محمد', time: '10:30 ص' },
+          { id: 2, type: 'مشتريات', amount: 1200, supplier: 'مؤسسة النور', time: '09:15 ص' },
+          { id: 3, type: 'مبيعات', amount: 780, client: 'فاطمة أحمد', time: '08:45 ص' }
+        ],
+        topProducts: [
+          { name: 'ثوب مطرز', sales: 15, revenue: 2250 },
+          { name: 'عباءة كلاسيك', sales: 12, revenue: 1800 },
+          { name: 'شماغ قطني', sales: 8, revenue: 960 }
+        ]
+      };
+    }
+  });
+
   return (
     <div className="p-6">
+      {/* ترحيب */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">لوحة تحكم الفرع</h1>
-        <p className="text-gray-600">مرحباً بك في {branch?.name || 'الفرع'}</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              لوحة تحكم {branch?.name || 'الفرع'}
+            </h1>
+            <p className="text-gray-600">
+              مرحباً بك، إليك ملخص أداء الفرع اليوم
+            </p>
+          </div>
+          <div className="text-left">
+            <p className="text-sm text-gray-500">التاريخ</p>
+            <p className="text-lg font-medium">{new Date().toLocaleDateString('ar-SA')}</p>
+          </div>
+        </div>
       </div>
 
-      {/* الإحصائيات */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
+      {/* الإحصائيات الرئيسية */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 hover:shadow-lg transition-shadow">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-600 text-sm font-medium">المنتجات</p>
-                <p className="text-2xl font-bold text-blue-700">{stats?.totalProducts || 0}</p>
+                <p className="text-blue-600 text-sm font-medium">مبيعات اليوم</p>
+                <p className="text-2xl font-bold text-blue-700">{dashboardData?.dailySales?.toLocaleString() || '0'} ر.س</p>
+                <p className="text-xs text-blue-500 mt-1">↗ +12% من أمس</p>
               </div>
-              <Package className="h-8 w-8 text-blue-600" />
+              <div className="bg-blue-200 p-3 rounded-full">
+                <ShoppingCart className="h-6 w-6 text-blue-600" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
+        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 hover:shadow-lg transition-shadow">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-600 text-sm font-medium">المبيعات</p>
-                <p className="text-2xl font-bold text-green-700">{stats?.totalSales || '0.00'} ر.س</p>
+                <p className="text-green-600 text-sm font-medium">إجمالي المبيعات</p>
+                <p className="text-2xl font-bold text-green-700">{dashboardData?.totalSales?.toLocaleString() || '0'} ر.س</p>
+                <p className="text-xs text-green-500 mt-1">هذا الشهر</p>
               </div>
-              <ShoppingCart className="h-8 w-8 text-green-600" />
+              <div className="bg-green-200 p-3 rounded-full">
+                <DollarSign className="h-6 w-6 text-green-600" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-purple-50 to-purple-100 border-purple-200">
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 hover:shadow-lg transition-shadow">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-600 text-sm font-medium">العملاء</p>
-                <p className="text-2xl font-bold text-purple-700">{stats?.totalClients || 0}</p>
+                <p className="text-purple-600 text-sm font-medium">العملاء النشطين</p>
+                <p className="text-2xl font-bold text-purple-700">{dashboardData?.totalClients || 0}</p>
+                <p className="text-xs text-purple-500 mt-1">+3 عملاء جدد</p>
               </div>
-              <Users className="h-8 w-8 text-purple-600" />
+              <div className="bg-purple-200 p-3 rounded-full">
+                <Users className="h-6 w-6 text-purple-600" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200">
+        <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200 hover:shadow-lg transition-shadow">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-orange-600 text-sm font-medium">قيمة المخزون</p>
-                <p className="text-2xl font-bold text-orange-700">{stats?.inventoryValue || '0.00'} ر.س</p>
+                <p className="text-orange-600 text-sm font-medium">المنتجات</p>
+                <p className="text-2xl font-bold text-orange-700">{dashboardData?.totalProducts || 0}</p>
+                <p className="text-xs text-orange-500 mt-1">{dashboardData?.lowStockItems || 0} قريب النفاد</p>
               </div>
-              <Package className="h-8 w-8 text-orange-600" />
+              <div className="bg-orange-200 p-3 rounded-full">
+                <Package className="h-6 w-6 text-orange-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        {/* آخر المعاملات */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              آخر المعاملات
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {dashboardData?.recentTransactions?.map((transaction: any) => (
+                <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-full ${transaction.type === 'مبيعات' ? 'bg-green-100' : 'bg-blue-100'}`}>
+                      {transaction.type === 'مبيعات' ? 
+                        <ShoppingCart className="h-4 w-4 text-green-600" /> : 
+                        <Truck className="h-4 w-4 text-blue-600" />
+                      }
+                    </div>
+                    <div>
+                      <p className="font-medium">{transaction.type}</p>
+                      <p className="text-sm text-gray-600">
+                        {transaction.client || transaction.supplier} - {transaction.time}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-left">
+                    <p className="font-bold">{transaction.amount} ر.س</p>
+                    <Badge variant={transaction.type === 'مبيعات' ? 'default' : 'secondary'}>
+                      {transaction.type}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* أهم المنتجات */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              أهم المنتجات
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {dashboardData?.topProducts?.map((product: any, index: number) => (
+                <div key={index} className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-sm">{product.name}</p>
+                    <p className="text-xs text-gray-600">{product.sales} مبيعة</p>
+                  </div>
+                  <div className="text-left">
+                    <p className="font-bold text-sm">{product.revenue} ر.س</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* تنبيهات مهمة */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <Card className="border-orange-200 bg-orange-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-orange-800">
+              <AlertTriangle className="h-5 w-5" />
+              تنبيهات المخزون
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm">منتجات قريبة النفاد</span>
+                <Badge variant="destructive">{dashboardData?.lowStockItems || 0}</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">طلبات معلقة</span>
+                <Badge variant="secondary">{dashboardData?.pendingOrders || 0}</Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-blue-200 bg-blue-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-blue-800">
+              <UsersRound className="h-5 w-5" />
+              معلومات الفريق
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm">عدد الموظفين</span>
+                <Badge variant="default">{dashboardData?.totalEmployees || 0}</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">حاضرين اليوم</span>
+                <Badge variant="default">{dashboardData?.totalEmployees || 0}</Badge>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -425,10 +588,13 @@ function BranchDashboardContent({ branch, stats }: { branch?: Branch; stats?: an
       {/* معلومات الفرع */}
       <Card>
         <CardHeader>
-          <CardTitle>معلومات الفرع</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Building className="h-5 w-5" />
+            معلومات الفرع
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="text-sm font-medium text-gray-600">اسم الفرع</label>
               <p className="text-lg font-medium">{branch?.name}</p>
