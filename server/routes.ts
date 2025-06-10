@@ -1679,6 +1679,185 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Branches routes
+  app.get('/api/branches', async (req, res) => {
+    try {
+      const branches = await storage.getAllBranches();
+      res.json(branches);
+    } catch (error) {
+      console.error('Error fetching branches:', error);
+      res.status(500).json({ error: 'Failed to fetch branches' });
+    }
+  });
+
+  app.get('/api/branches/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const branch = await storage.getBranch(id);
+      
+      if (!branch) {
+        return res.status(404).json({ error: 'Branch not found' });
+      }
+      
+      res.json(branch);
+    } catch (error) {
+      console.error('Error fetching branch:', error);
+      res.status(500).json({ error: 'Failed to fetch branch' });
+    }
+  });
+
+  app.post('/api/branches', async (req, res) => {
+    try {
+      const { insertBranchSchema } = await import('@shared/schema');
+      const validatedData = insertBranchSchema.parse(req.body);
+      
+      const branch = await storage.createBranch(validatedData);
+      res.status(201).json(branch);
+    } catch (error) {
+      console.error('Error creating branch:', error);
+      res.status(500).json({ error: 'Failed to create branch' });
+    }
+  });
+
+  app.put('/api/branches/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updateData = req.body;
+      
+      const branch = await storage.updateBranch(id, updateData);
+      
+      if (!branch) {
+        return res.status(404).json({ error: 'Branch not found' });
+      }
+      
+      res.json(branch);
+    } catch (error) {
+      console.error('Error updating branch:', error);
+      res.status(500).json({ error: 'Failed to update branch' });
+    }
+  });
+
+  app.delete('/api/branches/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteBranch(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: 'Branch not found' });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting branch:', error);
+      res.status(500).json({ error: 'Failed to delete branch' });
+    }
+  });
+
+  // Branches Excel Import
+  app.post('/api/branches/import-excel', excelUpload.single('excel'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'لا يوجد ملف Excel مرفق' });
+      }
+
+      const filePath = req.file.path;
+      
+      // قراءة ملف Excel
+      const workbook = XLSX.readFile(filePath);
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      
+      // تحويل البيانات إلى JSON
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+      
+      if (jsonData.length === 0) {
+        return res.status(400).json({ error: 'الملف فارغ أو لا يحتوي على بيانات صالحة' });
+      }
+
+      const results = {
+        total: jsonData.length,
+        success: 0,
+        failed: 0,
+        errors: [] as string[]
+      };
+
+      // معالجة كل صف في ملف Excel
+      for (let i = 0; i < jsonData.length; i++) {
+        const row = jsonData[i] as any;
+        
+        try {
+          // استخراج البيانات من الصف
+          const branchData = {
+            name: row['اسم الفرع'] || row['name'] || row['Name'],
+            code: row['كود الفرع'] || row['code'] || row['Code'],
+            address: row['العنوان'] || row['address'] || row['Address'] || '',
+            phone: row['الهاتف'] || row['phone'] || row['Phone'] || '',
+            email: row['البريد الإلكتروني'] || row['email'] || row['Email'] || '',
+            managerName: row['اسم المدير'] || row['managerName'] || row['Manager Name'] || '',
+            managerPhone: row['هاتف المدير'] || row['managerPhone'] || row['Manager Phone'] || '',
+            openingDate: row['تاريخ الافتتاح'] || row['openingDate'] || row['Opening Date'] || null,
+            notes: row['ملاحظات'] || row['notes'] || row['Notes'] || '',
+            isActive: row['نشط'] !== false && row['isActive'] !== false && row['Active'] !== false
+          };
+
+          // التحقق من البيانات المطلوبة
+          if (!branchData.name || !branchData.code) {
+            results.failed++;
+            (results.errors as string[]).push(`الصف ${i + 1}: اسم الفرع والكود مطلوبان`);
+            continue;
+          }
+
+          // التحقق من عدم وجود فرع بنفس الكود
+          const existingBranches = await storage.getAllBranches();
+          const duplicateCode = existingBranches.find(b => b.code === branchData.code);
+          
+          if (duplicateCode) {
+            results.failed++;
+            (results.errors as string[]).push(`الصف ${i + 1}: كود الفرع "${branchData.code}" موجود مسبقاً`);
+            continue;
+          }
+
+          // إنشاء الفرع
+          await storage.createBranch(branchData);
+          results.success++;
+          
+        } catch (error) {
+          results.failed++;
+          (results.errors as string[]).push(`الصف ${i + 1}: ${error instanceof Error ? error.message : 'خطأ غير معروف'}`);
+        }
+      }
+
+      // حذف الملف المؤقت
+      try {
+        fs.unlinkSync(filePath);
+      } catch (error) {
+        console.error('Error deleting temporary file:', error);
+      }
+
+      res.json({
+        message: `تم استيراد ${results.success} فرع من أصل ${results.total}`,
+        results
+      });
+
+    } catch (error) {
+      console.error('Error importing branches from Excel:', error);
+      
+      // حذف الملف المؤقت في حالة الخطأ
+      if (req.file) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (unlinkError) {
+          console.error('Error deleting temporary file after error:', unlinkError);
+        }
+      }
+      
+      res.status(500).json({ 
+        error: 'حدث خطأ أثناء استيراد الفروع من ملف Excel',
+        details: error instanceof Error ? error.message : 'خطأ غير معروف'
+      });
+    }
+  });
+
   // Voice Assistant - Audio transcription and analysis
   app.post("/api/voice/transcribe", uploadMiddleware, transcribeAudio);
 
