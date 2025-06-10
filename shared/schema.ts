@@ -66,6 +66,7 @@ export const products = pgTable("products", {
   salePrice: decimal("sale_price", { precision: 10, scale: 2 }),
   quantity: integer("quantity").default(0),
   minQuantity: integer("min_quantity").default(0),
+  branchId: integer("branch_id").references(() => branches.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -75,6 +76,7 @@ export const sales = pgTable("sales", {
   total: decimal("total", { precision: 10, scale: 2 }).notNull(),
   date: timestamp("date").defaultNow().notNull(),
   notes: text("notes"),
+  branchId: integer("branch_id").references(() => branches.id),
   items: json("items").$type<Array<{
     id: string;
     productId: number;
