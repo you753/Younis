@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Truck, 
-  Plus, 
   Search, 
+  Plus, 
+  Truck, 
   Phone, 
   Mail, 
   MapPin,
@@ -19,186 +19,145 @@ interface BranchSuppliersProps {
   branchId: number;
 }
 
+interface Supplier {
+  id: number;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  contactPerson: string | null;
+  taxNumber: string | null;
+  isActive: boolean;
+}
+
 export default function BranchSuppliers({ branchId }: BranchSuppliersProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const { data: suppliers = [], isLoading } = useQuery({
-    queryKey: [`/api/branches/${branchId}/suppliers`],
-    queryFn: async () => {
-      const response = await fetch('/api/suppliers');
-      if (!response.ok) throw new Error('فشل في جلب الموردين');
-      return response.json();
-    }
+  const { data: suppliers = [], isLoading } = useQuery<Supplier[]>({
+    queryKey: ['/api/suppliers'],
+    enabled: true
   });
 
-  const filteredSuppliers = suppliers.filter((supplier: any) =>
+  const filteredSuppliers = suppliers.filter(supplier =>
     supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    supplier.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    (supplier.phone && supplier.phone.includes(searchTerm)) ||
+    (supplier.email && supplier.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+          <div className="h-32 bg-gray-200 rounded"></div>
+          <div className="h-32 bg-gray-200 rounded"></div>
+          <div className="h-32 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">إدارة الموردين - الفرع {branchId}</h1>
-          <p className="text-gray-600">إدارة موردي هذا الفرع</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            تصدير Excel
-          </Button>
-          <Button className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="ml-2 h-4 w-4" />
-            إضافة مورد جديد
-          </Button>
-        </div>
-      </div>
-
-      {/* شريط البحث */}
-      <Card className="mb-6">
-        <CardContent className="p-4">
-          <div className="relative">
-            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="البحث في الموردين..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pr-10"
-            />
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Truck className="h-8 w-8 text-blue-600" />
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">قائمة الموردين</h1>
+            <p className="text-gray-600">إدارة موردي الفرع {branchId}</p>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* إحصائيات الموردين */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-blue-100 p-2 rounded-full">
-                <Truck className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">إجمالي الموردين</p>
-                <p className="text-xl font-bold">{suppliers.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-green-100 p-2 rounded-full">
-                <Truck className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">موردين نشطين</p>
-                <p className="text-xl font-bold text-green-600">
-                  {suppliers.filter((s: any) => s.isActive !== false).length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-orange-100 p-2 rounded-full">
-                <Truck className="h-5 w-5 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">موردين جدد</p>
-                <p className="text-xl font-bold text-orange-600">2</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-purple-100 p-2 rounded-full">
-                <Truck className="h-5 w-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">إجمالي المشتريات</p>
-                <p className="text-xl font-bold text-purple-600">45,200 ر.س</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        </div>
+        <Button className="bg-blue-600 hover:bg-blue-700">
+          <Plus className="h-4 w-4 mr-2" />
+          إضافة مورد جديد
+        </Button>
       </div>
 
-      {/* قائمة الموردين */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Truck className="h-5 w-5" />
-            قائمة الموردين - فرع {branchId}
-          </CardTitle>
+          <div className="flex items-center gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="البحث في الموردين..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pr-10"
+              />
+            </div>
+            <Badge variant="secondary" className="text-sm">
+              {filteredSuppliers.length} مورد
+            </Badge>
+          </div>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            </div>
-          ) : filteredSuppliers.length === 0 ? (
-            <div className="text-center py-8">
-              <Truck className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">لا توجد موردين في هذا الفرع</h3>
-              <p className="text-gray-500 mb-4">ابدأ بإضافة موردين خاصين بهذا الفرع</p>
-              <Button>
-                <Plus className="ml-2 h-4 w-4" />
-                إضافة مورد جديد
+          {filteredSuppliers.length === 0 ? (
+            <div className="text-center py-12">
+              <Truck className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">لا توجد موردين</h3>
+              <p className="text-gray-500 mb-6">لم يتم العثور على أي موردين مطابقين للبحث</p>
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="h-4 w-4 mr-2" />
+                إضافة أول مورد
               </Button>
             </div>
           ) : (
-            <div className="space-y-4">
-              {filteredSuppliers.map((supplier: any) => (
-                <div key={supplier.id} className="border rounded-lg p-4 hover:bg-gray-50">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="bg-blue-100 p-2 rounded-full">
-                        <Truck className="h-6 w-6 text-blue-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-gray-900">{supplier.name}</h3>
-                        <div className="flex items-center gap-4 mt-1 text-sm text-gray-600">
+            <div className="grid gap-4">
+              {filteredSuppliers.map((supplier) => (
+                <Card key={supplier.id} className="border border-gray-200 hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <Truck className="h-5 w-5 text-blue-600" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-gray-900">{supplier.name}</h3>
+                            <div className="flex items-center gap-2">
+                              <Badge 
+                                variant={supplier.isActive ? "default" : "secondary"}
+                                className={supplier.isActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"}
+                              >
+                                {supplier.isActive ? 'نشط' : 'غير نشط'}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                           {supplier.phone && (
-                            <div className="flex items-center gap-1">
-                              <Phone className="h-3 w-3" />
+                            <div className="flex items-center gap-2 text-gray-600">
+                              <Phone className="h-4 w-4" />
                               <span>{supplier.phone}</span>
                             </div>
                           )}
                           {supplier.email && (
-                            <div className="flex items-center gap-1">
-                              <Mail className="h-3 w-3" />
+                            <div className="flex items-center gap-2 text-gray-600">
+                              <Mail className="h-4 w-4" />
                               <span>{supplier.email}</span>
                             </div>
                           )}
                           {supplier.address && (
-                            <div className="flex items-center gap-1">
-                              <MapPin className="h-3 w-3" />
+                            <div className="flex items-center gap-2 text-gray-600">
+                              <MapPin className="h-4 w-4" />
                               <span>{supplier.address}</span>
                             </div>
                           )}
                         </div>
                       </div>
+
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={supplier.isActive !== false ? "default" : "secondary"}>
-                        {supplier.isActive !== false ? "نشط" : "غير نشط"}
-                      </Badge>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}
