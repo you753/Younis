@@ -1252,7 +1252,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         total: jsonData.length,
         success: 0,
         failed: 0,
-        errors: []
+        errors: [] as string[]
       };
 
       // معالجة كل صف في ملف Excel
@@ -1277,7 +1277,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // التحقق من البيانات المطلوبة
           if (!productData.name || !productData.code) {
             results.failed++;
-            results.errors.push(`الصف ${i + 1}: اسم المنتج والكود مطلوبان`);
+            (results.errors as string[]).push(`الصف ${i + 1}: اسم المنتج والكود مطلوبان`);
             continue;
           }
 
