@@ -47,6 +47,7 @@ import BranchDashboard from "@/pages/branch/BranchDashboard";
 import BranchProducts from "@/pages/branch/BranchProducts";
 import BranchSales from "@/pages/branch/BranchSales";
 import BranchClients from "@/pages/branch/BranchClients";
+import BranchApp from "@/components/layout/BranchApp";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -130,7 +131,12 @@ function Router() {
         <Route path="/branch-management" component={BranchManagement} />
         <Route path="/branch-management/:branchId" component={BranchManagement} />
         
-        {/* نظام الفروع المنفصل */}
+        {/* التطبيق المنفصل للفرع */}
+        <Route path="/branch-app/:branchId/*" component={({ params }: any) => {
+          return <BranchApp branchId={parseInt(params.branchId)} />;
+        }} />
+        
+        {/* نظام الفروع المنفصل (النسخة القديمة) */}
         <Route path="/branch/:branchId/dashboard" component={BranchDashboard} />
         <Route path="/branch/:branchId/products" component={BranchProducts} />
         <Route path="/branch/:branchId/sales" component={BranchSales} />
