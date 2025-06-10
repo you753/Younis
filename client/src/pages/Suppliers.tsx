@@ -22,6 +22,7 @@ import { Plus, Users, Star, Edit, Trash2, Save, Building, Search, Upload, Downlo
 import * as XLSX from 'xlsx';
 import SearchBox from '@/components/SearchBox';
 import { OnboardingTrigger } from '@/components/onboarding/OnboardingTrigger';
+import ExcelImportDialog from '@/components/ExcelImportDialog';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -721,7 +722,17 @@ export default function Suppliers() {
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">إدارة الموردين</h2>
                 <p className="text-gray-600">إضافة وإدارة معلومات الموردين وحساباتهم</p>
               </div>
-              <OnboardingTrigger tourName="suppliers" />
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => setShowImportDialog(true)} 
+                  variant="outline" 
+                  className="text-green-600 hover:text-green-700 border-green-300 hover:bg-green-50"
+                >
+                  <Upload className="ml-2 h-4 w-4" />
+                  استيراد من Excel
+                </Button>
+                <OnboardingTrigger tourName="suppliers" />
+              </div>
             </div>
 
             {/* شريط البحث المحلي */}
@@ -823,6 +834,26 @@ export default function Suppliers() {
         }}
         supplierId={selectedSupplierId}
         editingVoucher={editingPaymentVoucher}
+      />
+
+      {/* Excel Import Dialog */}
+      <ExcelImportDialog
+        open={showImportDialog}
+        onOpenChange={setShowImportDialog}
+        title="استيراد الموردين من Excel"
+        instructions="يرجى التأكد من أن ملف Excel يحتوي على الأعمدة التالية: اسم المورد، الهاتف، البريد الإلكتروني، العنوان، الرقم الضريبي، الشخص المسؤول، ملاحظات"
+        apiEndpoint="/api/suppliers/import-excel"
+        templateData={[{
+          'اسم المورد': 'مورد تجريبي',
+          'الهاتف': '0501234567',
+          'البريد الإلكتروني': 'supplier@example.com',
+          'العنوان': 'الرياض، المملكة العربية السعودية',
+          'الرقم الضريبي': '123456789',
+          'الشخص المسؤول': 'أحمد محمد',
+          'ملاحظات': 'مورد موثوق'
+        }]}
+        templateName="نموذج_استيراد_الموردين.xlsx"
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['/api/suppliers'] })}
       />
     </div>
   );
