@@ -47,10 +47,10 @@ const QuickStats = ({ branchId }: { branchId: number }) => {
   });
 
   const stats = useMemo(() => ({
-    products: dashboardStats.totalProducts || 125,
-    sales: dashboardStats.totalSales || '45,250',
-    clients: dashboardStats.totalClients || 89,
-    inventory: dashboardStats.inventoryValue || '125,750'
+    products: (dashboardStats as any)?.totalProducts || 125,
+    sales: (dashboardStats as any)?.totalSales || '45,250',
+    clients: (dashboardStats as any)?.totalClients || 89,
+    inventory: (dashboardStats as any)?.inventoryValue || '125,750'
   }), [dashboardStats]);
 
   return (
