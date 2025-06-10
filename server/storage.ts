@@ -1,5 +1,5 @@
 import { 
-  users, suppliers, clients, products, sales, purchases, employees, deductions, salaries, productCategories, quotes, salesReturns, purchaseReturns, supplierPaymentVouchers, clientReceiptVouchers, inventoryOpeningBalances,
+  users, suppliers, clients, products, sales, purchases, employees, deductions, salaries, productCategories, quotes, salesReturns, purchaseReturns, supplierPaymentVouchers, clientReceiptVouchers, inventoryOpeningBalances, branches,
   type User, type InsertUser,
   type Supplier, type InsertSupplier,
   type Client, type InsertClient,
@@ -15,7 +15,8 @@ import {
   type PurchaseReturn, type InsertPurchaseReturn,
   type SupplierPaymentVoucher, type InsertSupplierPaymentVoucher,
   type ClientReceiptVoucher, type InsertClientReceiptVoucher,
-  type InventoryOpeningBalance, type InsertInventoryOpeningBalance
+  type InventoryOpeningBalance, type InsertInventoryOpeningBalance,
+  type Branch, type InsertBranch
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql, desc } from "drizzle-orm";
@@ -130,6 +131,13 @@ export interface IStorage {
   createInventoryOpeningBalance(balance: InsertInventoryOpeningBalance): Promise<InventoryOpeningBalance>;
   updateInventoryOpeningBalance(id: number, balance: Partial<InsertInventoryOpeningBalance>): Promise<InventoryOpeningBalance | undefined>;
   deleteInventoryOpeningBalance(id: number): Promise<boolean>;
+
+  // Branches
+  getBranch(id: number): Promise<Branch | undefined>;
+  getAllBranches(): Promise<Branch[]>;
+  createBranch(branch: InsertBranch): Promise<Branch>;
+  updateBranch(id: number, branch: Partial<InsertBranch>): Promise<Branch | undefined>;
+  deleteBranch(id: number): Promise<boolean>;
 
   // Dashboard stats
   getDashboardStats(): Promise<{
@@ -667,6 +675,35 @@ export class DatabaseStorage implements IStorage {
 
   async deleteInventoryOpeningBalance(id: number): Promise<boolean> {
     const result = await db.delete(inventoryOpeningBalances).where(eq(inventoryOpeningBalances.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  // Branches methods
+  async getBranch(id: number): Promise<Branch | undefined> {
+    const [branch] = await db.select().from(branches).where(eq(branches.id, id));
+    return branch || undefined;
+  }
+
+  async getAllBranches(): Promise<Branch[]> {
+    return await db.select().from(branches).orderBy(desc(branches.createdAt));
+  }
+
+  async createBranch(insertBranch: InsertBranch): Promise<Branch> {
+    const [branch] = await db.insert(branches).values(insertBranch).returning();
+    return branch;
+  }
+
+  async updateBranch(id: number, updateData: Partial<InsertBranch>): Promise<Branch | undefined> {
+    const [branch] = await db
+      .update(branches)
+      .set(updateData)
+      .where(eq(branches.id, id))
+      .returning();
+    return branch || undefined;
+  }
+
+  async deleteBranch(id: number): Promise<boolean> {
+    const result = await db.delete(branches).where(eq(branches.id, id));
     return result.rowCount ? result.rowCount > 0 : false;
   }
 }

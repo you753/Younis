@@ -40,6 +40,21 @@ export const clients = pgTable("clients", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const branches = pgTable("branches", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  code: text("code").notNull().unique(),
+  address: text("address"),
+  phone: text("phone"),
+  email: text("email"),
+  managerName: text("manager_name"),
+  managerPhone: text("manager_phone"),
+  isActive: boolean("is_active").default(true),
+  openingDate: date("opening_date"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
   name: text("name"),
@@ -336,3 +351,12 @@ export type InsertClientReceiptVoucher = z.infer<typeof insertClientReceiptVouch
 
 export type InventoryOpeningBalance = typeof inventoryOpeningBalances.$inferSelect;
 export type InsertInventoryOpeningBalance = z.infer<typeof insertInventoryOpeningBalanceSchema>;
+
+// Branch schemas
+export const insertBranchSchema = createInsertSchema(branches).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type Branch = typeof branches.$inferSelect;
+export type InsertBranch = z.infer<typeof insertBranchSchema>;
