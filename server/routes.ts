@@ -1287,7 +1287,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           if (duplicateCode) {
             results.failed++;
-            results.errors.push(`الصف ${i + 1}: كود المنتج "${productData.code}" موجود مسبقاً`);
+            (results.errors as string[]).push(`الصف ${i + 1}: كود المنتج "${productData.code}" موجود مسبقاً`);
             continue;
           }
 
@@ -1311,7 +1311,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
         } catch (error) {
           results.failed++;
-          results.errors.push(`الصف ${i + 1}: ${error instanceof Error ? error.message : 'خطأ غير معروف'}`);
+          (results.errors as string[]).push(`الصف ${i + 1}: ${error instanceof Error ? error.message : 'خطأ غير معروف'}`);
         }
       }
 
