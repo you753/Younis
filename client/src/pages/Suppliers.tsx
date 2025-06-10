@@ -16,7 +16,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Users, Star, Edit, Trash2, Save, Building, Search } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Plus, Users, Star, Edit, Trash2, Save, Building, Search, Upload, Download, FileSpreadsheet, CheckCircle, AlertCircle } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import SearchBox from '@/components/SearchBox';
 import { OnboardingTrigger } from '@/components/onboarding/OnboardingTrigger';
 import { useForm } from 'react-hook-form';
@@ -53,6 +56,11 @@ export default function Suppliers() {
   const [editingPaymentVoucher, setEditingPaymentVoucher] = useState<any>(null);
   const [selectedSupplierId, setSelectedSupplierId] = useState<number | undefined>();
   const [localSearchQuery, setLocalSearchQuery] = useState('');
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState(0);
+  const [importResults, setImportResults] = useState<any>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -161,6 +169,104 @@ export default function Suppliers() {
         });
       }
     }
+  };
+
+  // Excel Import Functions
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
+
+  const handleImportExcel = async () => {
+    if (!selectedFile) {
+      toast({
+        title: "خطأ",
+        description: "يرجى اختيار ملف Excel أولاً",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsImporting(true);
+    setImportProgress(0);
+    setImportResults(null);
+
+    const formData = new FormData();
+    formData.append('excel', selectedFile);
+
+    try {
+      const progressInterval = setInterval(() => {
+        setImportProgress(prev => Math.min(prev + 10, 90));
+      }, 200);
+
+      const response = await fetch('/api/suppliers/import-excel', {
+        method: 'POST',
+        body: formData,
+      });
+
+      clearInterval(progressInterval);
+      setImportProgress(100);
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'فشل في استيراد الملف');
+      }
+
+      setImportResults(result);
+      queryClient.invalidateQueries({ queryKey: ['/api/suppliers'] });
+
+      toast({
+        title: "تم الاستيراد بنجاح",
+        description: result.message,
+      });
+
+    } catch (error) {
+      console.error('Error importing Excel:', error);
+      toast({
+        title: "خطأ في الاستيراد",
+        description: error instanceof Error ? error.message : 'حدث خطأ أثناء استيراد الملف',
+        variant: "destructive",
+      });
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const resetImportDialog = () => {
+    setShowImportDialog(false);
+    setSelectedFile(null);
+    setImportProgress(0);
+    setImportResults(null);
+    setIsImporting(false);
+  };
+
+  const downloadExcelTemplate = () => {
+    const templateData = [
+      {
+        'اسم المورد': 'مورد تجريبي',
+        'الهاتف': '0501234567',
+        'البريد الإلكتروني': 'supplier@example.com',
+        'العنوان': 'الرياض، المملكة العربية السعودية',
+        'الرقم الضريبي': '123456789',
+        'الشخص المسؤول': 'أحمد محمد',
+        'ملاحظات': 'مورد موثوق'
+      }
+    ];
+
+    const ws = XLSX.utils.json_to_sheet(templateData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'الموردين');
+    
+    const colWidths = [
+      { width: 20 }, { width: 15 }, { width: 25 }, 
+      { width: 30 }, { width: 15 }, { width: 20 }, { width: 30 }
+    ];
+    ws['!cols'] = colWidths;
+
+    XLSX.writeFile(wb, 'نموذج_استيراد_الموردين.xlsx');
   };
 
   const getPageContent = () => {
