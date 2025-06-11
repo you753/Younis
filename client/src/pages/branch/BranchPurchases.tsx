@@ -13,8 +13,11 @@ import {
   Package,
   Eye,
   Edit,
-  Printer
+  Printer,
+  Download
 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface BranchPurchasesProps {
   branchId: number;
@@ -22,6 +25,53 @@ interface BranchPurchasesProps {
 
 export default function BranchPurchases({ branchId }: BranchPurchasesProps) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+
+  const generatePurchasesPDF = async () => {
+    setIsGeneratingPDF(true);
+    try {
+      const element = document.getElementById('purchases-content');
+      if (!element) return;
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff'
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const imgWidth = 210;
+      const pageHeight = 295;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      // إضافة عنوان التقرير
+      pdf.setFontSize(20);
+      pdf.text(`تقرير المشتريات - الفرع ${branchId} - ${new Date().toLocaleDateString('ar-SA')}`, 105, 20, { align: 'center' });
+      
+      position = 30;
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight + 30;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`تقرير-المشتريات-الفرع-${branchId}-${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (error) {
+      console.error('خطأ في إنشاء PDF:', error);
+      alert('حدث خطأ أثناء إنشاء ملف PDF');
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
 
   const { data: purchases = [], isLoading } = useQuery({
     queryKey: [`/api/branches/${branchId}/purchases`],
@@ -33,13 +83,27 @@ export default function BranchPurchases({ branchId }: BranchPurchasesProps) {
   });
 
   return (
-    <div className="p-6">
+    <div className="p-6" id="purchases-content">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">المشتريات - الفرع {branchId}</h1>
           <p className="text-gray-600">إدارة مشتريات هذا الفرع</p>
         </div>
         <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={generatePurchasesPDF}
+            disabled={isGeneratingPDF}
+            className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+          >
+            {isGeneratingPDF ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-2"></div>
+            ) : (
+              <Download className="ml-2 h-4 w-4" />
+            )}
+            {isGeneratingPDF ? 'جاري إنشاء PDF...' : 'حفظ PDF'}
+          </Button>
           <Button variant="outline" size="sm">
             تصدير Excel
           </Button>
