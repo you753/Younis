@@ -29,6 +29,8 @@ import SalesReports from "@/pages/reports/SalesReports";
 import PurchasesReports from "@/pages/reports/PurchasesReports";
 import InventoryReports from "@/pages/reports/InventoryReports";
 import SuppliersReports from "@/pages/reports/SuppliersReports";
+import ClientsReports from "@/pages/reports/ClientsReports";
+import EmployeesReports from "@/pages/reports/EmployeesReports";
 import FinancialReports from "@/pages/FinancialReports";
 import Settings from "@/pages/Settings";
 import Login from "@/pages/Login";
@@ -159,9 +161,9 @@ function Router() {
         <Route path="/reports/inventory" component={InventoryReports} />
         <Route path="/reports/financial" component={FinancialReports} />
         <Route path="/daily-reports" component={DailyReports} />
-        <Route path="/reports/clients" component={Reports} />
+        <Route path="/reports/clients" component={ClientsReports} />
         <Route path="/reports/suppliers" component={SuppliersReports} />
-        <Route path="/reports/employees" component={Reports} />
+        <Route path="/reports/employees" component={EmployeesReports} />
         
         {/* الإعدادات */}
         <Route path="/settings" component={Settings} />
