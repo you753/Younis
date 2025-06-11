@@ -37,6 +37,16 @@ export default function TemplateSystem() {
     primaryColor: '#3B82F6',
     secondaryColor: '#1E40AF'
   });
+  
+  // Template editing states
+  const [editingTemplate, setEditingTemplate] = useState<any>({
+    name: '',
+    type: '',
+    primaryColor: '#3B82F6',
+    secondaryColor: '#1E40AF',
+    font: 'Cairo',
+    fontSize: '14'
+  });
 
   // Sample templates for demonstration
   const invoiceTemplates = [
@@ -131,6 +141,14 @@ export default function TemplateSystem() {
 
   const editTemplate = (template: any) => {
     setSelectedTemplate(template);
+    setEditingTemplate({
+      name: template.name,
+      type: template.type,
+      primaryColor: companySettings.primaryColor,
+      secondaryColor: companySettings.secondaryColor,
+      font: 'Cairo',
+      fontSize: '14'
+    });
     setShowEditor(true);
   };
 
@@ -211,15 +229,21 @@ export default function TemplateSystem() {
     alert('ستتم إضافة الإعدادات المتقدمة قريباً');
   };
 
-  const generateTemplateHTML = (template: any) => {
+  const generateTemplateHTML = (template: any, useEditingSettings = false) => {
+    const settings = useEditingSettings ? editingTemplate : companySettings;
+    const primaryColor = settings.primaryColor || companySettings.primaryColor;
+    const secondaryColor = settings.secondaryColor || companySettings.secondaryColor;
+    const fontFamily = settings.font || 'Cairo';
+    const fontSize = settings.fontSize || '14';
+    
     return `
-      <div style="font-family: 'Cairo', sans-serif; direction: rtl; padding: 20px;">
-        <header style="border-bottom: 2px solid ${companySettings.primaryColor}; padding-bottom: 20px; margin-bottom: 30px;">
+      <div style="font-family: '${fontFamily}', sans-serif; direction: rtl; padding: 20px; font-size: ${fontSize}px;">
+        <header style="border-bottom: 2px solid ${primaryColor}; padding-bottom: 20px; margin-bottom: 30px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-              <h1 style="color: ${companySettings.primaryColor}; margin: 0;">${companySettings.name}</h1>
-              <p style="margin: 5px 0;">${companySettings.address}</p>
-              <p style="margin: 5px 0;">هاتف: ${companySettings.phone} | إيميل: ${companySettings.email}</p>
+              <h1 style="color: ${primaryColor}; margin: 0; font-size: ${parseInt(fontSize) + 4}px;">${companySettings.name}</h1>
+              <p style="margin: 5px 0; font-size: ${parseInt(fontSize) - 2}px;">${companySettings.address}</p>
+              <p style="margin: 5px 0; font-size: ${parseInt(fontSize) - 2}px;">هاتف: ${companySettings.phone} | إيميل: ${companySettings.email}</p>
             </div>
           </div>
         </header>
@@ -590,14 +614,18 @@ export default function TemplateSystem() {
                   <Label htmlFor="templateName">اسم القالب</Label>
                   <Input
                     id="templateName"
-                    defaultValue={selectedTemplate.name}
+                    value={editingTemplate.name}
+                    onChange={(e) => setEditingTemplate(prev => ({ ...prev, name: e.target.value }))}
                     className="mt-1"
                   />
                 </div>
 
                 <div>
                   <Label htmlFor="templateType">نوع القالب</Label>
-                  <Select defaultValue={selectedTemplate.type}>
+                  <Select 
+                    value={editingTemplate.type}
+                    onValueChange={(value) => setEditingTemplate(prev => ({ ...prev, type: value }))}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -619,10 +647,15 @@ export default function TemplateSystem() {
                       <div className="flex gap-2">
                         <input
                           type="color"
-                          defaultValue={companySettings.primaryColor}
+                          value={editingTemplate.primaryColor}
+                          onChange={(e) => setEditingTemplate(prev => ({ ...prev, primaryColor: e.target.value }))}
                           className="w-10 h-8 rounded border"
                         />
-                        <Input defaultValue={companySettings.primaryColor} className="flex-1" />
+                        <Input 
+                          value={editingTemplate.primaryColor} 
+                          onChange={(e) => setEditingTemplate(prev => ({ ...prev, primaryColor: e.target.value }))}
+                          className="flex-1" 
+                        />
                       </div>
                     </div>
                     <div>
@@ -630,10 +663,15 @@ export default function TemplateSystem() {
                       <div className="flex gap-2">
                         <input
                           type="color"
-                          defaultValue={companySettings.secondaryColor}
+                          value={editingTemplate.secondaryColor}
+                          onChange={(e) => setEditingTemplate(prev => ({ ...prev, secondaryColor: e.target.value }))}
                           className="w-10 h-8 rounded border"
                         />
-                        <Input defaultValue={companySettings.secondaryColor} className="flex-1" />
+                        <Input 
+                          value={editingTemplate.secondaryColor} 
+                          onChange={(e) => setEditingTemplate(prev => ({ ...prev, secondaryColor: e.target.value }))}
+                          className="flex-1" 
+                        />
                       </div>
                     </div>
                   </div>
@@ -641,7 +679,10 @@ export default function TemplateSystem() {
 
                 <div>
                   <Label>خط القالب</Label>
-                  <Select defaultValue="Cairo">
+                  <Select 
+                    value={editingTemplate.font}
+                    onValueChange={(value) => setEditingTemplate(prev => ({ ...prev, font: value }))}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -656,7 +697,10 @@ export default function TemplateSystem() {
 
                 <div>
                   <Label>حجم الخط</Label>
-                  <Select defaultValue="14">
+                  <Select 
+                    value={editingTemplate.fontSize}
+                    onValueChange={(value) => setEditingTemplate(prev => ({ ...prev, fontSize: value }))}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -717,7 +761,7 @@ export default function TemplateSystem() {
                 <div className="border rounded-lg p-4 bg-gray-50 min-h-96">
                   <div 
                     className="bg-white p-4 rounded shadow-sm text-xs"
-                    dangerouslySetInnerHTML={{ __html: generateTemplateHTML(selectedTemplate) }}
+                    dangerouslySetInnerHTML={{ __html: generateTemplateHTML(selectedTemplate, true) }}
                     style={{ transform: 'scale(0.8)', transformOrigin: 'top right' }}
                   />
                 </div>
