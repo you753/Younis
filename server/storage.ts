@@ -1,5 +1,5 @@
 import { 
-  users, suppliers, clients, products, sales, purchases, employees, deductions, salaries, productCategories, quotes, salesReturns, purchaseReturns, supplierPaymentVouchers, clientReceiptVouchers, inventoryOpeningBalances, branches,
+  users, suppliers, clients, products, sales, purchases, employees, deductions, salaries, productCategories, quotes, salesReturns, purchaseReturns, supplierPaymentVouchers, clientReceiptVouchers, inventoryOpeningBalances, branches, invoiceTemplates, reportTemplates, companySettings,
   type User, type InsertUser,
   type Supplier, type InsertSupplier,
   type Client, type InsertClient,
@@ -16,7 +16,10 @@ import {
   type SupplierPaymentVoucher, type InsertSupplierPaymentVoucher,
   type ClientReceiptVoucher, type InsertClientReceiptVoucher,
   type InventoryOpeningBalance, type InsertInventoryOpeningBalance,
-  type Branch, type InsertBranch
+  type Branch, type InsertBranch,
+  type InvoiceTemplate, type InsertInvoiceTemplate,
+  type ReportTemplate, type InsertReportTemplate,
+  type CompanySettings, type InsertCompanySettings
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql, desc } from "drizzle-orm";
