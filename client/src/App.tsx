@@ -32,6 +32,7 @@ import SuppliersReports from "@/pages/reports/SuppliersReports";
 import ClientsReports from "@/pages/reports/ClientsReports";
 import EmployeesReports from "@/pages/reports/EmployeesReports";
 import FinancialReports from "@/pages/FinancialReports";
+import TemplateManagement from "@/pages/TemplateManagement";
 import Settings from "@/pages/Settings";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
@@ -176,6 +177,7 @@ function Router() {
         <Route path="/settings/security" component={Settings} />
         <Route path="/settings/printing" component={Settings} />
         <Route path="/settings/taxes" component={Settings} />
+        <Route path="/templates" component={TemplateManagement} />
         
         {/* الملف الشخصي */}
         <Route path="/profile" component={Profile} />
