@@ -30,6 +30,17 @@ export default function BranchReports({ branchId }: BranchReportsProps) {
     staleTime: 60000,
   });
 
+  // جلب بيانات المبيعات والمنتجات للتقارير اليومية
+  const { data: sales } = useQuery({
+    queryKey: ['/api/sales'],
+    staleTime: 60000,
+  });
+
+  const { data: products } = useQuery({
+    queryKey: ['/api/products'],
+    staleTime: 60000,
+  });
+
   if (isLoading) {
     return (
       <div className="p-6 space-y-6">
@@ -116,52 +127,91 @@ export default function BranchReports({ branchId }: BranchReportsProps) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>تقرير المبيعات الأسبوعية</CardTitle>
+            <CardTitle>المبيعات المسجلة</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'].map((day, index) => {
-              const value = Math.floor(Math.random() * 500) + 100;
-              const percentage = (value / 600) * 100;
-              return (
-                <div key={index} className="flex items-center space-x-4">
-                  <div className="w-16 text-sm">{day}</div>
-                  <div className="flex-1">
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full" 
-                        style={{ width: `${percentage}%` }}
-                      ></div>
+            {sales && Array.isArray(sales) && sales.length > 0 ? (
+              sales.map((sale: any, index: number) => {
+                const saleDate = new Date(sale.date).toLocaleDateString('ar-SA');
+                const value = parseFloat(sale.total || 0);
+                
+                return (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <div className="font-medium">فاتورة رقم {sale.id}</div>
+                      <div className="text-sm text-gray-600">{saleDate}</div>
                     </div>
+                    <div className="font-bold text-green-600">{value.toFixed(2)} ر.س</div>
                   </div>
-                  <div className="w-20 text-sm font-medium">{value} ر.س</div>
-                </div>
-              );
-            })}
+                );
+              })
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <DollarSign className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+                <p>لا توجد مبيعات مسجلة حالياً</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>أفضل المنتجات مبيعاً</CardTitle>
+            <CardTitle>المنتجات المتاحة</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {[
-              { name: 'ثوب مطرز', sales: 15, revenue: '1,500' },
-              { name: 'عباية سوداء', sales: 8, revenue: '800' },
-              { name: 'قميص قطني', sales: 5, revenue: '300' },
-              { name: 'إكسسوارات', sales: 3, revenue: '150' }
-            ].map((product, index) => (
-              <div key={index} className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium">{product.name}</div>
-                  <div className="text-sm text-gray-600">{product.sales} مبيعة</div>
+            {products && Array.isArray(products) && products.length > 0 ? (
+              products.slice(0, 5).map((product: any, index: number) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <div className="font-medium">{product.name}</div>
+                    <div className="text-sm text-gray-600">
+                      كود: {product.code} {product.barcode && `| باركود: ${product.barcode}`}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold text-blue-600">{product.price} ر.س</div>
+                    <div className="text-sm text-gray-600">السعر</div>
+                  </div>
                 </div>
-                <div className="font-bold">{product.revenue} ر.س</div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <Package className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+                <p>لا توجد منتجات مضافة حالياً</p>
               </div>
-            ))}
+            )}
           </CardContent>
         </Card>
       </div>
+
+      {/* تقرير إضافي */}
+      <Card>
+        <CardHeader>
+          <CardTitle>ملخص الأداء</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">
+                {sales && Array.isArray(sales) ? sales.length : 0}
+              </div>
+              <div className="text-sm text-gray-600">إجمالي الفواتير</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">
+                {products && Array.isArray(products) ? products.length : 0}
+              </div>
+              <div className="text-sm text-gray-600">المنتجات المتاحة</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">
+                {(stats as any)?.totalClients || 0}
+              </div>
+              <div className="text-sm text-gray-600">العملاء المسجلين</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
