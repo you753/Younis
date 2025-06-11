@@ -146,6 +146,30 @@ export interface IStorage {
     totalPurchases: string;
     inventoryValue: string;
   }>;
+
+  // Invoice Templates
+  getInvoiceTemplate(id: number): Promise<InvoiceTemplate | undefined>;
+  getAllInvoiceTemplates(): Promise<InvoiceTemplate[]>;
+  getInvoiceTemplatesByType(type: string): Promise<InvoiceTemplate[]>;
+  getDefaultInvoiceTemplate(type: string): Promise<InvoiceTemplate | undefined>;
+  createInvoiceTemplate(template: InsertInvoiceTemplate): Promise<InvoiceTemplate>;
+  updateInvoiceTemplate(id: number, template: Partial<InsertInvoiceTemplate>): Promise<InvoiceTemplate | undefined>;
+  deleteInvoiceTemplate(id: number): Promise<boolean>;
+  setDefaultInvoiceTemplate(id: number, type: string): Promise<boolean>;
+
+  // Report Templates
+  getReportTemplate(id: number): Promise<ReportTemplate | undefined>;
+  getAllReportTemplates(): Promise<ReportTemplate[]>;
+  getReportTemplatesByType(type: string): Promise<ReportTemplate[]>;
+  getDefaultReportTemplate(type: string): Promise<ReportTemplate | undefined>;
+  createReportTemplate(template: InsertReportTemplate): Promise<ReportTemplate>;
+  updateReportTemplate(id: number, template: Partial<InsertReportTemplate>): Promise<ReportTemplate | undefined>;
+  deleteReportTemplate(id: number): Promise<boolean>;
+  setDefaultReportTemplate(id: number, type: string): Promise<boolean>;
+
+  // Company Settings
+  getCompanySettings(): Promise<CompanySettings | undefined>;
+  updateCompanySettings(settings: Partial<InsertCompanySettings>): Promise<CompanySettings>;
 }
 
 export class DatabaseStorage implements IStorage {
