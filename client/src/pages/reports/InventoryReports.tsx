@@ -7,12 +7,15 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Warehouse, Download, AlertTriangle, Package, TrendingUp } from 'lucide-react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import type { Product, ProductCategory } from '@shared/schema';
 
 export default function InventoryReports() {
   const [stockFilter, setStockFilter] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const { data: products = [] } = useQuery<Product[]>({
     queryKey: ['/api/products']
@@ -31,7 +34,7 @@ export default function InventoryReports() {
     
     const categoryMatch = selectedCategory === 'all' || product.category === selectedCategory;
     
-    const searchMatch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const searchMatch = (product.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (product.code || '').toLowerCase().includes(searchTerm.toLowerCase());
     
     return stockMatch && categoryMatch && searchMatch;
@@ -41,8 +44,53 @@ export default function InventoryReports() {
   const lowStockProducts = products.filter(p => (p.quantity || 0) <= 10 && (p.quantity || 0) > 0).length;
   const outOfStockProducts = products.filter(p => (p.quantity || 0) === 0).length;
   const totalInventoryValue = products.reduce((sum, product) => 
-    sum + (parseFloat(product.purchasePrice) * (product.quantity || 0)), 0
+    sum + (parseFloat(product.purchasePrice || '0') * (product.quantity || 0)), 0
   );
+
+  const generateInventoryReportPDF = async () => {
+    setIsGeneratingPDF(true);
+    try {
+      const element = document.getElementById('inventory-report-content');
+      if (!element) return;
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff'
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const imgWidth = 210;
+      const pageHeight = 295;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.setFontSize(20);
+      pdf.text(`تقرير المخزون - ${new Date().toLocaleDateString('ar-SA')}`, 105, 20, { align: 'center' });
+      
+      position = 30;
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight + 30;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`تقرير-المخزون-${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('حدث خطأ أثناء إنشاء ملف PDF');
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
 
   return (
     <div className="space-y-6 p-6">
