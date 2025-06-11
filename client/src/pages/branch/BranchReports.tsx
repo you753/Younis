@@ -231,24 +231,30 @@ export default function BranchReports({ branchId }: BranchReportsProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               {clientPayments && Array.isArray(clientPayments) && clientPayments.length > 0 ? (
-                clientPayments.map((payment: any, index: number) => {
-                  const paymentDate = new Date(payment.receiptDate).toLocaleDateString('ar-SA');
-                  const amount = parseFloat(payment.amount || 0);
-                  
-                  return (
-                    <div key={index} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                      <div>
-                        <div className="font-medium">سند قبض رقم {payment.voucherNumber}</div>
-                        <div className="text-sm text-gray-600">{paymentDate}</div>
+                <div className="space-y-3">
+                  {clientPayments.map((payment: any, index: number) => {
+                    const paymentDate = new Date(payment.receiptDate).toLocaleDateString('ar-SA');
+                    const amount = parseFloat(payment.amount || 0);
+                    const isReceived = payment.status === 'received';
+                    
+                    return (
+                      <div key={index} className={`flex items-center justify-between p-3 rounded-lg ${isReceived ? 'bg-green-50' : 'bg-blue-50'}`}>
+                        <div>
+                          <div className="font-medium">سند قبض رقم {payment.voucherNumber}</div>
+                          <div className="text-sm text-gray-600">{paymentDate}</div>
+                          <div className="text-xs text-gray-500">الحالة: {isReceived ? 'مستلم' : 'في الانتظار'}</div>
+                        </div>
+                        <div className={`font-bold ${isReceived ? 'text-green-600' : 'text-blue-600'}`}>
+                          {amount.toFixed(2)} ر.س
+                        </div>
                       </div>
-                      <div className="font-bold text-blue-600">{amount.toFixed(2)} ر.س</div>
-                    </div>
-                  );
-                })
+                    );
+                  })}
+                </div>
               ) : (
                 <div className="text-center py-8 text-gray-500">
                   <DollarSign className="h-12 w-12 mx-auto mb-2 text-gray-300" />
-                  <p>لا توجد مدفوعات من العملاء في هذا التاريخ</p>
+                  <p>لا توجد مدفوعات من العملاء حالياً</p>
                 </div>
               )}
             </CardContent>
