@@ -91,6 +91,12 @@ export default function BranchReports({ branchId }: BranchReportsProps) {
     staleTime: 60000,
   });
 
+  // جلب مدفوعات العملاء
+  const { data: clientPayments } = useQuery({
+    queryKey: ['/api/client-receipt-vouchers'],
+    staleTime: 60000,
+  });
+
   if (isLoading) {
     return (
       <div className="p-6 space-y-6">
@@ -221,33 +227,63 @@ export default function BranchReports({ branchId }: BranchReportsProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle>المنتجات المتاحة</CardTitle>
+              <CardTitle>المدفوعات من العملاء</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {products && Array.isArray(products) && products.length > 0 ? (
-                products.slice(0, 5).map((product: any, index: number) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <div className="font-medium">{product.name}</div>
-                      <div className="text-sm text-gray-600">
-                        كود: {product.code} {product.barcode && `| باركود: ${product.barcode}`}
+              {clientPayments && Array.isArray(clientPayments) && clientPayments.length > 0 ? (
+                clientPayments.map((payment: any, index: number) => {
+                  const paymentDate = new Date(payment.receiptDate).toLocaleDateString('ar-SA');
+                  const amount = parseFloat(payment.amount || 0);
+                  
+                  return (
+                    <div key={index} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                      <div>
+                        <div className="font-medium">سند قبض رقم {payment.voucherNumber}</div>
+                        <div className="text-sm text-gray-600">{paymentDate}</div>
                       </div>
+                      <div className="font-bold text-blue-600">{amount.toFixed(2)} ر.س</div>
                     </div>
-                    <div className="text-right">
-                      <div className="font-bold text-blue-600">{product.price} ر.س</div>
-                      <div className="text-sm text-gray-600">السعر</div>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="text-center py-8 text-gray-500">
-                  <Package className="h-12 w-12 mx-auto mb-2 text-gray-300" />
-                  <p>لا توجد منتجات مضافة حالياً</p>
+                  <DollarSign className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+                  <p>لا توجد مدفوعات من العملاء في هذا التاريخ</p>
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
+
+        {/* تقرير المنتجات */}
+        <Card>
+          <CardHeader>
+            <CardTitle>المنتجات المتاحة</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {products && Array.isArray(products) && products.length > 0 ? (
+              products.slice(0, 5).map((product: any, index: number) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <div className="font-medium">{product.name}</div>
+                    <div className="text-sm text-gray-600">
+                      كود: {product.code} {product.barcode && `| باركود: ${product.barcode}`}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold text-blue-600">{product.price} ر.س</div>
+                    <div className="text-sm text-gray-600">السعر</div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <Package className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+                <p>لا توجد منتجات مضافة حالياً</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* تقرير إضافي */}
         <Card>
