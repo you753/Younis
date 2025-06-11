@@ -4,7 +4,8 @@ import {
   Home, Users, UserCheck, Package, ShoppingCart, 
   ScanBarcode, Warehouse, FileText, BarChart3, 
   Settings, ChevronDown, X, Truck, UsersRound,
-  DollarSign, Tags, List, Plus, Percent, Minus, Building
+  DollarSign, Tags, List, Plus, Percent, Minus, Building,
+  Layout
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAppStore } from '@/lib/store';
@@ -104,6 +105,16 @@ const navigationItems: NavItem[] = [
       { title: 'الرواتب', icon: DollarSign, href: '/salaries' },
       { title: 'الإجازات', icon: FileText, href: '/holidays' },
       { title: 'تقييم الأداء', icon: BarChart3, href: '/performance' }
+    ]
+  },
+  { 
+    title: 'القوالب', 
+    icon: Layout,
+    children: [
+      { title: 'قوالب الفواتير', icon: FileText, href: '/templates?type=invoice' },
+      { title: 'قوالب التقارير', icon: BarChart3, href: '/templates?type=report' },
+      { title: 'إعدادات الشركة', icon: Settings, href: '/templates?tab=company' },
+      { title: 'إدارة القوالب', icon: Layout, href: '/templates' }
     ]
   },
   { 
