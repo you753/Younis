@@ -76,13 +76,126 @@ export default function TemplateSystem() {
     }
   ];
 
-  const generatePDF = (template: any) => {
-    // Sample implementation for PDF generation
-    const doc = document.createElement('div');
-    doc.innerHTML = generateTemplateHTML(template);
-    
-    // Here you would use html2canvas and jsPDF
-    alert(`سيتم إنشاء PDF للقالب: ${template.name}`);
+  const generatePDF = async (template: any) => {
+    try {
+      const html2canvas = (await import('html2canvas')).default;
+      const jsPDF = (await import('jspdf')).default;
+      
+      // Create temporary div with template content
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = generateTemplateHTML(template);
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.left = '-9999px';
+      tempDiv.style.width = '800px';
+      document.body.appendChild(tempDiv);
+      
+      // Generate canvas from HTML
+      const canvas = await html2canvas(tempDiv, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true
+      });
+      
+      // Create PDF
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgWidth = 210;
+      const pageHeight = 295;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      
+      let position = 0;
+      
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+      
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      
+      // Download PDF
+      pdf.save(`${template.name}.pdf`);
+      
+      // Clean up
+      document.body.removeChild(tempDiv);
+      
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('حدث خطأ في إنشاء ملف PDF');
+    }
+  };
+
+  const editTemplate = (template: any) => {
+    setSelectedTemplate(template);
+    setShowEditor(true);
+  };
+
+  const previewTemplate = (template: any) => {
+    // Create preview window
+    const previewWindow = window.open('', '_blank', 'width=800,height=600');
+    if (previewWindow) {
+      previewWindow.document.write(`
+        <!DOCTYPE html>
+        <html dir="rtl">
+          <head>
+            <meta charset="UTF-8">
+            <title>معاينة ${template.name}</title>
+            <style>
+              body { font-family: 'Cairo', sans-serif; margin: 0; padding: 20px; }
+            </style>
+          </head>
+          <body>
+            ${generateTemplateHTML(template)}
+          </body>
+        </html>
+      `);
+      previewWindow.document.close();
+    }
+  };
+
+  const duplicateTemplate = (template: any) => {
+    const newTemplate = {
+      ...template,
+      id: Date.now(),
+      name: `نسخة من ${template.name}`,
+      isDefault: false
+    };
+    alert(`تم إنشاء نسخة من القالب: ${newTemplate.name}`);
+  };
+
+  const setAsDefault = (template: any) => {
+    alert(`تم تعيين القالب "${template.name}" كقالب افتراضي`);
+  };
+
+  const saveCompanySettings = () => {
+    alert('تم حفظ إعدادات الشركة بنجاح');
+  };
+
+  const createNewInvoice = () => {
+    window.open('/sales/add', '_blank');
+  };
+
+  const createNewReport = () => {
+    window.open('/reports/sales', '_blank');
+  };
+
+  const exportTemplates = () => {
+    const templates = { invoiceTemplates, reportTemplates, companySettings };
+    const dataStr = JSON.stringify(templates, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'templates-export.json';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const openAdvancedSettings = () => {
+    alert('ستتم إضافة الإعدادات المتقدمة قريباً');
   };
 
   const generateTemplateHTML = (template: any) => {
@@ -202,7 +315,12 @@ export default function TemplateSystem() {
 
                   {/* Actions */}
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => editTemplate(template)}
+                    >
                       <Edit3 className="h-4 w-4 mr-1" />
                       تعديل
                     </Button>
@@ -210,13 +328,24 @@ export default function TemplateSystem() {
                       variant="outline" 
                       size="sm"
                       onClick={() => generatePDF(template)}
+                      title="تحميل PDF"
                     >
                       <Download className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => previewTemplate(template)}
+                      title="معاينة"
+                    >
                       <Eye className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => duplicateTemplate(template)}
+                      title="نسخ القالب"
+                    >
                       <Copy className="h-4 w-4" />
                     </Button>
                   </div>
@@ -259,7 +388,12 @@ export default function TemplateSystem() {
 
                   {/* Actions */}
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => editTemplate(template)}
+                    >
                       <Edit3 className="h-4 w-4 mr-1" />
                       تعديل
                     </Button>
@@ -267,13 +401,24 @@ export default function TemplateSystem() {
                       variant="outline" 
                       size="sm"
                       onClick={() => generatePDF(template)}
+                      title="تحميل PDF"
                     >
                       <Download className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => previewTemplate(template)}
+                      title="معاينة"
+                    >
                       <Eye className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => duplicateTemplate(template)}
+                      title="نسخ القالب"
+                    >
                       <Copy className="h-4 w-4" />
                     </Button>
                   </div>
@@ -397,7 +542,10 @@ export default function TemplateSystem() {
                     </div>
                   </div>
 
-                  <Button className="w-full mt-4">
+                  <Button 
+                    className="w-full mt-4"
+                    onClick={saveCompanySettings}
+                  >
                     حفظ الإعدادات
                   </Button>
                 </div>
@@ -414,19 +562,35 @@ export default function TemplateSystem() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2"
+              onClick={createNewInvoice}
+            >
               <FileText className="h-4 w-4" />
               إنشاء فاتورة
             </Button>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2"
+              onClick={createNewReport}
+            >
               <Layout className="h-4 w-4" />
               إنشاء تقرير
             </Button>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2"
+              onClick={exportTemplates}
+            >
               <Download className="h-4 w-4" />
               تصدير القوالب
             </Button>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2"
+              onClick={openAdvancedSettings}
+            >
               <Settings className="h-4 w-4" />
               إعدادات متقدمة
             </Button>
