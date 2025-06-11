@@ -20,12 +20,13 @@ import {
   Star,
   Building,
   Phone,
-  Mail
+  Mail,
+  X
 } from 'lucide-react';
 
 export default function TemplateSystem() {
   const [activeTab, setActiveTab] = useState('invoices');
-  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [showEditor, setShowEditor] = useState(false);
   const [companySettings, setCompanySettings] = useState({
     name: 'شركة المحاسب الأعظم',
