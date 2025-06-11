@@ -133,6 +133,18 @@ export default function TemplateSystem() {
     setShowEditor(true);
   };
 
+  const closeEditor = () => {
+    setShowEditor(false);
+    setSelectedTemplate(null);
+  };
+
+  const saveTemplate = (templateData: any) => {
+    console.log('حفظ القالب:', templateData);
+    alert(`تم حفظ التعديلات على القالب: ${templateData.name}`);
+    setShowEditor(false);
+    setSelectedTemplate(null);
+  };
+
   const previewTemplate = (template: any) => {
     // Create preview window
     const previewWindow = window.open('', '_blank', 'width=800,height=600');
@@ -554,6 +566,186 @@ export default function TemplateSystem() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Template Editor Modal */}
+      {showEditor && selectedTemplate && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold">تعديل القالب: {selectedTemplate.name}</h2>
+                <Button variant="ghost" onClick={closeEditor}>
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+            
+            <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Template Editor */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">إعدادات القالب</h3>
+                
+                <div>
+                  <Label htmlFor="templateName">اسم القالب</Label>
+                  <Input
+                    id="templateName"
+                    defaultValue={selectedTemplate.name}
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="templateType">نوع القالب</Label>
+                  <Select defaultValue={selectedTemplate.type}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="invoice">فاتورة</SelectItem>
+                      <SelectItem value="receipt">إيصال</SelectItem>
+                      <SelectItem value="quotation">عرض سعر</SelectItem>
+                      <SelectItem value="sales">تقرير مبيعات</SelectItem>
+                      <SelectItem value="inventory">تقرير مخزون</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-3">
+                  <Label>ألوان القالب</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-sm">اللون الأساسي</Label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          defaultValue={companySettings.primaryColor}
+                          className="w-10 h-8 rounded border"
+                        />
+                        <Input defaultValue={companySettings.primaryColor} className="flex-1" />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-sm">اللون الثانوي</Label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          defaultValue={companySettings.secondaryColor}
+                          className="w-10 h-8 rounded border"
+                        />
+                        <Input defaultValue={companySettings.secondaryColor} className="flex-1" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <Label>خط القالب</Label>
+                  <Select defaultValue="Cairo">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Cairo">Cairo</SelectItem>
+                      <SelectItem value="Amiri">Amiri</SelectItem>
+                      <SelectItem value="Tajawal">Tajawal</SelectItem>
+                      <SelectItem value="Almarai">Almarai</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>حجم الخط</Label>
+                  <Select defaultValue="14">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="12">صغير (12px)</SelectItem>
+                      <SelectItem value="14">متوسط (14px)</SelectItem>
+                      <SelectItem value="16">كبير (16px)</SelectItem>
+                      <SelectItem value="18">كبير جداً (18px)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>عناصر القالب</Label>
+                  <div className="space-y-2">
+                    <label className="flex items-center space-x-2 space-x-reverse">
+                      <input type="checkbox" defaultChecked className="rounded" />
+                      <span>رأس الشركة</span>
+                    </label>
+                    <label className="flex items-center space-x-2 space-x-reverse">
+                      <input type="checkbox" defaultChecked className="rounded" />
+                      <span>معلومات العميل</span>
+                    </label>
+                    <label className="flex items-center space-x-2 space-x-reverse">
+                      <input type="checkbox" defaultChecked className="rounded" />
+                      <span>جدول الأصناف</span>
+                    </label>
+                    <label className="flex items-center space-x-2 space-x-reverse">
+                      <input type="checkbox" defaultChecked className="rounded" />
+                      <span>المجموع الإجمالي</span>
+                    </label>
+                    <label className="flex items-center space-x-2 space-x-reverse">
+                      <input type="checkbox" defaultChecked className="rounded" />
+                      <span>الذيل والتوقيع</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-4">
+                  <Button 
+                    className="flex-1"
+                    onClick={() => saveTemplate({
+                      ...selectedTemplate,
+                      name: 'القالب المحدث'
+                    })}
+                  >
+                    حفظ التعديلات
+                  </Button>
+                  <Button variant="outline" onClick={closeEditor}>
+                    إلغاء
+                  </Button>
+                </div>
+              </div>
+
+              {/* Live Preview */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">معاينة مباشرة</h3>
+                <div className="border rounded-lg p-4 bg-gray-50 min-h-96">
+                  <div 
+                    className="bg-white p-4 rounded shadow-sm text-xs"
+                    dangerouslySetInnerHTML={{ __html: generateTemplateHTML(selectedTemplate) }}
+                    style={{ transform: 'scale(0.8)', transformOrigin: 'top right' }}
+                  />
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => previewTemplate(selectedTemplate)}
+                    className="flex-1"
+                  >
+                    <Eye className="h-4 w-4 mr-1" />
+                    معاينة كاملة
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => generatePDF(selectedTemplate)}
+                    className="flex-1"
+                  >
+                    <Download className="h-4 w-4 mr-1" />
+                    تحميل PDF
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Quick Actions */}
       <Card>
