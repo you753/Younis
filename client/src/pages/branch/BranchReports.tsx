@@ -312,6 +312,11 @@ export default function BranchReports({ branchId }: BranchReportsProps) {
             </div>
           </CardContent>
         </Card>
+
+        {/* Financial Snapshot for Branch */}
+        <div className="mt-8">
+          <FinancialSnapshot branchId={branchId} companyWide={false} />
+        </div>
       </div>
     </div>
   );
