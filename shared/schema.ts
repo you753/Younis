@@ -305,6 +305,101 @@ export const insertInventoryOpeningBalanceSchema = createInsertSchema(inventoryO
   createdAt: true,
 });
 
+// Templates System
+export const invoiceTemplates = pgTable("invoice_templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // 'invoice', 'receipt', 'quotation', 'purchase_order'
+  htmlContent: text("html_content").notNull(),
+  cssStyles: text("css_styles").notNull(),
+  isDefault: boolean("is_default").default(false),
+  isActive: boolean("is_active").default(true),
+  settings: json("settings").$type<{
+    logoUrl?: string;
+    primaryColor?: string;
+    secondaryColor?: string;
+    fontFamily?: string;
+    fontSize?: string;
+    showCompanyInfo?: boolean;
+    showTaxInfo?: boolean;
+    showBankInfo?: boolean;
+    paperSize?: string;
+    orientation?: string;
+  }>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const reportTemplates = pgTable("report_templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // 'sales', 'inventory', 'financial', 'clients', 'suppliers', 'employees'
+  htmlContent: text("html_content").notNull(),
+  cssStyles: text("css_styles").notNull(),
+  isDefault: boolean("is_default").default(false),
+  isActive: boolean("is_active").default(true),
+  settings: json("settings").$type<{
+    logoUrl?: string;
+    primaryColor?: string;
+    secondaryColor?: string;
+    fontFamily?: string;
+    fontSize?: string;
+    showCharts?: boolean;
+    showSummary?: boolean;
+    groupBy?: string;
+    sortBy?: string;
+    paperSize?: string;
+    orientation?: string;
+  }>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const companySettings = pgTable("company_settings", {
+  id: serial("id").primaryKey(),
+  companyName: text("company_name").notNull(),
+  companyNameEn: text("company_name_en"),
+  logoUrl: text("logo_url"),
+  address: text("address"),
+  addressEn: text("address_en"),
+  phone: text("phone"),
+  email: text("email"),
+  website: text("website"),
+  taxNumber: text("tax_number"),
+  commercialRecord: text("commercial_record"),
+  bankName: text("bank_name"),
+  bankAccount: text("bank_account"),
+  iban: text("iban"),
+  swiftCode: text("swift_code"),
+  primaryColor: text("primary_color").default("#3B82F6"),
+  secondaryColor: text("secondary_color").default("#1E40AF"),
+  currency: text("currency").default("SAR"),
+  currencySymbol: text("currency_symbol").default("ر.س"),
+  timezone: text("timezone").default("Asia/Riyadh"),
+  dateFormat: text("date_format").default("dd/MM/yyyy"),
+  language: text("language").default("ar"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertInvoiceTemplateSchema = createInsertSchema(invoiceTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertReportTemplateSchema = createInsertSchema(reportTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCompanySettingsSchema = createInsertSchema(companySettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -362,3 +457,13 @@ export const insertBranchSchema = createInsertSchema(branches).omit({
 
 export type Branch = typeof branches.$inferSelect;
 export type InsertBranch = z.infer<typeof insertBranchSchema>;
+
+// Template Types
+export type InvoiceTemplate = typeof invoiceTemplates.$inferSelect;
+export type InsertInvoiceTemplate = z.infer<typeof insertInvoiceTemplateSchema>;
+
+export type ReportTemplate = typeof reportTemplates.$inferSelect;
+export type InsertReportTemplate = z.infer<typeof insertReportTemplateSchema>;
+
+export type CompanySettings = typeof companySettings.$inferSelect;
+export type InsertCompanySettings = z.infer<typeof insertCompanySettingsSchema>;
