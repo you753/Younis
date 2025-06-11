@@ -28,7 +28,7 @@ import Reports from "@/pages/Reports";
 import SalesReports from "@/pages/reports/SalesReports";
 import PurchasesReports from "@/pages/reports/PurchasesReports";
 import InventoryReports from "@/pages/reports/InventoryReports";
-import FinancialReports from "@/pages/reports/FinancialReports";
+import FinancialReports from "@/pages/FinancialReports";
 import Settings from "@/pages/Settings";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
