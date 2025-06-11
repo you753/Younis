@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { OnboardingTrigger } from '@/components/onboarding/OnboardingTrigger';
 import { useOnboarding } from '@/components/onboarding/OnboardingProvider';
+import FinancialSnapshot from '@/components/FinancialSnapshot';
 import { 
   Users, 
   DollarSign, 
@@ -387,6 +388,11 @@ export default function Dashboard() {
             ))}
           </CardContent>
         </Card>
+      </div>
+
+      {/* Financial Snapshot Section */}
+      <div className="mt-8">
+        <FinancialSnapshot companyWide={true} />
       </div>
     </div>
   );
