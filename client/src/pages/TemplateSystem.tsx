@@ -496,11 +496,11 @@ export default function TemplateSystem() {
     };
 
     const tableStyle = layout.tableStyle === 'modern' 
-      ? 'border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);'
+      ? `border-radius: ${styling.roundedCorners || 8}px; overflow: hidden; ${styling.shadowEffect ? 'box-shadow: 0 4px 12px rgba(0,0,0,0.15);' : 'box-shadow: 0 2px 8px rgba(0,0,0,0.1);'}`
       : '';
     
-    const borderStyle = layout.showBorder ? '1px solid #ddd' : 'none';
-    const gridLines = layout.showGridLines ? '1px solid #e5e7eb' : 'none';
+    const borderStyle = layout.showBorder ? `1px ${styling.borderStyle || 'solid'} #ddd` : 'none';
+    const gridLines = layout.showGridLines ? `1px ${styling.borderStyle || 'solid'} #e5e7eb` : 'none';
 
     return `
       <div style="font-family: ${styling.font}, sans-serif; padding: 40px; background: ${styling.backgroundColor}; color: #1a1a1a; direction: rtl; font-size: ${styling.fontSize}px; line-height: ${styling.lineHeight};">
@@ -558,7 +558,7 @@ export default function TemplateSystem() {
         <!-- Items Table -->
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; ${tableStyle} font-size: ${styling.fontSize}px;">
           <thead>
-            <tr style="${headerBackground} color: white;">
+            <tr style="background: ${styling.headerGradient ? `linear-gradient(135deg, ${styling.primaryColor}, ${styling.secondaryColor})` : styling.secondaryColor}; color: white;">
               ${content.body.showItemCode ? `<th style="border: ${borderStyle}; padding: 12px; text-align: center; width: ${content.body.columnWidths.code}%;">الكود</th>` : ''}
               <th style="border: ${borderStyle}; padding: 12px; text-align: center; width: ${content.body.columnWidths.description}%;">اسم الصنف</th>
               ${content.body.showQuantity ? `<th style="border: ${borderStyle}; padding: 12px; text-align: center; width: ${content.body.columnWidths.quantity}%;">الكمية</th>` : ''}
@@ -1289,8 +1289,8 @@ export default function TemplateSystem() {
                         <Label className="text-xs">أعلى</Label>
                         <Input 
                           type="number" 
-                          value={editingTemplate.layout.margins.top}
-                          onChange={(e) => updateLayout('margins', { ...editingTemplate.layout.margins, top: Number(e.target.value) })}
+                          value={editingTemplate.layout.margins?.top || 20}
+                          onChange={(e) => updateLayout('margins', { ...(editingTemplate.layout.margins || {}), top: Number(e.target.value) })}
                           className="text-center"
                         />
                       </div>
@@ -1298,8 +1298,8 @@ export default function TemplateSystem() {
                         <Label className="text-xs">أسفل</Label>
                         <Input 
                           type="number" 
-                          value={editingTemplate.layout.margins.bottom}
-                          onChange={(e) => updateLayout('margins', { ...editingTemplate.layout.margins, bottom: Number(e.target.value) })}
+                          value={editingTemplate.layout.margins?.bottom || 20}
+                          onChange={(e) => updateLayout('margins', { ...(editingTemplate.layout.margins || {}), bottom: Number(e.target.value) })}
                           className="text-center"
                         />
                       </div>
@@ -1307,8 +1307,8 @@ export default function TemplateSystem() {
                         <Label className="text-xs">يسار</Label>
                         <Input 
                           type="number" 
-                          value={editingTemplate.layout.margins.left}
-                          onChange={(e) => updateLayout('margins', { ...editingTemplate.layout.margins, left: Number(e.target.value) })}
+                          value={editingTemplate.layout.margins?.left || 15}
+                          onChange={(e) => updateLayout('margins', { ...(editingTemplate.layout.margins || {}), left: Number(e.target.value) })}
                           className="text-center"
                         />
                       </div>
@@ -1316,8 +1316,8 @@ export default function TemplateSystem() {
                         <Label className="text-xs">يمين</Label>
                         <Input 
                           type="number" 
-                          value={editingTemplate.layout.margins.right}
-                          onChange={(e) => updateLayout('margins', { ...editingTemplate.layout.margins, right: Number(e.target.value) })}
+                          value={editingTemplate.layout.margins?.right || 15}
+                          onChange={(e) => updateLayout('margins', { ...(editingTemplate.layout.margins || {}), right: Number(e.target.value) })}
                           className="text-center"
                         />
                       </div>
