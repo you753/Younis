@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
 import { 
   FileText, 
   Plus, 
@@ -21,13 +24,24 @@ import {
   Building,
   Phone,
   Mail,
-  X
+  X,
+  Upload,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Image,
+  Type,
+  Table,
+  Grid,
+  MousePointer
 } from 'lucide-react';
 
 export default function TemplateSystem() {
   const [activeTab, setActiveTab] = useState('invoices');
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [showEditor, setShowEditor] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  
   const [companySettings, setCompanySettings] = useState({
     name: 'شركة المحاسب الأعظم',
     address: 'الرياض، المملكة العربية السعودية',
@@ -38,14 +52,54 @@ export default function TemplateSystem() {
     secondaryColor: '#1E40AF'
   });
   
-  // Template editing states
+  // Advanced template editing states
   const [editingTemplate, setEditingTemplate] = useState<any>({
     name: '',
     type: '',
-    primaryColor: '#3B82F6',
-    secondaryColor: '#1E40AF',
-    font: 'Cairo',
-    fontSize: '14'
+    layout: {
+      headerAlignment: 'center',
+      logoPosition: 'left',
+      companyInfoAlignment: 'right',
+      tableStyle: 'modern',
+      footerAlignment: 'center',
+      showBorder: true,
+      showGridLines: true
+    },
+    styling: {
+      primaryColor: '#3B82F6',
+      secondaryColor: '#1E40AF',
+      backgroundColor: '#FFFFFF',
+      font: 'Cairo',
+      fontSize: 14,
+      lineHeight: 1.6
+    },
+    content: {
+      header: {
+        title: 'فــــاتــــورة',
+        subtitle: '',
+        showLogo: true,
+        showCompanyInfo: true
+      },
+      body: {
+        showItemCode: true,
+        showItemDescription: true,
+        showQuantity: true,
+        showUnitPrice: true,
+        showTotal: true,
+        columnWidths: {
+          code: 15,
+          description: 40,
+          quantity: 15,
+          unitPrice: 15,
+          total: 15
+        }
+      },
+      footer: {
+        notes: 'شكراً لكم على تعاملكم معنا',
+        terms: 'جميع الأسعار شاملة ضريبة القيمة المضافة',
+        signature: true
+      }
+    }
   });
 
   // Sample templates for demonstration
@@ -87,6 +141,57 @@ export default function TemplateSystem() {
     }
   ];
 
+  // Handle logo upload
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setCompanySettings(prev => ({
+          ...prev,
+          logo: e.target?.result as string
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Update template layout
+  const updateLayout = (field: string, value: any) => {
+    setEditingTemplate((prev: any) => ({
+      ...prev,
+      layout: {
+        ...prev.layout,
+        [field]: value
+      }
+    }));
+  };
+
+  // Update template styling
+  const updateStyling = (field: string, value: any) => {
+    setEditingTemplate((prev: any) => ({
+      ...prev,
+      styling: {
+        ...prev.styling,
+        [field]: value
+      }
+    }));
+  };
+
+  // Update template content
+  const updateContent = (section: string, field: string, value: any) => {
+    setEditingTemplate((prev: any) => ({
+      ...prev,
+      content: {
+        ...prev.content,
+        [section]: {
+          ...prev.content[section],
+          [field]: value
+        }
+      }
+    }));
+  };
+
   const generatePDF = async (template: any) => {
     try {
       const html2canvas = (await import('html2canvas')).default;
@@ -94,7 +199,7 @@ export default function TemplateSystem() {
       
       // Create temporary div with template content
       const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = generateTemplateHTML(template);
+      tempDiv.innerHTML = generateTemplateHTML(template, true);
       tempDiv.style.position = 'absolute';
       tempDiv.style.left = '-9999px';
       tempDiv.style.width = '800px';
@@ -230,52 +335,125 @@ export default function TemplateSystem() {
   };
 
   const generateTemplateHTML = (template: any, useEditingSettings = false) => {
-    const settings = useEditingSettings ? editingTemplate : companySettings;
-    const primaryColor = settings.primaryColor || companySettings.primaryColor;
-    const secondaryColor = settings.secondaryColor || companySettings.secondaryColor;
-    const fontFamily = settings.font || 'Cairo';
-    const fontSize = settings.fontSize || '14';
+    const layout = useEditingSettings ? editingTemplate.layout : { headerAlignment: 'center', logoPosition: 'left', companyInfoAlignment: 'right', tableStyle: 'modern', footerAlignment: 'center', showBorder: true, showGridLines: true };
+    const styling = useEditingSettings ? editingTemplate.styling : { primaryColor: companySettings.primaryColor, secondaryColor: companySettings.secondaryColor, backgroundColor: '#FFFFFF', font: 'Cairo', fontSize: 14, lineHeight: 1.6 };
+    const content = useEditingSettings ? editingTemplate.content : { header: { title: 'فــــاتــــورة', subtitle: '', showLogo: true, showCompanyInfo: true }, body: { showItemCode: true, showItemDescription: true, showQuantity: true, showUnitPrice: true, showTotal: true, columnWidths: { code: 15, description: 40, quantity: 15, unitPrice: 15, total: 15 } }, footer: { notes: 'شكراً لكم على تعاملكم معنا', terms: 'جميع الأسعار شاملة ضريبة القيمة المضافة', signature: true } };
     
+    const getAlignment = (align: string) => {
+      switch(align) {
+        case 'left': return 'text-align: left;';
+        case 'center': return 'text-align: center;';
+        case 'right': return 'text-align: right;';
+        default: return 'text-align: center;';
+      }
+    };
+
+    const tableStyle = layout.tableStyle === 'modern' 
+      ? 'border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);'
+      : '';
+    
+    const borderStyle = layout.showBorder ? '1px solid #ddd' : 'none';
+    const gridLines = layout.showGridLines ? '1px solid #e5e7eb' : 'none';
+
     return `
-      <div style="font-family: '${fontFamily}', sans-serif; direction: rtl; padding: 20px; font-size: ${fontSize}px;">
-        <header style="border-bottom: 2px solid ${primaryColor}; padding-bottom: 20px; margin-bottom: 30px;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-              <h1 style="color: ${primaryColor}; margin: 0; font-size: ${parseInt(fontSize) + 4}px;">${companySettings.name}</h1>
-              <p style="margin: 5px 0; font-size: ${parseInt(fontSize) - 2}px;">${companySettings.address}</p>
-              <p style="margin: 5px 0; font-size: ${parseInt(fontSize) - 2}px;">هاتف: ${companySettings.phone} | إيميل: ${companySettings.email}</p>
+      <div style="font-family: ${styling.font}, sans-serif; padding: 40px; background: ${styling.backgroundColor}; color: #1a1a1a; direction: rtl; font-size: ${styling.fontSize}px; line-height: ${styling.lineHeight};">
+        <!-- Header Section -->
+        <div style="${getAlignment(layout.headerAlignment)} margin-bottom: 30px; padding-bottom: 20px; border-bottom: 3px solid ${styling.primaryColor};">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+            ${layout.logoPosition === 'left' && content.header.showLogo ? `
+              <div style="flex: 1;">
+                <img src="${companySettings.logo}" alt="شعار الشركة" style="max-height: 80px; max-width: 200px;">
+              </div>
+            ` : ''}
+            
+            <div style="flex: 2; ${getAlignment(layout.headerAlignment)}">
+              <h1 style="color: ${styling.primaryColor}; font-size: ${styling.fontSize + 14}px; margin: 0; font-weight: bold;">
+                ${content.header.title}
+              </h1>
+              ${content.header.subtitle ? `<p style="color: #666; margin: 10px 0; font-size: ${styling.fontSize + 2}px;">${content.header.subtitle}</p>` : ''}
             </div>
+            
+            ${layout.logoPosition === 'right' && content.header.showLogo ? `
+              <div style="flex: 1; text-align: right;">
+                <img src="${companySettings.logo}" alt="شعار الشركة" style="max-height: 80px; max-width: 200px;">
+              </div>
+            ` : ''}
           </div>
-        </header>
-        
-        <div style="margin: 30px 0;">
-          <h2 style="color: ${companySettings.secondaryColor};">فاتورة رقم: #INV-2025-001</h2>
-          <p>التاريخ: ${new Date().toLocaleDateString('ar-SA')}</p>
+          
+          ${content.header.showCompanyInfo ? `
+            <div style="${getAlignment(layout.companyInfoAlignment)}">
+              <h2 style="color: ${styling.primaryColor}; font-size: ${styling.fontSize + 6}px; margin: 0 0 10px 0;">
+                ${companySettings.name}
+              </h2>
+              <p style="color: #666; margin: 5px 0; font-size: ${styling.fontSize}px;">
+                ${companySettings.address}
+              </p>
+              <div style="margin-top: 10px; color: #666; font-size: ${styling.fontSize - 2}px;">
+                <span style="margin-left: 20px;">📞 ${companySettings.phone}</span>
+                <span>📧 ${companySettings.email}</span>
+              </div>
+            </div>
+          ` : ''}
         </div>
         
-        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+        <!-- Invoice Details -->
+        <div style="display: flex; justify-content: space-between; margin-bottom: 30px; font-size: ${styling.fontSize}px;">
+          <div>
+            <p><strong>رقم الفاتورة:</strong> INV-2024-001</p>
+            <p><strong>التاريخ:</strong> ${new Date().toLocaleDateString('ar-SA')}</p>
+          </div>
+          <div>
+            <p><strong>العميل:</strong> عميل تجريبي</p>
+            <p><strong>الهاتف:</strong> +966 50 123 4567</p>
+          </div>
+        </div>
+        
+        <!-- Items Table -->
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; ${tableStyle} font-size: ${styling.fontSize}px;">
           <thead>
-            <tr style="background-color: ${companySettings.primaryColor}; color: white;">
-              <th style="padding: 12px; text-align: right;">الصنف</th>
-              <th style="padding: 12px; text-align: right;">الكمية</th>
-              <th style="padding: 12px; text-align: right;">السعر</th>
-              <th style="padding: 12px; text-align: right;">الإجمالي</th>
+            <tr style="background: ${styling.secondaryColor}; color: white;">
+              ${content.body.showItemCode ? `<th style="border: ${borderStyle}; padding: 12px; text-align: center; width: ${content.body.columnWidths.code}%;">الكود</th>` : ''}
+              <th style="border: ${borderStyle}; padding: 12px; text-align: center; width: ${content.body.columnWidths.description}%;">اسم الصنف</th>
+              ${content.body.showQuantity ? `<th style="border: ${borderStyle}; padding: 12px; text-align: center; width: ${content.body.columnWidths.quantity}%;">الكمية</th>` : ''}
+              ${content.body.showUnitPrice ? `<th style="border: ${borderStyle}; padding: 12px; text-align: center; width: ${content.body.columnWidths.unitPrice}%;">السعر</th>` : ''}
+              ${content.body.showTotal ? `<th style="border: ${borderStyle}; padding: 12px; text-align: center; width: ${content.body.columnWidths.total}%;">المجموع</th>` : ''}
             </tr>
           </thead>
           <tbody>
-            <tr style="border-bottom: 1px solid #ddd;">
-              <td style="padding: 10px;">منتج تجريبي</td>
-              <td style="padding: 10px;">2</td>
-              <td style="padding: 10px;">500 ر.س</td>
-              <td style="padding: 10px;">1,000 ر.س</td>
+            <tr>
+              ${content.body.showItemCode ? `<td style="border: ${gridLines}; padding: 12px; text-align: center;">001</td>` : ''}
+              <td style="border: ${gridLines}; padding: 12px;">منتج تجريبي</td>
+              ${content.body.showQuantity ? `<td style="border: ${gridLines}; padding: 12px; text-align: center;">2</td>` : ''}
+              ${content.body.showUnitPrice ? `<td style="border: ${gridLines}; padding: 12px; text-align: center;">100.00 ر.س</td>` : ''}
+              ${content.body.showTotal ? `<td style="border: ${gridLines}; padding: 12px; text-align: center;">200.00 ر.س</td>` : ''}
             </tr>
           </tbody>
+          <tfoot>
+            <tr style="background: #f8f9fa; font-weight: bold;">
+              <td colspan="${[content.body.showItemCode, true, content.body.showQuantity, content.body.showUnitPrice].filter(Boolean).length}" style="border: ${borderStyle}; padding: 12px; text-align: center;">الإجمالي</td>
+              <td style="border: ${borderStyle}; padding: 12px; text-align: center; color: ${styling.primaryColor};">200.00 ر.س</td>
+            </tr>
+          </tfoot>
         </table>
         
-        <div style="text-align: left; margin-top: 30px;">
-          <div style="border-top: 2px solid ${companySettings.primaryColor}; padding-top: 10px;">
-            <strong style="font-size: 1.2em;">المجموع النهائي: 1,150 ر.س</strong>
-          </div>
+        <!-- Footer Section -->
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid ${styling.primaryColor}; ${getAlignment(layout.footerAlignment)}">
+          ${content.footer.notes ? `<p style="color: #666; font-size: ${styling.fontSize}px; margin-bottom: 10px;">${content.footer.notes}</p>` : ''}
+          ${content.footer.terms ? `<p style="color: #666; font-size: ${styling.fontSize - 2}px; margin-bottom: 20px;">${content.footer.terms}</p>` : ''}
+          ${content.footer.signature ? `
+            <div style="margin-top: 30px; display: flex; justify-content: space-between;">
+              <div style="text-align: center; width: 200px;">
+                <div style="border-top: 1px solid #666; padding-top: 10px; margin-top: 50px;">
+                  <p style="margin: 0; font-size: ${styling.fontSize - 2}px;">توقيع العميل</p>
+                </div>
+              </div>
+              <div style="text-align: center; width: 200px;">
+                <div style="border-top: 1px solid #666; padding-top: 10px; margin-top: 50px;">
+                  <p style="margin: 0; font-size: ${styling.fontSize - 2}px;">توقيع المندوب</p>
+                </div>
+              </div>
+            </div>
+          ` : ''}
         </div>
       </div>
     `;
@@ -615,9 +793,271 @@ export default function TemplateSystem() {
                   <Input
                     id="templateName"
                     value={editingTemplate.name}
-                    onChange={(e) => setEditingTemplate(prev => ({ ...prev, name: e.target.value }))}
+                    onChange={(e) => setEditingTemplate((prev: any) => ({ ...prev, name: e.target.value }))}
                     className="mt-1"
                   />
+                </div>
+
+                {/* Header Settings */}
+                <div className="border rounded-lg p-4 space-y-4">
+                  <h4 className="font-medium flex items-center gap-2">
+                    <Type className="h-4 w-4" />
+                    إعدادات الرأس
+                  </h4>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>عنوان الفاتورة</Label>
+                      <Input
+                        value={editingTemplate.content.header.title}
+                        onChange={(e) => updateContent('header', 'title', e.target.value)}
+                        placeholder="فاتورة"
+                      />
+                    </div>
+                    <div>
+                      <Label>عنوان فرعي</Label>
+                      <Input
+                        value={editingTemplate.content.header.subtitle}
+                        onChange={(e) => updateContent('header', 'subtitle', e.target.value)}
+                        placeholder="عنوان فرعي اختياري"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label>محاذاة الرأس</Label>
+                      <Select 
+                        value={editingTemplate.layout.headerAlignment} 
+                        onValueChange={(value) => updateLayout('headerAlignment', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="right">يمين</SelectItem>
+                          <SelectItem value="center">وسط</SelectItem>
+                          <SelectItem value="left">يسار</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>موقع الشعار</Label>
+                      <Select 
+                        value={editingTemplate.layout.logoPosition} 
+                        onValueChange={(value) => updateLayout('logoPosition', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="left">يسار</SelectItem>
+                          <SelectItem value="right">يمين</SelectItem>
+                          <SelectItem value="center">وسط</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>محاذاة معلومات الشركة</Label>
+                      <Select 
+                        value={editingTemplate.layout.companyInfoAlignment} 
+                        onValueChange={(value) => updateLayout('companyInfoAlignment', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="right">يمين</SelectItem>
+                          <SelectItem value="center">وسط</SelectItem>
+                          <SelectItem value="left">يسار</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-4 space-x-reverse">
+                    <div className="flex items-center space-x-2 space-x-reverse">
+                      <Switch
+                        id="showLogo"
+                        checked={editingTemplate.content.header.showLogo}
+                        onCheckedChange={(checked) => updateContent('header', 'showLogo', checked)}
+                      />
+                      <Label htmlFor="showLogo">إظهار الشعار</Label>
+                    </div>
+                    <div className="flex items-center space-x-2 space-x-reverse">
+                      <Switch
+                        id="showCompanyInfo"
+                        checked={editingTemplate.content.header.showCompanyInfo}
+                        onCheckedChange={(checked) => updateContent('header', 'showCompanyInfo', checked)}
+                      />
+                      <Label htmlFor="showCompanyInfo">إظهار معلومات الشركة</Label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Logo Upload */}
+                <div className="border rounded-lg p-4 space-y-4">
+                  <h4 className="font-medium flex items-center gap-2">
+                    <Image className="h-4 w-4" />
+                    شعار الشركة
+                  </h4>
+                  
+                  <div className="space-y-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => logoInputRef.current?.click()}
+                      className="w-full flex items-center gap-2"
+                    >
+                      <Upload className="h-4 w-4" />
+                      رفع شعار جديد
+                    </Button>
+                    
+                    <input
+                      ref={logoInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      className="hidden"
+                    />
+                    
+                    {companySettings.logo && (
+                      <div className="text-center">
+                        <img 
+                          src={companySettings.logo} 
+                          alt="شعار الشركة" 
+                          className="max-h-20 mx-auto border rounded"
+                        />
+                        <p className="text-sm text-gray-500 mt-1">الشعار الحالي</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Table Settings */}
+                <div className="border rounded-lg p-4 space-y-4">
+                  <h4 className="font-medium flex items-center gap-2">
+                    <Table className="h-4 w-4" />
+                    إعدادات الجدول
+                  </h4>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>نمط الجدول</Label>
+                      <Select 
+                        value={editingTemplate.layout.tableStyle} 
+                        onValueChange={(value) => updateLayout('tableStyle', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="modern">حديث</SelectItem>
+                          <SelectItem value="classic">كلاسيكي</SelectItem>
+                          <SelectItem value="minimal">بسيط</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2 space-x-reverse">
+                      <Switch
+                        id="showBorder"
+                        checked={editingTemplate.layout.showBorder}
+                        onCheckedChange={(checked) => updateLayout('showBorder', checked)}
+                      />
+                      <Label htmlFor="showBorder">إظهار الحدود</Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2 space-x-reverse">
+                      <Switch
+                        id="showGridLines"
+                        checked={editingTemplate.layout.showGridLines}
+                        onCheckedChange={(checked) => updateLayout('showGridLines', checked)}
+                      />
+                      <Label htmlFor="showGridLines">إظهار خطوط الشبكة</Label>
+                    </div>
+                  </div>
+
+                  {/* Column Settings */}
+                  <div className="space-y-3">
+                    <Label>عرض الأعمدة (%)</Label>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <Label htmlFor="codeWidth">عرض عمود الكود</Label>
+                        <Slider
+                          id="codeWidth"
+                          min={10}
+                          max={30}
+                          step={1}
+                          value={[editingTemplate.content.body.columnWidths.code]}
+                          onValueChange={(value) => {
+                            const newWidths = { ...editingTemplate.content.body.columnWidths };
+                            newWidths.code = value[0];
+                            updateContent('body', 'columnWidths', newWidths);
+                          }}
+                          className="mt-1"
+                        />
+                        <span className="text-xs text-gray-500">{editingTemplate.content.body.columnWidths.code}%</span>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="descWidth">عرض عمود الوصف</Label>
+                        <Slider
+                          id="descWidth"
+                          min={25}
+                          max={60}
+                          step={1}
+                          value={[editingTemplate.content.body.columnWidths.description]}
+                          onValueChange={(value) => {
+                            const newWidths = { ...editingTemplate.content.body.columnWidths };
+                            newWidths.description = value[0];
+                            updateContent('body', 'columnWidths', newWidths);
+                          }}
+                          className="mt-1"
+                        />
+                        <span className="text-xs text-gray-500">{editingTemplate.content.body.columnWidths.description}%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-center space-x-2 space-x-reverse">
+                      <Switch
+                        id="showItemCode"
+                        checked={editingTemplate.content.body.showItemCode}
+                        onCheckedChange={(checked) => updateContent('body', 'showItemCode', checked)}
+                      />
+                      <Label htmlFor="showItemCode">إظهار كود الصنف</Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2 space-x-reverse">
+                      <Switch
+                        id="showQuantity"
+                        checked={editingTemplate.content.body.showQuantity}
+                        onCheckedChange={(checked) => updateContent('body', 'showQuantity', checked)}
+                      />
+                      <Label htmlFor="showQuantity">إظهار الكمية</Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2 space-x-reverse">
+                      <Switch
+                        id="showUnitPrice"
+                        checked={editingTemplate.content.body.showUnitPrice}
+                        onCheckedChange={(checked) => updateContent('body', 'showUnitPrice', checked)}
+                      />
+                      <Label htmlFor="showUnitPrice">إظهار سعر الوحدة</Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2 space-x-reverse">
+                      <Switch
+                        id="showTotal"
+                        checked={editingTemplate.content.body.showTotal}
+                        onCheckedChange={(checked) => updateContent('body', 'showTotal', checked)}
+                      />
+                      <Label htmlFor="showTotal">إظهار المجموع</Label>
+                    </div>
+                  </div>
                 </div>
 
                 <div>
