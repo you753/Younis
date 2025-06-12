@@ -63,7 +63,12 @@ export default function TemplateSystem() {
       tableStyle: 'modern',
       footerAlignment: 'center',
       showBorder: true,
-      showGridLines: true
+      showGridLines: true,
+      pageSize: 'A4',
+      pageOrientation: 'portrait',
+      margins: { top: 20, bottom: 20, left: 15, right: 15 },
+      watermark: { show: false, text: '', opacity: 0.1, rotation: 45 },
+      pageNumbering: { show: false, position: 'bottom-center', format: 'صفحة {page} من {total}' }
     },
     styling: {
       primaryColor: '#3B82F6',
@@ -71,7 +76,13 @@ export default function TemplateSystem() {
       backgroundColor: '#FFFFFF',
       font: 'Cairo',
       fontSize: 14,
-      lineHeight: 1.6
+      lineHeight: 1.6,
+      headerGradient: false,
+      tableHoverEffect: false,
+      roundedCorners: 8,
+      shadowEffect: false,
+      borderStyle: 'solid',
+      customCSS: ''
     },
     content: {
       header: {
@@ -332,33 +343,61 @@ export default function TemplateSystem() {
   };
 
   const saveTemplate = (templateData: any) => {
-    console.log('حفظ القالب:', templateData);
-    
-    // Update the template in the list
-    if (selectedTemplate?.id) {
-      setInvoiceTemplates(prev => 
-        prev.map(template => 
-          template.id === selectedTemplate.id 
-            ? { ...template, ...templateData, lastModified: new Date().toISOString() }
-            : template
-        )
-      );
-    } else {
-      // Create new template
-      const newTemplate = {
-        id: Date.now(),
+    try {
+      console.log('حفظ القالب:', templateData);
+      
+      const completeTemplateData = {
         ...templateData,
-        isDefault: false,
-        isActive: true,
-        preview: 'template-preview-new.png',
-        createdAt: new Date().toISOString()
+        lastModified: new Date().toISOString(),
+        version: '1.0'
       };
-      setInvoiceTemplates(prev => [...prev, newTemplate]);
+      
+      // Update the template in the list
+      if (selectedTemplate?.id) {
+        setInvoiceTemplates(prev => 
+          prev.map(template => 
+            template.id === selectedTemplate.id 
+              ? { ...template, ...completeTemplateData }
+              : template
+          )
+        );
+        
+        // Store in localStorage for persistence
+        const savedTemplates = JSON.parse(localStorage.getItem('invoiceTemplates') || '[]');
+        const updatedTemplates = savedTemplates.map((template: any) => 
+          template.id === selectedTemplate.id 
+            ? { ...template, ...completeTemplateData }
+            : template
+        );
+        localStorage.setItem('invoiceTemplates', JSON.stringify(updatedTemplates));
+        
+      } else {
+        // Create new template
+        const newTemplate = {
+          id: Date.now(),
+          ...completeTemplateData,
+          isDefault: false,
+          isActive: true,
+          preview: 'template-preview-new.png',
+          createdAt: new Date().toISOString()
+        };
+        
+        setInvoiceTemplates(prev => [...prev, newTemplate]);
+        
+        // Store in localStorage
+        const savedTemplates = JSON.parse(localStorage.getItem('invoiceTemplates') || '[]');
+        savedTemplates.push(newTemplate);
+        localStorage.setItem('invoiceTemplates', JSON.stringify(savedTemplates));
+      }
+      
+      alert(`✅ تم حفظ القالب "${templateData.name}" بنجاح وسيبقى محفوظاً`);
+      setShowEditor(false);
+      setSelectedTemplate(null);
+      
+    } catch (error) {
+      console.error('خطأ في حفظ القالب:', error);
+      alert('❌ حدث خطأ أثناء حفظ القالب، يرجى المحاولة مرة أخرى');
     }
-    
-    alert(`تم حفظ التعديلات على القالب: ${templateData.name} بنجاح`);
-    setShowEditor(false);
-    setSelectedTemplate(null);
   };
 
   const previewTemplate = (template: any) => {
@@ -427,9 +466,25 @@ export default function TemplateSystem() {
   };
 
   const generateTemplateHTML = (template: any, useEditingSettings = false) => {
-    const layout = useEditingSettings ? editingTemplate.layout : { headerAlignment: 'center', logoPosition: 'left', companyInfoAlignment: 'right', tableStyle: 'modern', footerAlignment: 'center', showBorder: true, showGridLines: true };
-    const styling = useEditingSettings ? editingTemplate.styling : { primaryColor: companySettings.primaryColor, secondaryColor: companySettings.secondaryColor, backgroundColor: '#FFFFFF', font: 'Cairo', fontSize: 14, lineHeight: 1.6 };
-    const content = useEditingSettings ? editingTemplate.content : { header: { title: 'فــــاتــــورة', subtitle: '', showLogo: true, showCompanyInfo: true }, body: { showItemCode: true, showItemDescription: true, showQuantity: true, showUnitPrice: true, showTotal: true, columnWidths: { code: 15, description: 40, quantity: 15, unitPrice: 15, total: 15 } }, footer: { notes: 'شكراً لكم على تعاملكم معنا', terms: 'جميع الأسعار شاملة ضريبة القيمة المضافة', signature: true } };
+    const layout = useEditingSettings ? editingTemplate.layout : { 
+      headerAlignment: 'center', logoPosition: 'left', companyInfoAlignment: 'right', 
+      tableStyle: 'modern', footerAlignment: 'center', showBorder: true, showGridLines: true,
+      pageSize: 'A4', pageOrientation: 'portrait', 
+      margins: { top: 20, bottom: 20, left: 15, right: 15 },
+      watermark: { show: false, text: '', opacity: 0.1, rotation: 45 },
+      pageNumbering: { show: false, position: 'bottom-center', format: 'صفحة {page} من {total}' }
+    };
+    const styling = useEditingSettings ? editingTemplate.styling : { 
+      primaryColor: companySettings.primaryColor, secondaryColor: companySettings.secondaryColor, 
+      backgroundColor: '#FFFFFF', font: 'Cairo', fontSize: 14, lineHeight: 1.6,
+      headerGradient: false, tableHoverEffect: false, roundedCorners: 8, 
+      shadowEffect: false, borderStyle: 'solid', customCSS: ''
+    };
+    const content = useEditingSettings ? editingTemplate.content : { 
+      header: { title: 'فــــاتــــورة', subtitle: '', showLogo: true, showCompanyInfo: true }, 
+      body: { showItemCode: true, showItemDescription: true, showQuantity: true, showUnitPrice: true, showTotal: true, columnWidths: { code: 15, description: 40, quantity: 15, unitPrice: 15, total: 15 } }, 
+      footer: { notes: 'شكراً لكم على تعاملكم معنا', terms: 'جميع الأسعار شاملة ضريبة القيمة المضافة', signature: true } 
+    };
     
     const getAlignment = (align: string) => {
       switch(align) {
@@ -503,7 +558,7 @@ export default function TemplateSystem() {
         <!-- Items Table -->
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; ${tableStyle} font-size: ${styling.fontSize}px;">
           <thead>
-            <tr style="background: ${styling.secondaryColor}; color: white;">
+            <tr style="${headerBackground} color: white;">
               ${content.body.showItemCode ? `<th style="border: ${borderStyle}; padding: 12px; text-align: center; width: ${content.body.columnWidths.code}%;">الكود</th>` : ''}
               <th style="border: ${borderStyle}; padding: 12px; text-align: center; width: ${content.body.columnWidths.description}%;">اسم الصنف</th>
               ${content.body.showQuantity ? `<th style="border: ${borderStyle}; padding: 12px; text-align: center; width: ${content.body.columnWidths.quantity}%;">الكمية</th>` : ''}
@@ -512,18 +567,25 @@ export default function TemplateSystem() {
             </tr>
           </thead>
           <tbody>
-            <tr>
+            <tr class="${styling.tableHoverEffect ? 'table-row' : ''}" style="transition: background-color 0.2s ease;">
               ${content.body.showItemCode ? `<td style="border: ${gridLines}; padding: 12px; text-align: center;">001</td>` : ''}
-              <td style="border: ${gridLines}; padding: 12px;">منتج تجريبي</td>
+              <td style="border: ${gridLines}; padding: 12px;">منتج تجريبي احترافي</td>
               ${content.body.showQuantity ? `<td style="border: ${gridLines}; padding: 12px; text-align: center;">2</td>` : ''}
               ${content.body.showUnitPrice ? `<td style="border: ${gridLines}; padding: 12px; text-align: center;">100.00 ر.س</td>` : ''}
               ${content.body.showTotal ? `<td style="border: ${gridLines}; padding: 12px; text-align: center;">200.00 ر.س</td>` : ''}
             </tr>
+            <tr class="${styling.tableHoverEffect ? 'table-row' : ''}" style="transition: background-color 0.2s ease;">
+              ${content.body.showItemCode ? `<td style="border: ${gridLines}; padding: 12px; text-align: center;">002</td>` : ''}
+              <td style="border: ${gridLines}; padding: 12px;">منتج تجريبي آخر</td>
+              ${content.body.showQuantity ? `<td style="border: ${gridLines}; padding: 12px; text-align: center;">1</td>` : ''}
+              ${content.body.showUnitPrice ? `<td style="border: ${gridLines}; padding: 12px; text-align: center;">50.00 ر.س</td>` : ''}
+              ${content.body.showTotal ? `<td style="border: ${gridLines}; padding: 12px; text-align: center;">50.00 ر.س</td>` : ''}
+            </tr>
           </tbody>
           <tfoot>
-            <tr style="background: #f8f9fa; font-weight: bold;">
-              <td colspan="${[content.body.showItemCode, true, content.body.showQuantity, content.body.showUnitPrice].filter(Boolean).length}" style="border: ${borderStyle}; padding: 12px; text-align: center;">الإجمالي</td>
-              <td style="border: ${borderStyle}; padding: 12px; text-align: center; color: ${styling.primaryColor};">200.00 ر.س</td>
+            <tr style="background: linear-gradient(135deg, #f8f9fa, #e9ecef); font-weight: bold; ${styling.shadowEffect ? 'box-shadow: 0 2px 4px rgba(0,0,0,0.1);' : ''}">
+              <td colspan="${[content.body.showItemCode, true, content.body.showQuantity, content.body.showUnitPrice].filter(Boolean).length}" style="border: ${borderStyle}; padding: 12px; text-align: center; font-size: ${styling.fontSize + 1}px;">الإجمالي</td>
+              <td style="border: ${borderStyle}; padding: 12px; text-align: center; color: ${styling.primaryColor}; font-size: ${styling.fontSize + 1}px; font-weight: bold;">250.00 ر.س</td>
             </tr>
           </tfoot>
         </table>
@@ -1177,11 +1239,178 @@ export default function TemplateSystem() {
                   </div>
                 </div>
 
-                {/* Styling Settings */}
+                {/* Page Layout Settings */}
+                <div className="border rounded-lg p-4 space-y-4">
+                  <h4 className="font-medium flex items-center gap-2">
+                    <Layout className="h-4 w-4" />
+                    إعدادات الصفحة والتخطيط
+                  </h4>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>حجم الصفحة</Label>
+                      <Select 
+                        value={editingTemplate.layout.pageSize}
+                        onValueChange={(value) => updateLayout('pageSize', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="A4">A4 (210 × 297 مم)</SelectItem>
+                          <SelectItem value="A5">A5 (148 × 210 مم)</SelectItem>
+                          <SelectItem value="Letter">Letter (216 × 279 مم)</SelectItem>
+                          <SelectItem value="Legal">Legal (216 × 356 مم)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label>اتجاه الصفحة</Label>
+                      <Select 
+                        value={editingTemplate.layout.pageOrientation}
+                        onValueChange={(value) => updateLayout('pageOrientation', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="portrait">عمودي</SelectItem>
+                          <SelectItem value="landscape">أفقي</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium">هوامش الصفحة (مم)</Label>
+                    <div className="grid grid-cols-4 gap-2">
+                      <div>
+                        <Label className="text-xs">أعلى</Label>
+                        <Input 
+                          type="number" 
+                          value={editingTemplate.layout.margins.top}
+                          onChange={(e) => updateLayout('margins', { ...editingTemplate.layout.margins, top: Number(e.target.value) })}
+                          className="text-center"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">أسفل</Label>
+                        <Input 
+                          type="number" 
+                          value={editingTemplate.layout.margins.bottom}
+                          onChange={(e) => updateLayout('margins', { ...editingTemplate.layout.margins, bottom: Number(e.target.value) })}
+                          className="text-center"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">يسار</Label>
+                        <Input 
+                          type="number" 
+                          value={editingTemplate.layout.margins.left}
+                          onChange={(e) => updateLayout('margins', { ...editingTemplate.layout.margins, left: Number(e.target.value) })}
+                          className="text-center"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">يمين</Label>
+                        <Input 
+                          type="number" 
+                          value={editingTemplate.layout.margins.right}
+                          onChange={(e) => updateLayout('margins', { ...editingTemplate.layout.margins, right: Number(e.target.value) })}
+                          className="text-center"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Watermark Settings */}
+                  <div className="border-t pt-3 space-y-3">
+                    <div className="flex items-center space-x-2 space-x-reverse">
+                      <Switch
+                        id="showWatermark"
+                        checked={editingTemplate.layout.watermark.show}
+                        onCheckedChange={(checked) => updateLayout('watermark', { ...editingTemplate.layout.watermark, show: checked })}
+                      />
+                      <Label htmlFor="showWatermark" className="text-sm">إضافة علامة مائية</Label>
+                    </div>
+
+                    {editingTemplate.layout.watermark.show && (
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-xs">نص العلامة المائية</Label>
+                          <Input 
+                            value={editingTemplate.layout.watermark.text}
+                            onChange={(e) => updateLayout('watermark', { ...editingTemplate.layout.watermark, text: e.target.value })}
+                            placeholder="نسخة أولية"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">الشفافية</Label>
+                          <Slider
+                            min={0.05}
+                            max={0.3}
+                            step={0.05}
+                            value={[editingTemplate.layout.watermark.opacity]}
+                            onValueChange={(value) => updateLayout('watermark', { ...editingTemplate.layout.watermark, opacity: value[0] })}
+                            className="mt-1"
+                          />
+                          <span className="text-xs text-gray-500">{Math.round(editingTemplate.layout.watermark.opacity * 100)}%</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Page Numbering */}
+                  <div className="border-t pt-3 space-y-3">
+                    <div className="flex items-center space-x-2 space-x-reverse">
+                      <Switch
+                        id="showPageNumbers"
+                        checked={editingTemplate.layout.pageNumbering.show}
+                        onCheckedChange={(checked) => updateLayout('pageNumbering', { ...editingTemplate.layout.pageNumbering, show: checked })}
+                      />
+                      <Label htmlFor="showPageNumbers" className="text-sm">ترقيم الصفحات</Label>
+                    </div>
+
+                    {editingTemplate.layout.pageNumbering.show && (
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-xs">موقع الترقيم</Label>
+                          <Select 
+                            value={editingTemplate.layout.pageNumbering.position}
+                            onValueChange={(value) => updateLayout('pageNumbering', { ...editingTemplate.layout.pageNumbering, position: value })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="top-left">أعلى يسار</SelectItem>
+                              <SelectItem value="top-center">أعلى وسط</SelectItem>
+                              <SelectItem value="top-right">أعلى يمين</SelectItem>
+                              <SelectItem value="bottom-left">أسفل يسار</SelectItem>
+                              <SelectItem value="bottom-center">أسفل وسط</SelectItem>
+                              <SelectItem value="bottom-right">أسفل يمين</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label className="text-xs">تنسيق الترقيم</Label>
+                          <Input 
+                            value={editingTemplate.layout.pageNumbering.format}
+                            onChange={(e) => updateLayout('pageNumbering', { ...editingTemplate.layout.pageNumbering, format: e.target.value })}
+                            placeholder="صفحة {page} من {total}"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Advanced Styling Settings */}
                 <div className="border rounded-lg p-4 space-y-4">
                   <h4 className="font-medium flex items-center gap-2">
                     <Palette className="h-4 w-4" />
-                    إعدادات التصميم
+                    إعدادات التصميم المتقدمة
                   </h4>
 
                   <div className="space-y-3">
@@ -1231,10 +1460,12 @@ export default function TemplateSystem() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="Cairo">Cairo</SelectItem>
-                            <SelectItem value="Amiri">Amiri</SelectItem>
-                            <SelectItem value="Tajawal">Tajawal</SelectItem>
-                            <SelectItem value="Almarai">Almarai</SelectItem>
+                            <SelectItem value="Cairo">Cairo - خط القاهرة</SelectItem>
+                            <SelectItem value="Amiri">Amiri - خط أميري</SelectItem>
+                            <SelectItem value="Tajawal">Tajawal - خط تجوال</SelectItem>
+                            <SelectItem value="Almarai">Almarai - خط المرعي</SelectItem>
+                            <SelectItem value="Noto Sans Arabic">Noto Sans Arabic</SelectItem>
+                            <SelectItem value="IBM Plex Sans Arabic">IBM Plex Sans Arabic</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -1242,8 +1473,8 @@ export default function TemplateSystem() {
                       <div>
                         <Label>حجم الخط</Label>
                         <Slider
-                          min={10}
-                          max={20}
+                          min={8}
+                          max={24}
                           step={1}
                           value={[editingTemplate.styling.fontSize]}
                           onValueChange={(value) => updateStyling('fontSize', value[0])}
@@ -1251,6 +1482,87 @@ export default function TemplateSystem() {
                         />
                         <span className="text-xs text-gray-500">{editingTemplate.styling.fontSize}px</span>
                       </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label>نمط الحدود</Label>
+                        <Select 
+                          value={editingTemplate.styling.borderStyle}
+                          onValueChange={(value) => updateStyling('borderStyle', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="solid">خط متصل</SelectItem>
+                            <SelectItem value="dashed">خط متقطع</SelectItem>
+                            <SelectItem value="dotted">خط منقط</SelectItem>
+                            <SelectItem value="double">خط مزدوج</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label>استدارة الزوايا</Label>
+                        <Slider
+                          min={0}
+                          max={20}
+                          step={2}
+                          value={[editingTemplate.styling.roundedCorners]}
+                          onValueChange={(value) => updateStyling('roundedCorners', value[0])}
+                          className="mt-2"
+                        />
+                        <span className="text-xs text-gray-500">{editingTemplate.styling.roundedCorners}px</span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex items-center space-x-2 space-x-reverse">
+                        <Switch
+                          id="headerGradient"
+                          checked={editingTemplate.styling.headerGradient}
+                          onCheckedChange={(checked) => updateStyling('headerGradient', checked)}
+                        />
+                        <Label htmlFor="headerGradient" className="text-xs">تدرج لوني للرأس</Label>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2 space-x-reverse">
+                        <Switch
+                          id="shadowEffect"
+                          checked={editingTemplate.styling.shadowEffect}
+                          onCheckedChange={(checked) => updateStyling('shadowEffect', checked)}
+                        />
+                        <Label htmlFor="shadowEffect" className="text-xs">تأثير الظل</Label>
+                      </div>
+
+                      <div className="flex items-center space-x-2 space-x-reverse">
+                        <Switch
+                          id="tableHoverEffect"
+                          checked={editingTemplate.styling.tableHoverEffect}
+                          onCheckedChange={(checked) => updateStyling('tableHoverEffect', checked)}
+                        />
+                        <Label htmlFor="tableHoverEffect" className="text-xs">تأثير التمرير للجدول</Label>
+                      </div>
+                    </div>
+
+                    {/* Custom CSS */}
+                    <div>
+                      <Label htmlFor="customCSS" className="text-sm font-medium">CSS مخصص (للمحترفين)</Label>
+                      <Textarea
+                        id="customCSS"
+                        value={editingTemplate.styling.customCSS}
+                        onChange={(e) => updateStyling('customCSS', e.target.value)}
+                        placeholder="/* أدخل كود CSS مخصص هنا */
+.invoice-header { 
+  background: linear-gradient(45deg, #3B82F6, #1E40AF);
+}
+.table-row:hover {
+  background-color: #f0f9ff;
+}"
+                        rows={6}
+                        className="font-mono text-sm"
+                      />
                     </div>
                   </div>
                 </div>
