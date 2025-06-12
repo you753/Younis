@@ -1892,13 +1892,23 @@ export default function TemplateSystem() {
               </div>
             </div>
 
-            <div className="p-6 border-t flex justify-end gap-3">
-              <Button variant="outline" onClick={closeEditor}>
-                إلغاء
+            <div className="p-6 border-t flex justify-between">
+              <Button 
+                variant="outline" 
+                onClick={() => previewTemplate(editingTemplate)}
+                className="text-blue-600 border-blue-600 hover:bg-blue-50"
+              >
+                <Eye className="w-4 h-4 ml-2" />
+                معاينة مباشرة
               </Button>
-              <Button onClick={() => saveTemplate(editingTemplate)}>
-                حفظ التعديلات
-              </Button>
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={closeEditor}>
+                  إلغاء
+                </Button>
+                <Button onClick={() => saveTemplate(editingTemplate)}>
+                  حفظ التعديلات
+                </Button>
+              </div>
             </div>
           </div>
         </div>
