@@ -462,9 +462,9 @@ export default function TopBar() {
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 className="gap-2 text-red-600 cursor-pointer"
-                onClick={() => {
-                  logout();
-                  window.location.reload(); // إعادة تحميل الصفحة للعودة لصفحة تسجيل الدخول
+                onClick={async () => {
+                  await logout();
+                  setLocation('/login');
                 }}
               >
                 <LogOut className="h-4 w-4" />
