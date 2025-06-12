@@ -71,8 +71,8 @@ export function useAuth() {
       email: ''
     });
     
-    // إعادة توجيه المستخدم لصفحة تسجيل الدخول
-    window.location.href = '/login';
+    // إعادة توجيه المستخدم لصفحة تسجيل الدخول باستخدام replace
+    window.location.replace('/login');
   };
 
   return {
