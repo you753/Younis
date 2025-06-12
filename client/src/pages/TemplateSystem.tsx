@@ -416,35 +416,49 @@ export default function TemplateSystem() {
   };
 
   const previewTemplate = (template: any) => {
-    // Get the latest version from localStorage to ensure fresh data
-    const savedTemplates = JSON.parse(localStorage.getItem('invoiceTemplates') || '[]');
-    const latestTemplate = savedTemplates.find((t: any) => t.id === template.id) || template;
+    // Use the current template data directly (either from editing state or passed template)
+    const templateToPreview = template.name === editingTemplate?.name ? editingTemplate : template;
     
     // Create preview window
-    const previewWindow = window.open('', '_blank', 'width=800,height=600');
+    const previewWindow = window.open('', '_blank', 'width=900,height=700,scrollbars=yes');
     if (previewWindow) {
       previewWindow.document.write(`
         <!DOCTYPE html>
         <html dir="rtl" lang="ar">
           <head>
             <meta charset="UTF-8">
-            <title>معاينة ${latestTemplate.name}</title>
+            <title>معاينة ${templateToPreview.name}</title>
             <style>
-              @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700&display=swap');
+              @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700&family=Almarai:wght@400;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap');
               body { 
-                font-family: '${latestTemplate.styling?.font || 'Cairo'}', sans-serif; 
+                font-family: '${templateToPreview.styling?.font || 'Cairo'}', sans-serif; 
                 margin: 0; 
                 padding: 20px; 
-                background: #f5f5f5;
+                background: #f8f9fa;
                 direction: rtl;
+                line-height: 1.6;
               }
               @media print {
-                body { background: white; }
+                body { background: white; margin: 0; padding: 0; }
+              }
+              .preview-container {
+                background: white;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                border-radius: 8px;
+                overflow: hidden;
+                margin: 0 auto;
+                max-width: 210mm;
               }
             </style>
           </head>
           <body>
-            ${generateTemplateHTML(latestTemplate)}
+            <div class="preview-container">
+              ${generateTemplateHTML(templateToPreview)}
+            </div>
+            <script>
+              // Auto-focus for better user experience
+              window.focus();
+            </script>
           </body>
         </html>
       `);
