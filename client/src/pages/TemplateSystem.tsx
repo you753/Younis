@@ -271,27 +271,35 @@ export default function TemplateSystem() {
 
   const editTemplate = (template: any) => {
     setSelectedTemplate(template);
+    // Load the actual template data instead of defaults
     setEditingTemplate({
       name: template.name,
       type: template.type,
-      layout: {
+      layout: template.layout || {
         headerAlignment: 'center',
         logoPosition: 'left',
         companyInfoAlignment: 'right',
         tableStyle: 'modern',
         footerAlignment: 'center',
         showBorder: true,
-        showGridLines: true
+        showGridLines: true,
+        pageSize: 'A4',
+        pageOrientation: 'portrait',
+        watermark: { show: false, text: '', opacity: 0.1 },
+        pageNumbering: { show: false, position: 'bottom-center', format: 'صفحة {page} من {total}' }
       },
-      styling: {
+      styling: template.styling || {
         primaryColor: companySettings.primaryColor,
         secondaryColor: companySettings.secondaryColor,
         backgroundColor: '#FFFFFF',
         font: 'Cairo',
         fontSize: 14,
-        lineHeight: 1.6
+        lineHeight: 1.6,
+        borderStyle: 'solid',
+        roundedCorners: 0,
+        shadowEffect: false
       },
-      content: {
+      content: template.content || {
         header: {
           title: 'فــــاتــــورة',
           subtitle: '',
@@ -354,19 +362,25 @@ export default function TemplateSystem() {
       
       // Update the template in the list
       if (selectedTemplate?.id) {
+        // Update local state immediately with the new data
+        const updatedTemplate = { ...selectedTemplate, ...completeTemplateData };
+        
         setInvoiceTemplates(prev => 
           prev.map(template => 
             template.id === selectedTemplate.id 
-              ? { ...template, ...completeTemplateData }
+              ? updatedTemplate
               : template
           )
         );
+        
+        // Update the selected template to reflect changes in preview
+        setSelectedTemplate(updatedTemplate);
         
         // Store in localStorage for persistence
         const savedTemplates = JSON.parse(localStorage.getItem('invoiceTemplates') || '[]');
         const updatedTemplates = savedTemplates.map((template: any) => 
           template.id === selectedTemplate.id 
-            ? { ...template, ...completeTemplateData }
+            ? updatedTemplate
             : template
         );
         localStorage.setItem('invoiceTemplates', JSON.stringify(updatedTemplates));
@@ -383,6 +397,7 @@ export default function TemplateSystem() {
         };
         
         setInvoiceTemplates(prev => [...prev, newTemplate]);
+        setSelectedTemplate(newTemplate);
         
         // Store in localStorage
         const savedTemplates = JSON.parse(localStorage.getItem('invoiceTemplates') || '[]');
@@ -401,21 +416,35 @@ export default function TemplateSystem() {
   };
 
   const previewTemplate = (template: any) => {
+    // Get the latest version from localStorage to ensure fresh data
+    const savedTemplates = JSON.parse(localStorage.getItem('invoiceTemplates') || '[]');
+    const latestTemplate = savedTemplates.find((t: any) => t.id === template.id) || template;
+    
     // Create preview window
     const previewWindow = window.open('', '_blank', 'width=800,height=600');
     if (previewWindow) {
       previewWindow.document.write(`
         <!DOCTYPE html>
-        <html dir="rtl">
+        <html dir="rtl" lang="ar">
           <head>
             <meta charset="UTF-8">
-            <title>معاينة ${template.name}</title>
+            <title>معاينة ${latestTemplate.name}</title>
             <style>
-              body { font-family: 'Cairo', sans-serif; margin: 0; padding: 20px; }
+              @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700&display=swap');
+              body { 
+                font-family: '${latestTemplate.styling?.font || 'Cairo'}', sans-serif; 
+                margin: 0; 
+                padding: 20px; 
+                background: #f5f5f5;
+                direction: rtl;
+              }
+              @media print {
+                body { background: white; }
+              }
             </style>
           </head>
           <body>
-            ${generateTemplateHTML(template)}
+            ${generateTemplateHTML(latestTemplate)}
           </body>
         </html>
       `);
