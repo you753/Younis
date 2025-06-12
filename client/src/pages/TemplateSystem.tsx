@@ -97,13 +97,28 @@ export default function TemplateSystem() {
       footer: {
         notes: 'شكراً لكم على تعاملكم معنا',
         terms: 'جميع الأسعار شاملة ضريبة القيمة المضافة',
-        signature: true
+        signature: true,
+        showPaymentInfo: true,
+        bankDetails: 'البنك الأهلي السعودي - رقم الحساب: 123456789',
+        vatNumber: 'الرقم الضريبي: 300123456789003',
+        showQRCode: true,
+        customFooterText: '',
+        footerBackgroundColor: '#F8F9FA',
+        footerTextColor: '#666666',
+        showFooterBorder: true,
+        footerBorderColor: '#E5E7EB',
+        signatureFields: [
+          { label: 'توقيع العميل', show: true },
+          { label: 'توقيع المندوب', show: true },
+          { label: 'التاريخ', show: false },
+          { label: 'الوقت', show: false }
+        ]
       }
     }
   });
 
   // Sample templates for demonstration
-  const invoiceTemplates = [
+  const [invoiceTemplates, setInvoiceTemplates] = useState([
     {
       id: 1,
       name: 'فاتورة كلاسيكية',
@@ -120,7 +135,7 @@ export default function TemplateSystem() {
       isActive: true,
       preview: 'template-preview-2.png'
     }
-  ];
+  ]);
 
   const reportTemplates = [
     {
@@ -289,7 +304,22 @@ export default function TemplateSystem() {
         footer: {
           notes: 'شكراً لكم على تعاملكم معنا',
           terms: 'جميع الأسعار شاملة ضريبة القيمة المضافة',
-          signature: true
+          signature: true,
+          showPaymentInfo: true,
+          bankDetails: 'البنك الأهلي السعودي - رقم الحساب: 123456789',
+          vatNumber: 'الرقم الضريبي: 300123456789003',
+          showQRCode: true,
+          customFooterText: '',
+          footerBackgroundColor: '#F8F9FA',
+          footerTextColor: '#666666',
+          showFooterBorder: true,
+          footerBorderColor: '#E5E7EB',
+          signatureFields: [
+            { label: 'توقيع العميل', show: true },
+            { label: 'توقيع المندوب', show: true },
+            { label: 'التاريخ', show: false },
+            { label: 'الوقت', show: false }
+          ]
         }
       }
     });
@@ -303,7 +333,30 @@ export default function TemplateSystem() {
 
   const saveTemplate = (templateData: any) => {
     console.log('حفظ القالب:', templateData);
-    alert(`تم حفظ التعديلات على القالب: ${templateData.name}`);
+    
+    // Update the template in the list
+    if (selectedTemplate?.id) {
+      setInvoiceTemplates(prev => 
+        prev.map(template => 
+          template.id === selectedTemplate.id 
+            ? { ...template, ...templateData, lastModified: new Date().toISOString() }
+            : template
+        )
+      );
+    } else {
+      // Create new template
+      const newTemplate = {
+        id: Date.now(),
+        ...templateData,
+        isDefault: false,
+        isActive: true,
+        preview: 'template-preview-new.png',
+        createdAt: new Date().toISOString()
+      };
+      setInvoiceTemplates(prev => [...prev, newTemplate]);
+    }
+    
+    alert(`تم حفظ التعديلات على القالب: ${templateData.name} بنجاح`);
     setShowEditor(false);
     setSelectedTemplate(null);
   };
@@ -476,21 +529,43 @@ export default function TemplateSystem() {
         </table>
         
         <!-- Footer Section -->
-        <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid ${styling.primaryColor}; ${getAlignment(layout.footerAlignment)}">
-          ${content.footer.notes ? `<p style="color: #666; font-size: ${styling.fontSize}px; margin-bottom: 10px;">${content.footer.notes}</p>` : ''}
-          ${content.footer.terms ? `<p style="color: #666; font-size: ${styling.fontSize - 2}px; margin-bottom: 20px;">${content.footer.terms}</p>` : ''}
-          ${content.footer.signature ? `
-            <div style="margin-top: 30px; display: flex; justify-content: space-between;">
-              <div style="text-align: center; width: 200px;">
-                <div style="border-top: 1px solid #666; padding-top: 10px; margin-top: 50px;">
-                  <p style="margin: 0; font-size: ${styling.fontSize - 2}px;">توقيع العميل</p>
-                </div>
+        <div style="margin-top: ${content.footer.topMargin || 40}px; padding: ${content.footer.padding || 20}px; background: ${content.footer.footerBackgroundColor || '#F8F9FA'}; color: ${content.footer.footerTextColor || '#666666'}; ${content.footer.showFooterBorder ? `border: 1px solid ${content.footer.footerBorderColor || '#E5E7EB'};` : ''} border-radius: ${content.footer.borderRadius || 8}px; ${content.footer.width === '80' ? 'width: 80%; margin-left: auto; margin-right: auto;' : content.footer.width === '60' ? 'width: 60%; margin-left: auto; margin-right: auto;' : 'width: 100%;'} ${content.footer.showShadow ? 'box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);' : ''} ${getAlignment(layout.footerAlignment)}">
+          
+          ${content.footer.notes ? `<p style="font-size: ${styling.fontSize}px; margin-bottom: 15px; font-weight: 500;">${content.footer.notes}</p>` : ''}
+          
+          ${content.footer.terms ? `<p style="font-size: ${styling.fontSize - 2}px; margin-bottom: 15px; font-style: italic;">${content.footer.terms}</p>` : ''}
+          
+          ${content.footer.customFooterText ? `<p style="font-size: ${styling.fontSize - 1}px; margin-bottom: 15px;">${content.footer.customFooterText}</p>` : ''}
+          
+          ${content.footer.showPaymentInfo && content.footer.bankDetails ? `
+            <div style="margin: 15px 0; padding: 10px; background: rgba(59, 130, 246, 0.1); border-radius: 5px;">
+              <p style="font-size: ${styling.fontSize - 1}px; margin: 0; font-weight: 500;">معلومات الحساب البنكي:</p>
+              <p style="font-size: ${styling.fontSize - 2}px; margin: 5px 0 0 0;">${content.footer.bankDetails}</p>
+            </div>
+          ` : ''}
+          
+          ${content.footer.vatNumber ? `
+            <p style="font-size: ${styling.fontSize - 2}px; margin: 10px 0; text-align: center; font-weight: 500;">${content.footer.vatNumber}</p>
+          ` : ''}
+          
+          ${content.footer.showQRCode ? `
+            <div style="text-align: center; margin: 20px 0;">
+              <div style="width: 80px; height: 80px; background: #f0f0f0; border: 2px dashed #ccc; margin: 0 auto; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                <span style="font-size: 10px; color: #888;">QR Code</span>
               </div>
-              <div style="text-align: center; width: 200px;">
-                <div style="border-top: 1px solid #666; padding-top: 10px; margin-top: 50px;">
-                  <p style="margin: 0; font-size: ${styling.fontSize - 2}px;">توقيع المندوب</p>
+              <p style="font-size: ${styling.fontSize - 3}px; margin-top: 5px; color: #888;">رمز الاستجابة السريعة</p>
+            </div>
+          ` : ''}
+          
+          ${content.footer.signature && content.footer.signatureFields ? `
+            <div style="margin-top: 30px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px;">
+              ${content.footer.signatureFields.filter((field: any) => field.show).map((field: any) => `
+                <div style="text-align: center; min-width: 150px; flex: 1;">
+                  <div style="border-top: 1px solid #666; padding-top: 10px; margin-top: 40px;">
+                    <p style="margin: 0; font-size: ${styling.fontSize - 2}px;">${field.label}</p>
+                  </div>
                 </div>
-              </div>
+              `).join('')}
             </div>
           ` : ''}
         </div>
@@ -1178,24 +1253,43 @@ export default function TemplateSystem() {
                 <div className="border rounded-lg p-4 space-y-4">
                   <h4 className="font-medium flex items-center gap-2">
                     <Grid className="h-4 w-4" />
-                    إعدادات التذييل
+                    إعدادات التذييل المتقدمة
                   </h4>
                   
-                  <div>
-                    <Label>محاذاة التذييل</Label>
-                    <Select 
-                      value={editingTemplate.layout.footerAlignment} 
-                      onValueChange={(value) => updateLayout('footerAlignment', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="right">يمين</SelectItem>
-                        <SelectItem value="center">وسط</SelectItem>
-                        <SelectItem value="left">يسار</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>محاذاة التذييل</Label>
+                      <Select 
+                        value={editingTemplate.layout.footerAlignment} 
+                        onValueChange={(value) => updateLayout('footerAlignment', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="right">يمين</SelectItem>
+                          <SelectItem value="center">وسط</SelectItem>
+                          <SelectItem value="left">يسار</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label>لون خلفية التذييل</Label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          value={editingTemplate.content.footer.footerBackgroundColor}
+                          onChange={(e) => updateContent('footer', 'footerBackgroundColor', e.target.value)}
+                          className="w-10 h-8 rounded border"
+                        />
+                        <Input 
+                          value={editingTemplate.content.footer.footerBackgroundColor} 
+                          onChange={(e) => updateContent('footer', 'footerBackgroundColor', e.target.value)}
+                          className="flex-1" 
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   <div className="space-y-3">
@@ -1221,13 +1315,199 @@ export default function TemplateSystem() {
                       />
                     </div>
 
-                    <div className="flex items-center space-x-2 space-x-reverse">
-                      <Switch
-                        id="showSignature"
-                        checked={editingTemplate.content.footer.signature}
-                        onCheckedChange={(checked) => updateContent('footer', 'signature', checked)}
+                    <div>
+                      <Label htmlFor="bankDetails">تفاصيل البنك</Label>
+                      <Textarea
+                        id="bankDetails"
+                        value={editingTemplate.content.footer.bankDetails}
+                        onChange={(e) => updateContent('footer', 'bankDetails', e.target.value)}
+                        placeholder="البنك الأهلي السعودي - رقم الحساب: 123456789"
+                        rows={2}
                       />
-                      <Label htmlFor="showSignature">إظهار خانات التوقيع</Label>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="vatNumber">الرقم الضريبي</Label>
+                      <Input
+                        id="vatNumber"
+                        value={editingTemplate.content.footer.vatNumber}
+                        onChange={(e) => updateContent('footer', 'vatNumber', e.target.value)}
+                        placeholder="الرقم الضريبي: 300123456789003"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="customFooterText">نص إضافي للتذييل</Label>
+                      <Textarea
+                        id="customFooterText"
+                        value={editingTemplate.content.footer.customFooterText}
+                        onChange={(e) => updateContent('footer', 'customFooterText', e.target.value)}
+                        placeholder="أي نص إضافي تريد إضافته في التذييل"
+                        rows={2}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex items-center space-x-2 space-x-reverse">
+                        <Switch
+                          id="showSignature"
+                          checked={editingTemplate.content.footer.signature}
+                          onCheckedChange={(checked) => updateContent('footer', 'signature', checked)}
+                        />
+                        <Label htmlFor="showSignature">إظهار خانات التوقيع</Label>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2 space-x-reverse">
+                        <Switch
+                          id="showPaymentInfo"
+                          checked={editingTemplate.content.footer.showPaymentInfo}
+                          onCheckedChange={(checked) => updateContent('footer', 'showPaymentInfo', checked)}
+                        />
+                        <Label htmlFor="showPaymentInfo">إظهار معلومات الدفع</Label>
+                      </div>
+
+                      <div className="flex items-center space-x-2 space-x-reverse">
+                        <Switch
+                          id="showQRCode"
+                          checked={editingTemplate.content.footer.showQRCode}
+                          onCheckedChange={(checked) => updateContent('footer', 'showQRCode', checked)}
+                        />
+                        <Label htmlFor="showQRCode">إظهار رمز QR</Label>
+                      </div>
+
+                      <div className="flex items-center space-x-2 space-x-reverse">
+                        <Switch
+                          id="showFooterBorder"
+                          checked={editingTemplate.content.footer.showFooterBorder}
+                          onCheckedChange={(checked) => updateContent('footer', 'showFooterBorder', checked)}
+                        />
+                        <Label htmlFor="showFooterBorder">إظهار حدود التذييل</Label>
+                      </div>
+                    </div>
+
+                    {/* Page Layout Controls */}
+                    <div className="border-t pt-3">
+                      <Label className="text-sm font-medium">تحكم في تخطيط الصفحة</Label>
+                      <div className="grid grid-cols-2 gap-3 mt-2">
+                        <div>
+                          <Label className="text-xs">المسافة من الأعلى</Label>
+                          <Slider
+                            min={10}
+                            max={100}
+                            step={5}
+                            value={[editingTemplate.content.footer.topMargin || 40]}
+                            onValueChange={(value) => updateContent('footer', 'topMargin', value[0])}
+                            className="mt-1"
+                          />
+                          <span className="text-xs text-gray-500">{editingTemplate.content.footer.topMargin || 40}px</span>
+                        </div>
+
+                        <div>
+                          <Label className="text-xs">المسافة الداخلية</Label>
+                          <Slider
+                            min={10}
+                            max={40}
+                            step={2}
+                            value={[editingTemplate.content.footer.padding || 20]}
+                            onValueChange={(value) => updateContent('footer', 'padding', value[0])}
+                            className="mt-1"
+                          />
+                          <span className="text-xs text-gray-500">{editingTemplate.content.footer.padding || 20}px</span>
+                        </div>
+
+                        <div>
+                          <Label className="text-xs">عرض التذييل</Label>
+                          <Select 
+                            value={editingTemplate.content.footer.width || 'full'}
+                            onValueChange={(value) => updateContent('footer', 'width', value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="full">كامل العرض</SelectItem>
+                              <SelectItem value="80">80% من العرض</SelectItem>
+                              <SelectItem value="60">60% من العرض</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <Label className="text-xs">استدارة الزوايا</Label>
+                          <Slider
+                            min={0}
+                            max={20}
+                            step={2}
+                            value={[editingTemplate.content.footer.borderRadius || 8]}
+                            onValueChange={(value) => updateContent('footer', 'borderRadius', value[0])}
+                            className="mt-1"
+                          />
+                          <span className="text-xs text-gray-500">{editingTemplate.content.footer.borderRadius || 8}px</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Signature Fields Customization */}
+                    {editingTemplate.content.footer.signature && (
+                      <div className="border-t pt-3">
+                        <Label className="text-sm font-medium">خانات التوقيع</Label>
+                        <div className="grid grid-cols-2 gap-3 mt-2">
+                          {editingTemplate.content.footer.signatureFields.map((field: any, index: number) => (
+                            <div key={index} className="flex items-center space-x-2 space-x-reverse">
+                              <Switch
+                                checked={field.show}
+                                onCheckedChange={(checked) => {
+                                  const newFields = [...editingTemplate.content.footer.signatureFields];
+                                  newFields[index].show = checked;
+                                  updateContent('footer', 'signatureFields', newFields);
+                                }}
+                              />
+                              <Label className="text-xs">{field.label}</Label>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="mt-3">
+                          <Label className="text-xs">تخطيط التوقيعات</Label>
+                          <Select 
+                            value={editingTemplate.content.footer.signatureLayout || 'horizontal'}
+                            onValueChange={(value) => updateContent('footer', 'signatureLayout', value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="horizontal">صف واحد أفقي</SelectItem>
+                              <SelectItem value="vertical">عمود واحد عمودي</SelectItem>
+                              <SelectItem value="grid">شبكة 2x2</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Additional Footer Controls */}
+                    <div className="border-t pt-3">
+                      <Label className="text-sm font-medium">تحكم إضافي في التذييل</Label>
+                      <div className="grid grid-cols-1 gap-3 mt-2">
+                        <div className="flex items-center space-x-2 space-x-reverse">
+                          <Switch
+                            id="showFooterShadow"
+                            checked={editingTemplate.content.footer.showShadow || false}
+                            onCheckedChange={(checked) => updateContent('footer', 'showShadow', checked)}
+                          />
+                          <Label htmlFor="showFooterShadow" className="text-xs">إضافة ظل للتذييل</Label>
+                        </div>
+
+                        <div className="flex items-center space-x-2 space-x-reverse">
+                          <Switch
+                            id="separateFooterPage"
+                            checked={editingTemplate.content.footer.separatePage || false}
+                            onCheckedChange={(checked) => updateContent('footer', 'separatePage', checked)}
+                          />
+                          <Label htmlFor="separateFooterPage" className="text-xs">تذييل في صفحة منفصلة</Label>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
