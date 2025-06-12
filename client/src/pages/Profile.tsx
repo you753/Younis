@@ -14,8 +14,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { User, Mail, Phone, MapPin, Shield, Calendar, Edit3, Save, X, Camera, Upload } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Shield, Calendar, Edit3, Save, X, Camera, Upload, LogOut } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
+import { useAuth } from '@/hooks/useAuth';
+import { useLocation } from 'wouter';
 import type { User as UserType } from '@shared/schema';
 
 const profileSchema = z.object({
@@ -36,6 +38,8 @@ export default function Profile() {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { logout } = useAuth();
+  const [, setLocation] = useLocation();
 
   useEffect(() => {
     setCurrentPage('الملف الشخصي');
@@ -490,6 +494,36 @@ export default function Profile() {
                     {Math.floor((new Date().getTime() - new Date(currentUser?.createdAt || '').getTime()) / (1000 * 60 * 60 * 24))}
                   </div>
                   <div className="text-sm text-gray-600">يوماً في النظام</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* إعدادات الحساب */}
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>إعدادات الحساب</CardTitle>
+              <CardDescription>إدارة حسابك وإعدادات الأمان</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium">تسجيل الخروج</h4>
+                    <p className="text-sm text-gray-500">تسجيل الخروج من النظام والعودة لصفحة تسجيل الدخول</p>
+                  </div>
+                  <Button 
+                    variant="destructive"
+                    onClick={async () => {
+                      await logout();
+                      setLocation('/login');
+                    }}
+                    className="gap-2"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    تسجيل الخروج
+                  </Button>
                 </div>
               </div>
             </CardContent>
