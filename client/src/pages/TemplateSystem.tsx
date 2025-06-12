@@ -1329,19 +1329,19 @@ export default function TemplateSystem() {
                     <div className="flex items-center space-x-2 space-x-reverse">
                       <Switch
                         id="showWatermark"
-                        checked={editingTemplate.layout.watermark.show}
-                        onCheckedChange={(checked) => updateLayout('watermark', { ...editingTemplate.layout.watermark, show: checked })}
+                        checked={editingTemplate.layout.watermark?.show || false}
+                        onCheckedChange={(checked) => updateLayout('watermark', { ...(editingTemplate.layout.watermark || {}), show: checked })}
                       />
                       <Label htmlFor="showWatermark" className="text-sm">إضافة علامة مائية</Label>
                     </div>
 
-                    {editingTemplate.layout.watermark.show && (
+                    {editingTemplate.layout.watermark?.show && (
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <Label className="text-xs">نص العلامة المائية</Label>
                           <Input 
-                            value={editingTemplate.layout.watermark.text}
-                            onChange={(e) => updateLayout('watermark', { ...editingTemplate.layout.watermark, text: e.target.value })}
+                            value={editingTemplate.layout.watermark?.text || ''}
+                            onChange={(e) => updateLayout('watermark', { ...(editingTemplate.layout.watermark || {}), text: e.target.value })}
                             placeholder="نسخة أولية"
                           />
                         </div>
@@ -1351,11 +1351,11 @@ export default function TemplateSystem() {
                             min={0.05}
                             max={0.3}
                             step={0.05}
-                            value={[editingTemplate.layout.watermark.opacity]}
-                            onValueChange={(value) => updateLayout('watermark', { ...editingTemplate.layout.watermark, opacity: value[0] })}
+                            value={[editingTemplate.layout.watermark?.opacity || 0.1]}
+                            onValueChange={(value) => updateLayout('watermark', { ...(editingTemplate.layout.watermark || {}), opacity: value[0] })}
                             className="mt-1"
                           />
-                          <span className="text-xs text-gray-500">{Math.round(editingTemplate.layout.watermark.opacity * 100)}%</span>
+                          <span className="text-xs text-gray-500">{Math.round((editingTemplate.layout.watermark?.opacity || 0.1) * 100)}%</span>
                         </div>
                       </div>
                     )}
@@ -1366,19 +1366,19 @@ export default function TemplateSystem() {
                     <div className="flex items-center space-x-2 space-x-reverse">
                       <Switch
                         id="showPageNumbers"
-                        checked={editingTemplate.layout.pageNumbering.show}
-                        onCheckedChange={(checked) => updateLayout('pageNumbering', { ...editingTemplate.layout.pageNumbering, show: checked })}
+                        checked={editingTemplate.layout.pageNumbering?.show || false}
+                        onCheckedChange={(checked) => updateLayout('pageNumbering', { ...(editingTemplate.layout.pageNumbering || {}), show: checked })}
                       />
                       <Label htmlFor="showPageNumbers" className="text-sm">ترقيم الصفحات</Label>
                     </div>
 
-                    {editingTemplate.layout.pageNumbering.show && (
+                    {editingTemplate.layout.pageNumbering?.show && (
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <Label className="text-xs">موقع الترقيم</Label>
                           <Select 
-                            value={editingTemplate.layout.pageNumbering.position}
-                            onValueChange={(value) => updateLayout('pageNumbering', { ...editingTemplate.layout.pageNumbering, position: value })}
+                            value={editingTemplate.layout.pageNumbering?.position || 'bottom-center'}
+                            onValueChange={(value) => updateLayout('pageNumbering', { ...(editingTemplate.layout.pageNumbering || {}), position: value })}
                           >
                             <SelectTrigger>
                               <SelectValue />
@@ -1396,8 +1396,8 @@ export default function TemplateSystem() {
                         <div>
                           <Label className="text-xs">تنسيق الترقيم</Label>
                           <Input 
-                            value={editingTemplate.layout.pageNumbering.format}
-                            onChange={(e) => updateLayout('pageNumbering', { ...editingTemplate.layout.pageNumbering, format: e.target.value })}
+                            value={editingTemplate.layout.pageNumbering?.format || 'صفحة {page} من {total}'}
+                            onChange={(e) => updateLayout('pageNumbering', { ...(editingTemplate.layout.pageNumbering || {}), format: e.target.value })}
                             placeholder="صفحة {page} من {total}"
                           />
                         </div>
