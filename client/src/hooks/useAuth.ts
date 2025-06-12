@@ -70,6 +70,9 @@ export function useAuth() {
       name: '',
       email: ''
     });
+    
+    // إعادة توجيه المستخدم لصفحة تسجيل الدخول
+    window.location.href = '/login';
   };
 
   return {

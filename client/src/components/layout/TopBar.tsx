@@ -462,10 +462,7 @@ export default function TopBar() {
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 className="gap-2 text-red-600 cursor-pointer"
-                onClick={async () => {
-                  await logout();
-                  setLocation('/login');
-                }}
+                onClick={logout}
               >
                 <LogOut className="h-4 w-4" />
                 {t('logout')}

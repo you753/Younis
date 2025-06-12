@@ -515,10 +515,7 @@ export default function Profile() {
                   </div>
                   <Button 
                     variant="destructive"
-                    onClick={async () => {
-                      await logout();
-                      setLocation('/login');
-                    }}
+                    onClick={logout}
                     className="gap-2"
                   >
                     <LogOut className="h-4 w-4" />
