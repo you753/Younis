@@ -558,9 +558,15 @@ export default function TemplateSystem() {
           ` : ''}
           
           ${content.footer.signature && content.footer.signatureFields ? `
-            <div style="margin-top: 30px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px;">
+            <div style="margin-top: 30px; ${
+              content.footer.signatureLayout === 'vertical' 
+                ? 'display: flex; flex-direction: column; gap: 20px; align-items: center;'
+                : content.footer.signatureLayout === 'grid'
+                ? 'display: grid; grid-template-columns: 1fr 1fr; gap: 20px;'
+                : 'display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px;'
+            }">
               ${content.footer.signatureFields.filter((field: any) => field.show).map((field: any) => `
-                <div style="text-align: center; min-width: 150px; flex: 1;">
+                <div style="text-align: center; min-width: 150px; ${content.footer.signatureLayout === 'vertical' ? 'width: 200px;' : 'flex: 1;'}">
                   <div style="border-top: 1px solid #666; padding-top: 10px; margin-top: 40px;">
                     <p style="margin: 0; font-size: ${styling.fontSize - 2}px;">${field.label}</p>
                   </div>
