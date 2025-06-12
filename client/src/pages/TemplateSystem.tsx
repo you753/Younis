@@ -212,9 +212,8 @@ export default function TemplateSystem() {
         allowTaint: true
       });
       
-      // Create PDF
       const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdf = new jsPDF();
       const imgWidth = 210;
       const pageHeight = 295;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
@@ -249,10 +248,50 @@ export default function TemplateSystem() {
     setEditingTemplate({
       name: template.name,
       type: template.type,
-      primaryColor: companySettings.primaryColor,
-      secondaryColor: companySettings.secondaryColor,
-      font: 'Cairo',
-      fontSize: '14'
+      layout: {
+        headerAlignment: 'center',
+        logoPosition: 'left',
+        companyInfoAlignment: 'right',
+        tableStyle: 'modern',
+        footerAlignment: 'center',
+        showBorder: true,
+        showGridLines: true
+      },
+      styling: {
+        primaryColor: companySettings.primaryColor,
+        secondaryColor: companySettings.secondaryColor,
+        backgroundColor: '#FFFFFF',
+        font: 'Cairo',
+        fontSize: 14,
+        lineHeight: 1.6
+      },
+      content: {
+        header: {
+          title: 'فــــاتــــورة',
+          subtitle: '',
+          showLogo: true,
+          showCompanyInfo: true
+        },
+        body: {
+          showItemCode: true,
+          showItemDescription: true,
+          showQuantity: true,
+          showUnitPrice: true,
+          showTotal: true,
+          columnWidths: {
+            code: 15,
+            description: 40,
+            quantity: 15,
+            unitPrice: 15,
+            total: 15
+          }
+        },
+        footer: {
+          notes: 'شكراً لكم على تعاملكم معنا',
+          terms: 'جميع الأسعار شاملة ضريبة القيمة المضافة',
+          signature: true
+        }
+      }
     });
     setShowEditor(true);
   };
@@ -468,11 +507,11 @@ export default function TemplateSystem() {
           <p className="text-gray-600 mt-2">إنشاء وتخصيص قوالب الفواتير والتقارير مع معاينة فورية</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button variant="outline" className="flex items-center gap-2" onClick={saveCompanySettings}>
             <Settings className="h-4 w-4" />
             إعدادات الشركة
           </Button>
-          <Button className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2">
+          <Button className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2" onClick={() => editTemplate({ name: 'قالب جديد', type: 'invoice' })}>
             <Plus className="h-4 w-4" />
             إنشاء قالب جديد
           </Button>
@@ -500,32 +539,30 @@ export default function TemplateSystem() {
         <TabsContent value="invoices" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {invoiceTemplates.map((template) => (
-              <Card key={template.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      {template.name}
+              <Card key={template.id} className="overflow-hidden">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">{template.name}</CardTitle>
+                    <div className="flex gap-1">
                       {template.isDefault && (
                         <Badge variant="default" className="text-xs">
                           <Star className="h-3 w-3 mr-1" />
                           افتراضي
                         </Badge>
                       )}
-                    </CardTitle>
-                    <Badge variant={template.isActive ? "default" : "secondary"}>
-                      {template.isActive ? 'نشط' : 'معطل'}
-                    </Badge>
+                      {template.isActive && (
+                        <Badge variant="secondary" className="text-xs">فعال</Badge>
+                      )}
+                    </div>
                   </div>
                 </CardHeader>
-                
                 <CardContent className="space-y-4">
-                  {/* Template Preview */}
-                  <div className="bg-gray-50 rounded-lg p-4 min-h-32">
-                    <div 
-                      className="w-full h-24 bg-white rounded border text-xs p-2 overflow-hidden"
-                      dangerouslySetInnerHTML={{ __html: generateTemplateHTML(template) }}
-                      style={{ transform: 'scale(0.3)', transformOrigin: 'top right', height: '300px' }}
-                    />
+                  {/* Preview */}
+                  <div className="bg-gray-50 rounded-lg h-32 flex items-center justify-center">
+                    <div className="text-center text-gray-500">
+                      <FileText className="h-8 w-8 mx-auto mb-2" />
+                      <p className="text-sm">معاينة فاتورة {template.type}</p>
+                    </div>
                   </div>
 
                   {/* Actions */}
@@ -574,28 +611,27 @@ export default function TemplateSystem() {
         <TabsContent value="reports" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {reportTemplates.map((template) => (
-              <Card key={template.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      {template.name}
+              <Card key={template.id} className="overflow-hidden">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">{template.name}</CardTitle>
+                    <div className="flex gap-1">
                       {template.isDefault && (
                         <Badge variant="default" className="text-xs">
                           <Star className="h-3 w-3 mr-1" />
                           افتراضي
                         </Badge>
                       )}
-                    </CardTitle>
-                    <Badge variant={template.isActive ? "default" : "secondary"}>
-                      {template.isActive ? 'نشط' : 'معطل'}
-                    </Badge>
+                      {template.isActive && (
+                        <Badge variant="secondary" className="text-xs">فعال</Badge>
+                      )}
+                    </div>
                   </div>
                 </CardHeader>
-                
                 <CardContent className="space-y-4">
-                  {/* Template Preview */}
-                  <div className="bg-gray-50 rounded-lg p-4 min-h-32 flex items-center justify-center">
-                    <div className="text-gray-500 text-center">
+                  {/* Preview */}
+                  <div className="bg-gray-50 rounded-lg h-32 flex items-center justify-center">
+                    <div className="text-center text-gray-500">
                       <Layout className="h-8 w-8 mx-auto mb-2" />
                       <p className="text-sm">معاينة تقرير {template.type}</p>
                     </div>
@@ -1060,137 +1096,157 @@ export default function TemplateSystem() {
                   </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="templateType">نوع القالب</Label>
-                  <Select 
-                    value={editingTemplate.type}
-                    onValueChange={(value) => setEditingTemplate(prev => ({ ...prev, type: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="invoice">فاتورة</SelectItem>
-                      <SelectItem value="receipt">إيصال</SelectItem>
-                      <SelectItem value="quotation">عرض سعر</SelectItem>
-                      <SelectItem value="sales">تقرير مبيعات</SelectItem>
-                      <SelectItem value="inventory">تقرير مخزون</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                {/* Styling Settings */}
+                <div className="border rounded-lg p-4 space-y-4">
+                  <h4 className="font-medium flex items-center gap-2">
+                    <Palette className="h-4 w-4" />
+                    إعدادات التصميم
+                  </h4>
 
-                <div className="space-y-3">
-                  <Label>ألوان القالب</Label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label className="text-sm">اللون الأساسي</Label>
-                      <div className="flex gap-2">
-                        <input
-                          type="color"
-                          value={editingTemplate.primaryColor}
-                          onChange={(e) => setEditingTemplate(prev => ({ ...prev, primaryColor: e.target.value }))}
-                          className="w-10 h-8 rounded border"
-                        />
-                        <Input 
-                          value={editingTemplate.primaryColor} 
-                          onChange={(e) => setEditingTemplate(prev => ({ ...prev, primaryColor: e.target.value }))}
-                          className="flex-1" 
-                        />
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label className="text-sm">اللون الأساسي</Label>
+                        <div className="flex gap-2">
+                          <input
+                            type="color"
+                            value={editingTemplate.styling.primaryColor}
+                            onChange={(e) => updateStyling('primaryColor', e.target.value)}
+                            className="w-10 h-8 rounded border"
+                          />
+                          <Input 
+                            value={editingTemplate.styling.primaryColor} 
+                            onChange={(e) => updateStyling('primaryColor', e.target.value)}
+                            className="flex-1" 
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-sm">اللون الثانوي</Label>
+                        <div className="flex gap-2">
+                          <input
+                            type="color"
+                            value={editingTemplate.styling.secondaryColor}
+                            onChange={(e) => updateStyling('secondaryColor', e.target.value)}
+                            className="w-10 h-8 rounded border"
+                          />
+                          <Input 
+                            value={editingTemplate.styling.secondaryColor} 
+                            onChange={(e) => updateStyling('secondaryColor', e.target.value)}
+                            className="flex-1" 
+                          />
+                        </div>
                       </div>
                     </div>
-                    <div>
-                      <Label className="text-sm">اللون الثانوي</Label>
-                      <div className="flex gap-2">
-                        <input
-                          type="color"
-                          value={editingTemplate.secondaryColor}
-                          onChange={(e) => setEditingTemplate(prev => ({ ...prev, secondaryColor: e.target.value }))}
-                          className="w-10 h-8 rounded border"
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label>خط القالب</Label>
+                        <Select 
+                          value={editingTemplate.styling.font}
+                          onValueChange={(value) => updateStyling('font', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Cairo">Cairo</SelectItem>
+                            <SelectItem value="Amiri">Amiri</SelectItem>
+                            <SelectItem value="Tajawal">Tajawal</SelectItem>
+                            <SelectItem value="Almarai">Almarai</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label>حجم الخط</Label>
+                        <Slider
+                          min={10}
+                          max={20}
+                          step={1}
+                          value={[editingTemplate.styling.fontSize]}
+                          onValueChange={(value) => updateStyling('fontSize', value[0])}
+                          className="mt-2"
                         />
-                        <Input 
-                          value={editingTemplate.secondaryColor} 
-                          onChange={(e) => setEditingTemplate(prev => ({ ...prev, secondaryColor: e.target.value }))}
-                          className="flex-1" 
-                        />
+                        <span className="text-xs text-gray-500">{editingTemplate.styling.fontSize}px</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div>
-                  <Label>خط القالب</Label>
-                  <Select 
-                    value={editingTemplate.font}
-                    onValueChange={(value) => setEditingTemplate(prev => ({ ...prev, font: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Cairo">Cairo</SelectItem>
-                      <SelectItem value="Amiri">Amiri</SelectItem>
-                      <SelectItem value="Tajawal">Tajawal</SelectItem>
-                      <SelectItem value="Almarai">Almarai</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                {/* Footer Settings */}
+                <div className="border rounded-lg p-4 space-y-4">
+                  <h4 className="font-medium flex items-center gap-2">
+                    <Grid className="h-4 w-4" />
+                    إعدادات التذييل
+                  </h4>
+                  
+                  <div>
+                    <Label>محاذاة التذييل</Label>
+                    <Select 
+                      value={editingTemplate.layout.footerAlignment} 
+                      onValueChange={(value) => updateLayout('footerAlignment', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="right">يمين</SelectItem>
+                        <SelectItem value="center">وسط</SelectItem>
+                        <SelectItem value="left">يسار</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <div>
-                  <Label>حجم الخط</Label>
-                  <Select 
-                    value={editingTemplate.fontSize}
-                    onValueChange={(value) => setEditingTemplate(prev => ({ ...prev, fontSize: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="12">صغير (12px)</SelectItem>
-                      <SelectItem value="14">متوسط (14px)</SelectItem>
-                      <SelectItem value="16">كبير (16px)</SelectItem>
-                      <SelectItem value="18">كبير جداً (18px)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                  <div className="space-y-3">
+                    <div>
+                      <Label htmlFor="footerNotes">ملاحظات التذييل</Label>
+                      <Textarea
+                        id="footerNotes"
+                        value={editingTemplate.content.footer.notes}
+                        onChange={(e) => updateContent('footer', 'notes', e.target.value)}
+                        placeholder="شكراً لكم على تعاملكم معنا"
+                        rows={2}
+                      />
+                    </div>
 
-                <div className="space-y-2">
-                  <Label>عناصر القالب</Label>
-                  <div className="space-y-2">
-                    <label className="flex items-center space-x-2 space-x-reverse">
-                      <input type="checkbox" defaultChecked className="rounded" />
-                      <span>رأس الشركة</span>
-                    </label>
-                    <label className="flex items-center space-x-2 space-x-reverse">
-                      <input type="checkbox" defaultChecked className="rounded" />
-                      <span>معلومات العميل</span>
-                    </label>
-                    <label className="flex items-center space-x-2 space-x-reverse">
-                      <input type="checkbox" defaultChecked className="rounded" />
-                      <span>جدول الأصناف</span>
-                    </label>
-                    <label className="flex items-center space-x-2 space-x-reverse">
-                      <input type="checkbox" defaultChecked className="rounded" />
-                      <span>المجموع الإجمالي</span>
-                    </label>
-                    <label className="flex items-center space-x-2 space-x-reverse">
-                      <input type="checkbox" defaultChecked className="rounded" />
-                      <span>الذيل والتوقيع</span>
-                    </label>
+                    <div>
+                      <Label htmlFor="footerTerms">الشروط والأحكام</Label>
+                      <Textarea
+                        id="footerTerms"
+                        value={editingTemplate.content.footer.terms}
+                        onChange={(e) => updateContent('footer', 'terms', e.target.value)}
+                        placeholder="جميع الأسعار شاملة ضريبة القيمة المضافة"
+                        rows={2}
+                      />
+                    </div>
+
+                    <div className="flex items-center space-x-2 space-x-reverse">
+                      <Switch
+                        id="showSignature"
+                        checked={editingTemplate.content.footer.signature}
+                        onCheckedChange={(checked) => updateContent('footer', 'signature', checked)}
+                      />
+                      <Label htmlFor="showSignature">إظهار خانات التوقيع</Label>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex gap-2 pt-4">
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-4">
                   <Button 
+                    onClick={() => saveTemplate(editingTemplate)} 
                     className="flex-1"
-                    onClick={() => saveTemplate({
-                      ...selectedTemplate,
-                      name: 'القالب المحدث'
-                    })}
                   >
                     حفظ التعديلات
                   </Button>
-                  <Button variant="outline" onClick={closeEditor}>
-                    إلغاء
+                  <Button 
+                    variant="outline" 
+                    onClick={() => generatePDF(editingTemplate)}
+                    className="flex items-center gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    تصدير PDF
                   </Button>
                 </div>
               </div>
@@ -1198,82 +1254,28 @@ export default function TemplateSystem() {
               {/* Live Preview */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">معاينة مباشرة</h3>
-                <div className="border rounded-lg p-4 bg-gray-50 min-h-96">
+                <div className="border rounded-lg p-4 bg-white overflow-auto max-h-[600px]">
                   <div 
-                    className="bg-white p-4 rounded shadow-sm text-xs"
-                    dangerouslySetInnerHTML={{ __html: generateTemplateHTML(selectedTemplate, true) }}
-                    style={{ transform: 'scale(0.8)', transformOrigin: 'top right' }}
+                    dangerouslySetInnerHTML={{ 
+                      __html: generateTemplateHTML(selectedTemplate, true) 
+                    }}
+                    className="transform scale-75 origin-top-right"
                   />
                 </div>
-                
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => previewTemplate(selectedTemplate)}
-                    className="flex-1"
-                  >
-                    <Eye className="h-4 w-4 mr-1" />
-                    معاينة كاملة
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => generatePDF(selectedTemplate)}
-                    className="flex-1"
-                  >
-                    <Download className="h-4 w-4 mr-1" />
-                    تحميل PDF
-                  </Button>
-                </div>
               </div>
+            </div>
+
+            <div className="p-6 border-t flex justify-end gap-3">
+              <Button variant="outline" onClick={closeEditor}>
+                إلغاء
+              </Button>
+              <Button onClick={() => saveTemplate(editingTemplate)}>
+                حفظ التعديلات
+              </Button>
             </div>
           </div>
         </div>
       )}
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>إجراءات سريعة</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Button 
-              variant="outline" 
-              className="flex items-center gap-2"
-              onClick={createNewInvoice}
-            >
-              <FileText className="h-4 w-4" />
-              إنشاء فاتورة
-            </Button>
-            <Button 
-              variant="outline" 
-              className="flex items-center gap-2"
-              onClick={createNewReport}
-            >
-              <Layout className="h-4 w-4" />
-              إنشاء تقرير
-            </Button>
-            <Button 
-              variant="outline" 
-              className="flex items-center gap-2"
-              onClick={exportTemplates}
-            >
-              <Download className="h-4 w-4" />
-              تصدير القوالب
-            </Button>
-            <Button 
-              variant="outline" 
-              className="flex items-center gap-2"
-              onClick={openAdvancedSettings}
-            >
-              <Settings className="h-4 w-4" />
-              إعدادات متقدمة
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
