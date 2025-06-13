@@ -6,8 +6,7 @@ import {
   journalEntryLines, 
   products, 
   sales, 
-  purchases,
-  inventoryMovements 
+  purchases
 } from '../shared/schema';
 import { eq, sql } from 'drizzle-orm';
 
@@ -306,16 +305,7 @@ export class AccountingService {
           })
           .where(eq(products.id, item.productId));
 
-        // إنشاء حركة مخزون
-        await db.insert(inventoryMovements).values({
-          productId: item.productId,
-          type: 'sale',
-          quantity: -item.quantity,
-          unitPrice: item.unitPrice,
-          total: -(item.quantity * item.unitPrice),
-          description: `بيع - فاتورة مبيعات`,
-          date: new Date()
-        });
+        // سيتم إضافة حركات المخزون لاحقاً
       }
     } catch (error) {
       console.error('خطأ في تحديث المخزون من المبيعات:', error);
@@ -333,16 +323,7 @@ export class AccountingService {
           })
           .where(eq(products.id, item.productId));
 
-        // إنشاء حركة مخزون
-        await db.insert(inventoryMovements).values({
-          productId: item.productId,
-          type: 'purchase',
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          total: item.quantity * item.unitPrice,
-          description: `شراء - فاتورة مشتريات`,
-          date: new Date()
-        });
+        // سيتم إضافة حركات المخزون لاحقاً
       }
     } catch (error) {
       console.error('خطأ في تحديث المخزون من المشتريات:', error);
