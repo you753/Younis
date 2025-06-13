@@ -1,12 +1,13 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useCurrency } from '@/hooks/useCurrency';
 import { Button } from '@/components/ui/button';
-import { Printer, Download, Eye } from 'lucide-react';
+import { Printer, Download, Eye, Layout } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import InvoicePrint from './InvoicePrint';
+import TemplateSelector from './TemplateSelector';
 import { Sale, Client, Product } from '@shared/schema';
 
 interface InvoiceActionsProps {
@@ -20,6 +21,7 @@ export default function InvoiceActions({ sale, client, products, showPreview = f
   const { toast } = useToast();
   const { format: formatAmount } = useCurrency();
   const invoiceRef = useRef<HTMLDivElement>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
 
   // Get saved templates from localStorage
   const getSavedTemplates = () => {
@@ -242,6 +244,19 @@ export default function InvoiceActions({ sale, client, products, showPreview = f
 
   return (
     <div className="space-y-4">
+      {/* Template Selection */}
+      <div className="flex gap-2 justify-center items-center">
+        <TemplateSelector 
+          selectedTemplate={selectedTemplate}
+          onSelectTemplate={setSelectedTemplate}
+        />
+        {selectedTemplate && (
+          <span className="text-sm text-gray-600">
+            القالب المختار: {selectedTemplate.name}
+          </span>
+        )}
+      </div>
+
       {/* Action Buttons */}
       <div className="flex gap-3 justify-center">
         <Button onClick={handlePrint} className="flex items-center gap-2">
