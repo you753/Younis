@@ -93,6 +93,14 @@ export const purchases = pgTable("purchases", {
   total: decimal("total", { precision: 10, scale: 2 }).notNull(),
   date: timestamp("date").defaultNow().notNull(),
   notes: text("notes"),
+  items: json("items").$type<Array<{
+    id: string;
+    productId: number;
+    productName: string;
+    quantity: number;
+    unitPrice: number;
+    total: number;
+  }>>(),
 });
 
 export const employees = pgTable("employees", {
