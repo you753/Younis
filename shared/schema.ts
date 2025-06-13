@@ -313,6 +313,56 @@ export const insertInventoryOpeningBalanceSchema = createInsertSchema(inventoryO
   createdAt: true,
 });
 
+// Accounting Tree System
+export const accountCategories = pgTable("account_categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  nameEn: text("name_en"),
+  code: text("code").notNull().unique(),
+  type: text("type").notNull(), // assets, liabilities, equity, revenue, expenses
+  parentId: integer("parent_id"),
+  level: integer("level").notNull().default(1),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const accounts = pgTable("accounts", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  nameEn: text("name_en"),
+  code: text("code").notNull().unique(),
+  categoryId: integer("category_id").references(() => accountCategories.id).notNull(),
+  type: text("type").notNull(), // debit, credit
+  balance: decimal("balance", { precision: 15, scale: 2 }).default("0"),
+  isActive: boolean("is_active").default(true),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const journalEntries = pgTable("journal_entries", {
+  id: serial("id").primaryKey(),
+  entryNumber: text("entry_number").notNull().unique(),
+  date: date("date").notNull(),
+  description: text("description").notNull(),
+  referenceType: text("reference_type"), // sale, purchase, payment, receipt, adjustment
+  referenceId: integer("reference_id"), // ID of the related transaction
+  totalDebit: decimal("total_debit", { precision: 15, scale: 2 }).notNull(),
+  totalCredit: decimal("total_credit", { precision: 15, scale: 2 }).notNull(),
+  status: text("status").notNull().default("pending"), // pending, posted, cancelled
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const journalEntryLines = pgTable("journal_entry_lines", {
+  id: serial("id").primaryKey(),
+  journalEntryId: integer("journal_entry_id").references(() => journalEntries.id).notNull(),
+  accountId: integer("account_id").references(() => accounts.id).notNull(),
+  description: text("description"),
+  debitAmount: decimal("debit_amount", { precision: 15, scale: 2 }).default("0"),
+  creditAmount: decimal("credit_amount", { precision: 15, scale: 2 }).default("0"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Templates System
 export const invoiceTemplates = pgTable("invoice_templates", {
   id: serial("id").primaryKey(),
@@ -408,7 +458,38 @@ export const insertCompanySettingsSchema = createInsertSchema(companySettings).o
   updatedAt: true,
 });
 
+export const insertAccountCategorySchema = createInsertSchema(accountCategories).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAccountSchema = createInsertSchema(accounts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertJournalEntrySchema = createInsertSchema(journalEntries).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertJournalEntryLineSchema = createInsertSchema(journalEntryLines).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
+export type AccountCategory = typeof accountCategories.$inferSelect;
+export type InsertAccountCategory = z.infer<typeof insertAccountCategorySchema>;
+
+export type Account = typeof accounts.$inferSelect;
+export type InsertAccount = z.infer<typeof insertAccountSchema>;
+
+export type JournalEntry = typeof journalEntries.$inferSelect;
+export type InsertJournalEntry = z.infer<typeof insertJournalEntrySchema>;
+
+export type JournalEntryLine = typeof journalEntryLines.$inferSelect;
+export type InsertJournalEntryLine = z.infer<typeof insertJournalEntryLineSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 
