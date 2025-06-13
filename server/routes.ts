@@ -464,10 +464,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/sales", async (req, res) => {
     try {
       const validatedData = insertSaleSchema.parse(req.body);
+      
+      // Deduct quantities from inventory before creating sale
+      if (validatedData.items && Array.isArray(validatedData.items)) {
+        for (const item of validatedData.items) {
+          if (item.productId && item.quantity) {
+            // Get current product to check available quantity
+            const product = await storage.getProduct(item.productId);
+            if (!product) {
+              return res.status(400).json({ 
+                message: `المنتج رقم ${item.productId} غير موجود` 
+              });
+            }
+            
+            const currentQuantity = product.quantity || 0;
+            if (currentQuantity < item.quantity) {
+              return res.status(400).json({ 
+                message: `الكمية المتاحة للمنتج "${product.name}" هي ${currentQuantity} فقط` 
+              });
+            }
+            
+            // Update product quantity
+            const newQuantity = currentQuantity - item.quantity;
+            await storage.updateProduct(item.productId, { quantity: newQuantity });
+          }
+        }
+      }
+      
       const sale = await storage.createSale(validatedData);
       res.status(201).json(sale);
     } catch (error) {
-      res.status(400).json({ message: "Invalid sale data" });
+      console.error('Error creating sale:', error);
+      res.status(400).json({ message: "فشل في إنشاء فاتورة المبيعات" });
     }
   });
 
@@ -484,10 +512,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/purchases", async (req, res) => {
     try {
       const validatedData = insertPurchaseSchema.parse(req.body);
+      
+      // Add quantities to inventory when creating purchase
+      if (validatedData.items && Array.isArray(validatedData.items)) {
+        for (const item of validatedData.items) {
+          if (item.productId && item.quantity) {
+            // Get current product
+            const product = await storage.getProduct(item.productId);
+            if (product) {
+              // Update product quantity by adding purchased quantity
+              const currentQuantity = product.quantity || 0;
+              const newQuantity = currentQuantity + item.quantity;
+              await storage.updateProduct(item.productId, { quantity: newQuantity });
+            }
+          }
+        }
+      }
+      
       const purchase = await storage.createPurchase(validatedData);
       res.status(201).json(purchase);
     } catch (error) {
-      res.status(400).json({ message: "Invalid purchase data" });
+      console.error('Error creating purchase:', error);
+      res.status(400).json({ message: "فشل في إنشاء فاتورة المشتريات" });
     }
   });
 
@@ -834,12 +880,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       const validatedData = insertSalesReturnSchema.parse(req.body);
+      
+      // Restore quantities to inventory when processing returns
+      if (validatedData.items && Array.isArray(validatedData.items)) {
+        for (const item of validatedData.items) {
+          if (item.productId && item.quantity) {
+            // Get current product
+            const product = await storage.getProduct(item.productId);
+            if (product) {
+              // Update product quantity by adding returned quantity
+              const currentQuantity = product.quantity || 0;
+              const newQuantity = currentQuantity + item.quantity;
+              await storage.updateProduct(item.productId, { quantity: newQuantity });
+            }
+          }
+        }
+      }
+      
       const salesReturn = await storage.createSalesReturn(validatedData);
       
       res.status(201).json(salesReturn);
     } catch (error) {
       console.error('Error creating sales return:', error);
-      res.status(500).json({ error: 'Failed to create sales return' });
+      res.status(500).json({ error: 'فشل في إنشاء مرتجع المبيعات' });
     }
   });
 
