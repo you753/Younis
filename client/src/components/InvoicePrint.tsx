@@ -12,10 +12,11 @@ interface InvoicePrintProps {
     email: string;
     taxNumber: string;
   };
+  selectedTemplate?: any;
 }
 
 const InvoicePrint = forwardRef<HTMLDivElement, InvoicePrintProps>(
-  ({ sale, client, products, companyInfo }, ref) => {
+  ({ sale, client, products, companyInfo, selectedTemplate }, ref) => {
     const defaultCompanyInfo = {
       name: "المحاسب الأعظم",
       address: "الرياض، المملكة العربية السعودية",
@@ -34,8 +35,11 @@ const InvoicePrint = forwardRef<HTMLDivElement, InvoicePrintProps>(
       }
     };
 
-    // Get active template
+    // Get active template - prioritize selectedTemplate from props
     const getActiveTemplate = () => {
+      if (selectedTemplate) {
+        return selectedTemplate;
+      }
       const templates = getSavedTemplates();
       return templates.find((t: any) => t.isDefault || t.isActive) || templates[0] || null;
     };
