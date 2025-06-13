@@ -317,6 +317,7 @@ export default function InvoiceActions({ sale, client, products, showPreview = f
             sale={sale}
             client={client}
             products={products}
+            selectedTemplate={selectedTemplate}
           />
         </div>
       )}
