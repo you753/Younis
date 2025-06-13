@@ -23,6 +23,33 @@ export default function InvoiceActions({ sale, client, products, showPreview = f
   const invoiceRef = useRef<HTMLDivElement>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
 
+  // Load saved template for this specific invoice
+  React.useEffect(() => {
+    const savedTemplate = localStorage.getItem(`invoice-template-${sale.id}`);
+    if (savedTemplate) {
+      try {
+        setSelectedTemplate(JSON.parse(savedTemplate));
+      } catch (error) {
+        console.error('Error loading saved template:', error);
+      }
+    }
+  }, [sale.id]);
+
+  // Save template selection for this specific invoice
+  const handleTemplateSelect = (template: any) => {
+    setSelectedTemplate(template);
+    if (template) {
+      localStorage.setItem(`invoice-template-${sale.id}`, JSON.stringify(template));
+    } else {
+      localStorage.removeItem(`invoice-template-${sale.id}`);
+    }
+    
+    toast({
+      title: "تم حفظ اختيار القالب",
+      description: template ? `تم تطبيق قالب "${template.name}" على هذه الفاتورة` : "تم إزالة القالب المخصص",
+    });
+  };
+
   // Get saved templates from localStorage
   const getSavedTemplates = () => {
     try {
@@ -248,7 +275,7 @@ export default function InvoiceActions({ sale, client, products, showPreview = f
       <div className="flex gap-2 justify-center items-center">
         <TemplateSelector 
           selectedTemplate={selectedTemplate}
-          onSelectTemplate={setSelectedTemplate}
+          onSelectTemplate={handleTemplateSelect}
         />
         {selectedTemplate && (
           <span className="text-sm text-gray-600">
