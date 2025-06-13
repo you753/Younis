@@ -19,6 +19,7 @@ import {
 } from "@shared/schema";
 import { uploadMiddleware, transcribeAudio } from "./voice";
 import { handleAIChat } from "./ai-chat";
+import { AccountingService } from "./accounting-service";
 import multer from 'multer';
 import path from 'path';
 import * as XLSX from 'xlsx';
