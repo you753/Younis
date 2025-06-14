@@ -25,7 +25,7 @@ interface PaymentVoucher {
   voucherNumber: string;
   supplierId: number;
   supplierName: string;
-  amount: string | number;
+  amount: number;
   paymentDate: string;
   paymentMethod: string;
   notes: string | null;
@@ -159,7 +159,7 @@ export default function BranchSupplierPaymentVouchers({ branchId }: BranchSuppli
                           </div>
                           <div className="flex items-center gap-2 text-gray-600">
                             <DollarSign className="h-4 w-4" />
-                            <span>{parseFloat(String(voucher.amount || '0')).toFixed(2)} ر.س</span>
+                            <span>{(voucher.amount || 0).toFixed(2)} ر.س</span>
                           </div>
                           <div className="flex items-center gap-2 text-gray-600">
                             <Calendar className="h-4 w-4" />
