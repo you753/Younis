@@ -89,12 +89,7 @@ export default function FinancialSnapshot({ branchId, companyWide = false }: Fin
       const shareableUrl = `${window.location.origin}/snapshot/${snapshotId}`;
       setShareUrl(shareableUrl);
       
-      // Save PDF with Arabic filename
-      const fileName = companyWide ? 
-        `اللقطة-المالية-الشركة-${currentDate.replace(/\//g, '-')}.pdf` :
-        `اللقطة-المالية-الفرع-${branchId}-${currentDate.replace(/\//g, '-')}.pdf`;
-      
-      pdf.save(fileName);
+      pdf.save(`لقطة-مالية-${snapshotId}.pdf`);
     } catch (error) {
       console.error('Error generating snapshot:', error);
       alert('حدث خطأ أثناء إنشاء اللقطة المالية');
@@ -153,7 +148,7 @@ export default function FinancialSnapshot({ branchId, companyWide = false }: Fin
                 ) : (
                   <Download className="h-4 w-4 mr-2" />
                 )}
-                {isGenerating ? 'جاري الإنشاء...' : 'إنشاء وحفظ PDF'}
+                {isGenerating ? 'جاري الإنشاء...' : 'إنشاء لقطة'}
               </Button>
             </div>
           </div>

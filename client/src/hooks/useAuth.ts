@@ -70,9 +70,6 @@ export function useAuth() {
       name: '',
       email: ''
     });
-    
-    // إعادة توجيه المستخدم لصفحة تسجيل الدخول باستخدام replace
-    window.location.replace('/login');
   };
 
   return {

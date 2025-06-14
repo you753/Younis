@@ -19,7 +19,6 @@ import {
 } from "@shared/schema";
 import { uploadMiddleware, transcribeAudio } from "./voice";
 import { handleAIChat } from "./ai-chat";
-import { AccountingService } from "./accounting-service";
 import multer from 'multer';
 import path from 'path';
 import * as XLSX from 'xlsx';
@@ -99,13 +98,6 @@ const excelUpload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // تهيئة النظام المحاسبي مع الحسابات الأساسية
-  try {
-    await AccountingService.initializeDefaultAccounts();
-    console.log('تم تهيئة النظام المحاسبي بنجاح');
-  } catch (error) {
-    console.error('خطأ في تهيئة النظام المحاسبي:', error);
-  }
   // خدمة الملفات المرفوعة
   app.use('/uploads', (req, res, next) => {
     res.header('Cross-Origin-Resource-Policy', 'cross-origin');
@@ -472,48 +464,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/sales", async (req, res) => {
     try {
       const validatedData = insertSaleSchema.parse(req.body);
-      
-      // Deduct quantities from inventory before creating sale
-      if (validatedData.items && Array.isArray(validatedData.items)) {
-        for (const item of validatedData.items) {
-          if (item.productId && item.quantity) {
-            // Get current product to check available quantity
-            const product = await storage.getProduct(item.productId);
-            if (!product) {
-              return res.status(400).json({ 
-                message: `المنتج رقم ${item.productId} غير موجود` 
-              });
-            }
-            
-            const currentQuantity = product.quantity || 0;
-            if (currentQuantity < item.quantity) {
-              return res.status(400).json({ 
-                message: `الكمية المتاحة للمنتج "${product.name}" هي ${currentQuantity} فقط` 
-              });
-            }
-            
-            // Update product quantity
-            const newQuantity = currentQuantity - item.quantity;
-            await storage.updateProduct(item.productId, { quantity: newQuantity });
-          }
-        }
-      }
-      
       const sale = await storage.createSale(validatedData);
-      
-      // إنشاء القيود المحاسبية التلقائية للمبيعات
-      try {
-        await AccountingService.createSaleJournalEntry(sale);
-        await AccountingService.updateInventoryFromSale(validatedData.items || []);
-      } catch (accountingError) {
-        console.error('خطأ في النظام المحاسبي:', accountingError);
-        // لا نوقف العملية، فقط نسجل الخطأ
-      }
-      
       res.status(201).json(sale);
     } catch (error) {
-      console.error('Error creating sale:', error);
-      res.status(400).json({ message: "فشل في إنشاء فاتورة المبيعات" });
+      res.status(400).json({ message: "Invalid sale data" });
     }
   });
 
@@ -530,38 +484,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/purchases", async (req, res) => {
     try {
       const validatedData = insertPurchaseSchema.parse(req.body);
-      
-      // Add quantities to inventory when creating purchase
-      if (validatedData.items && Array.isArray(validatedData.items)) {
-        for (const item of validatedData.items) {
-          if (item.productId && item.quantity) {
-            // Get current product
-            const product = await storage.getProduct(item.productId);
-            if (product) {
-              // Update product quantity by adding purchased quantity
-              const currentQuantity = product.quantity || 0;
-              const newQuantity = currentQuantity + item.quantity;
-              await storage.updateProduct(item.productId, { quantity: newQuantity });
-            }
-          }
-        }
-      }
-      
       const purchase = await storage.createPurchase(validatedData);
-      
-      // إنشاء القيود المحاسبية التلقائية للمشتريات
-      try {
-        await AccountingService.createPurchaseJournalEntry(purchase);
-        await AccountingService.updateInventoryFromPurchase(validatedData.items || []);
-      } catch (accountingError) {
-        console.error('خطأ في النظام المحاسبي للمشتريات:', accountingError);
-        // لا نوقف العملية، فقط نسجل الخطأ
-      }
-      
       res.status(201).json(purchase);
     } catch (error) {
-      console.error('Error creating purchase:', error);
-      res.status(400).json({ message: "فشل في إنشاء فاتورة المشتريات" });
+      res.status(400).json({ message: "Invalid purchase data" });
     }
   });
 
@@ -908,29 +834,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       const validatedData = insertSalesReturnSchema.parse(req.body);
-      
-      // Restore quantities to inventory when processing returns
-      if (validatedData.items && Array.isArray(validatedData.items)) {
-        for (const item of validatedData.items) {
-          if (item.productId && item.quantity) {
-            // Get current product
-            const product = await storage.getProduct(item.productId);
-            if (product) {
-              // Update product quantity by adding returned quantity
-              const currentQuantity = product.quantity || 0;
-              const newQuantity = currentQuantity + item.quantity;
-              await storage.updateProduct(item.productId, { quantity: newQuantity });
-            }
-          }
-        }
-      }
-      
       const salesReturn = await storage.createSalesReturn(validatedData);
       
       res.status(201).json(salesReturn);
     } catch (error) {
       console.error('Error creating sales return:', error);
-      res.status(500).json({ error: 'فشل في إنشاء مرتجع المبيعات' });
+      res.status(500).json({ error: 'Failed to create sales return' });
     }
   });
 
@@ -1983,110 +1892,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // AI Chat
   app.post("/api/ai/chat", handleAIChat);
-
-  // Accounting System Routes
-  
-  // Account Categories
-  app.get('/api/account-categories', async (req, res) => {
-    try {
-      const categories = await storage.getAllAccountCategories();
-      res.json(categories);
-    } catch (error) {
-      console.error('Error fetching account categories:', error);
-      res.status(500).json({ error: 'Failed to fetch account categories' });
-    }
-  });
-
-  app.post('/api/account-categories', async (req, res) => {
-    try {
-      const { insertAccountCategorySchema } = await import('@shared/schema');
-      const validatedData = insertAccountCategorySchema.parse(req.body);
-      const category = await storage.createAccountCategory(validatedData);
-      res.status(201).json(category);
-    } catch (error) {
-      console.error('Error creating account category:', error);
-      res.status(400).json({ error: 'Failed to create account category' });
-    }
-  });
-
-  // Accounts
-  app.get('/api/accounts', async (req, res) => {
-    try {
-      const accounts = await storage.getAllAccounts();
-      res.json(accounts);
-    } catch (error) {
-      console.error('Error fetching accounts:', error);
-      res.status(500).json({ error: 'Failed to fetch accounts' });
-    }
-  });
-
-  app.post('/api/accounts', async (req, res) => {
-    try {
-      const { insertAccountSchema } = await import('@shared/schema');
-      const validatedData = insertAccountSchema.parse(req.body);
-      const account = await storage.createAccount(validatedData);
-      res.status(201).json(account);
-    } catch (error) {
-      console.error('Error creating account:', error);
-      res.status(400).json({ error: 'Failed to create account' });
-    }
-  });
-
-  // Journal Entries
-  app.get('/api/journal-entries', async (req, res) => {
-    try {
-      const entries = await storage.getAllJournalEntries();
-      res.json(entries);
-    } catch (error) {
-      console.error('Error fetching journal entries:', error);
-      res.status(500).json({ error: 'Failed to fetch journal entries' });
-    }
-  });
-
-  app.get('/api/journal-entries/:id', async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const entry = await storage.getJournalEntry(id);
-      if (!entry) {
-        return res.status(404).json({ error: 'Journal entry not found' });
-      }
-      res.json(entry);
-    } catch (error) {
-      console.error('Error fetching journal entry:', error);
-      res.status(500).json({ error: 'Failed to fetch journal entry' });
-    }
-  });
-
-  // Accounting Reports
-  app.get('/api/accounting/trial-balance', async (req, res) => {
-    try {
-      const trialBalance = await storage.getTrialBalance();
-      res.json(trialBalance);
-    } catch (error) {
-      console.error('Error generating trial balance:', error);
-      res.status(500).json({ error: 'Failed to generate trial balance' });
-    }
-  });
-
-  app.get('/api/accounting/balance-sheet', async (req, res) => {
-    try {
-      const balanceSheet = await storage.getBalanceSheet();
-      res.json(balanceSheet);
-    } catch (error) {
-      console.error('Error generating balance sheet:', error);
-      res.status(500).json({ error: 'Failed to generate balance sheet' });
-    }
-  });
-
-  app.get('/api/accounting/income-statement', async (req, res) => {
-    try {
-      const incomeStatement = await storage.getIncomeStatement();
-      res.json(incomeStatement);
-    } catch (error) {
-      console.error('Error generating income statement:', error);
-      res.status(500).json({ error: 'Failed to generate income statement' });
-    }
-  });
 
   const httpServer = createServer(app);
   return httpServer;
