@@ -1,0 +1,823 @@
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
+import { 
+  ShoppingCart, 
+  DollarSign, 
+  Plus, 
+  Eye, 
+  Trash2, 
+  FileText,
+  TrendingUp,
+  Users,
+  Receipt,
+  Calendar,
+  BarChart3,
+  Search,
+  RefreshCw,
+  Download
+} from 'lucide-react';
+
+// دالة تنسيق الأرقام البسيطة
+const formatNumber = (num: number): string => {
+  return num.toString();
+};
+
+interface BranchSalesProps {
+  branchId?: number;
+}
+
+export default function BranchSales({ branchId }: BranchSalesProps) {
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showViewDialog, setShowViewDialog] = useState(false);
+  const [selectedSale, setSelectedSale] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [newSale, setNewSale] = useState({
+    clientId: 0,
+    items: [{ productId: 0, quantity: 1, price: 0, total: 0 }],
+    discount: 0,
+    tax: 0,
+    notes: ''
+  });
+
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // تحميل فواتير المبيعات
+  const { data: sales = [], isLoading: salesLoading, refetch: refetchSales } = useQuery({
+    queryKey: ['/api/sales'],
+    queryFn: () => fetch('/api/sales').then(res => res.json()),
+    refetchInterval: 2000,
+  });
+
+  // تحميل العملاء
+  const { data: clients = [] } = useQuery({
+    queryKey: ['/api/clients'],
+    queryFn: () => fetch('/api/clients').then(res => res.json()),
+    refetchInterval: 2000,
+  });
+
+  // تحميل المنتجات
+  const { data: products = [] } = useQuery({
+    queryKey: ['/api/products'],
+    queryFn: () => fetch('/api/products').then(res => res.json()),
+    refetchInterval: 2000,
+  });
+
+  // إضافة فاتورة جديدة
+  const addSaleMutation = useMutation({
+    mutationFn: async (saleData: any) => {
+      console.log('بيانات الفاتورة المرسلة:', saleData);
+      const response = await fetch('/api/sales', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(saleData)
+      });
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`فشل في إضافة الفاتورة: ${errorData}`);
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      console.log('تم حفظ الفاتورة بنجاح:', data);
+      toast({ 
+        title: 'تم الحفظ بنجاح ✅', 
+        description: `تم حفظ فاتورة المبيعات رقم ${data.invoiceNumber || 'جديد'}`,
+        className: 'bg-green-50 border-green-200 text-green-800'
+      });
+      setShowAddDialog(false);
+      setNewSale({ clientId: 0, items: [{ productId: 0, quantity: 1, price: 0, total: 0 }], discount: 0, tax: 0, notes: '' });
+      queryClient.invalidateQueries({ queryKey: ['/api/sales'] });
+    },
+    onError: (error: any) => {
+      console.error('خطأ في حفظ الفاتورة:', error);
+      toast({ 
+        title: 'خطأ في الحفظ ❌', 
+        description: `فشل في حفظ فاتورة المبيعات: ${error.message || 'خطأ غير معروف'}`, 
+        variant: 'destructive' 
+      });
+    }
+  });
+
+  // حذف فاتورة
+  const deleteSaleMutation = useMutation({
+    mutationFn: async (saleId: number) => {
+      const response = await fetch(`/api/sales/${saleId}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('فشل في حذف الفاتورة');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: 'تم الحذف', description: 'تم حذف الفاتورة بنجاح' });
+      queryClient.invalidateQueries({ queryKey: ['/api/sales'] });
+    },
+    onError: () => {
+      toast({ title: 'خطأ', description: 'فشل في حذف الفاتورة', variant: 'destructive' });
+    }
+  });
+
+  // حساب الإحصائيات
+  const totalSales = sales.length;
+  const totalAmount = sales.reduce((sum: number, sale: any) => sum + (sale.total || 0), 0);
+  const todaySales = sales.filter((sale: any) => {
+    const saleDate = new Date(sale.createdAt || sale.date);
+    const today = new Date();
+    return saleDate.toDateString() === today.toDateString();
+  }).length;
+  const averageSale = totalSales > 0 ? totalAmount / totalSales : 0;
+
+  // فلترة الفواتير
+  const filteredSales = sales;
+
+  // الحصول على اسم العميل
+  const getClientName = (clientId: number) => {
+    const client = clients.find((c: any) => c.id === clientId);
+    return client?.name || 'عميل غير محدد';
+  };
+
+  // إضافة منتج جديد للفاتورة
+  const addItemToSale = () => {
+    setNewSale({
+      ...newSale,
+      items: [...newSale.items, { productId: 0, quantity: 1, price: 0, total: 0 }]
+    });
+  };
+
+  // حذف منتج من الفاتورة
+  const removeItemFromSale = (index: number) => {
+    const updatedItems = newSale.items.filter((_, i) => i !== index);
+    setNewSale({ ...newSale, items: updatedItems });
+  };
+
+  // تحديث منتج في الفاتورة
+  const updateSaleItem = (index: number, field: string, value: any) => {
+    const updatedItems = newSale.items.map((item, i) => 
+      i === index ? { ...item, [field]: value } : item
+    );
+    setNewSale({ ...newSale, items: updatedItems });
+  };
+
+  // حساب إجمالي الفاتورة الجديدة
+  const calculateTotal = () => {
+    const subtotal = newSale.items.reduce((sum, item) => sum + ((item.quantity || 0) * (item.price || 0)), 0);
+    return subtotal - (newSale.discount || 0) + (newSale.tax || 0);
+  };
+
+  return (
+    <div className="p-6 space-y-6" dir="rtl">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="bg-green-100 p-3 rounded-full">
+          <ShoppingCart className="h-6 w-6 text-green-600" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">فواتير المبيعات</h1>
+          <p className="text-gray-600">إدارة مبيعات الفرع - رقم الفرع: {branchId}</p>
+        </div>
+      </div>
+
+      {/* إحصائيات المبيعات */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="border-gray-200 bg-white">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">إجمالي الفواتير</p>
+                <p className="text-2xl font-bold text-blue-600">{formatNumber(totalSales)}</p>
+                <p className="text-xs text-gray-500">فاتورة مبيعات</p>
+              </div>
+              <div className="bg-blue-50 p-3 rounded-full">
+                <Receipt className="h-6 w-6 text-blue-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-gray-200 bg-white">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">إجمالي المبلغ</p>
+                <p className="text-2xl font-bold text-green-600">{formatNumber(totalAmount)} ريال</p>
+                <p className="text-xs text-gray-500">قيمة المبيعات</p>
+              </div>
+              <div className="bg-green-50 p-3 rounded-full">
+                <DollarSign className="h-6 w-6 text-green-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-gray-200 bg-white">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">مبيعات اليوم</p>
+                <p className="text-2xl font-bold text-orange-600">{formatNumber(todaySales)}</p>
+                <p className="text-xs text-gray-500">فاتورة اليوم</p>
+              </div>
+              <div className="bg-orange-50 p-3 rounded-full">
+                <Calendar className="h-6 w-6 text-orange-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-gray-200 bg-white">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">متوسط الفاتورة</p>
+                <p className="text-2xl font-bold text-purple-600">{formatNumber(averageSale)} ريال</p>
+                <p className="text-xs text-gray-500">متوسط القيمة</p>
+              </div>
+              <div className="bg-purple-50 p-3 rounded-full">
+                <BarChart3 className="h-6 w-6 text-purple-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* شريط الأدوات */}
+      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+        <div className="flex flex-1 gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="البحث في الفواتير..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pr-10"
+            />
+          </div>
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="حالة الفاتورة" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">جميع الحالات</SelectItem>
+              <SelectItem value="completed">مكتملة</SelectItem>
+              <SelectItem value="pending">معلقة</SelectItem>
+              <SelectItem value="cancelled">ملغية</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => refetchSales()}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className="h-4 w-4" />
+            تحديث
+          </Button>
+          <Button variant="outline" className="flex items-center gap-2">
+            <Download className="h-4 w-4" />
+            تصدير
+          </Button>
+          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+            <DialogTrigger asChild>
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                فاتورة جديدة
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" dir="rtl">
+              <DialogHeader>
+                <DialogTitle>إضافة فاتورة مبيعات جديدة</DialogTitle>
+              </DialogHeader>
+              
+              <div className="space-y-6 mt-4">
+                {/* اختيار العميل */}
+                <div>
+                  <Label>العميل *</Label>
+                  <Select value={newSale.clientId.toString()} onValueChange={(value) => setNewSale({...newSale, clientId: parseInt(value)})}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="اختر العميل" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clients.map((client: any) => (
+                        <SelectItem key={client.id} value={client.id.toString()}>
+                          {client.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* منتجات الفاتورة */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <Label>منتجات الفاتورة</Label>
+                    <Button type="button" onClick={addItemToSale} size="sm" variant="outline">
+                      <Plus className="h-4 w-4 ml-1" />
+                      إضافة منتج
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {newSale.items.map((item, index) => (
+                      <div key={index} className="flex gap-3 items-end p-3 border rounded-lg">
+                        <div className="flex-1">
+                          <Label className="text-xs">المنتج</Label>
+                          <Select 
+                            value={item.productId.toString()} 
+                            onValueChange={(value) => {
+                              const product = products.find((p: any) => p.id.toString() === value);
+                              updateSaleItem(index, 'productId', parseInt(value));
+                              updateSaleItem(index, 'price', product?.salePrice || 0);
+                            }}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="اختر المنتج" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {products.map((product: any) => (
+                                <SelectItem key={product.id} value={product.id.toString()}>
+                                  {product.name} - {product.salePrice} ريال
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div className="w-24">
+                          <Label className="text-xs">الكمية</Label>
+                          <Input
+                            type="number"
+                            value={item.quantity}
+                            onChange={(e) => updateSaleItem(index, 'quantity', parseInt(e.target.value) || 0)}
+                            min="1"
+                          />
+                        </div>
+                        
+                        <div className="w-32">
+                          <Label className="text-xs">السعر</Label>
+                          <Input
+                            type="number"
+                            value={item.price}
+                            onChange={(e) => updateSaleItem(index, 'price', parseFloat(e.target.value) || 0)}
+                            min="0"
+                            step="0.01"
+                          />
+                        </div>
+                        
+                        <div className="w-32">
+                          <Label className="text-xs">الإجمالي</Label>
+                          <Input
+                            value={(item.quantity * item.price).toFixed(2)}
+                            disabled
+                          />
+                        </div>
+                        
+                        {newSale.items.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeItemFromSale(index)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* الخصم والملاحظات */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>الخصم (ريال)</Label>
+                    <Input
+                      type="number"
+                      value={newSale.discount}
+                      onChange={(e) => setNewSale({...newSale, discount: parseFloat(e.target.value) || 0})}
+                      min="0"
+                      step="0.01"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>الإجمالي النهائي</Label>
+                    <Input
+                      value={`${formatNumber(calculateTotal())} ريال`}
+                      disabled
+                      className="mt-1 bg-green-50 font-bold text-green-700"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label>ملاحظات</Label>
+                  <Input
+                    value={newSale.notes}
+                    onChange={(e) => setNewSale({...newSale, notes: e.target.value})}
+                    placeholder="ملاحظات إضافية..."
+                    className="mt-1"
+                  />
+                </div>
+
+                {/* أزرار الحفظ */}
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    onClick={() => {
+                      const total = calculateTotal();
+                      const invoiceData = {
+                        clientId: newSale.clientId,
+                        items: newSale.items.filter(item => item.productId && item.quantity > 0),
+                        total: total,
+                        discount: newSale.discount || 0,
+                        tax: newSale.tax || 0,
+                        notes: newSale.notes || '',
+                        invoiceNumber: `INV-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
+                        date: new Date().toISOString(),
+                        status: 'completed',
+                        createdAt: new Date().toISOString()
+                      };
+                      
+                      console.log('إرسال بيانات الفاتورة:', invoiceData);
+                      addSaleMutation.mutate(invoiceData);
+                    }}
+                    disabled={
+                      addSaleMutation.isPending || 
+                      !newSale.clientId || 
+                      newSale.items.length === 0 ||
+                      newSale.items.every(item => !item.productId || item.quantity <= 0)
+                    }
+                    className="bg-blue-600 hover:bg-blue-700 text-white flex-1"
+                  >
+                    {addSaleMutation.isPending ? (
+                      <span className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        جاري الحفظ...
+                      </span>
+                    ) : 'حفظ الفاتورة'}
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowAddDialog(false)}
+                    className="flex-1"
+                  >
+                    إلغاء
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+
+      {/* جدول فواتير المبيعات المطور */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            قائمة فواتير المبيعات
+            <Badge variant="outline" className="mr-auto">
+              {filteredSales.length} فاتورة
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {salesLoading ? (
+            <div className="text-center py-8">
+              <div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto"></div>
+              <p className="mt-2 text-gray-600">جاري تحميل فواتير المبيعات...</p>
+            </div>
+          ) : filteredSales.length === 0 ? (
+            <div className="text-center py-12">
+              <Receipt className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg">لا توجد فواتير مبيعات</p>
+              <p className="text-gray-400 text-sm">ابدأ بإضافة فاتورة مبيعات جديدة</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b bg-gray-50">
+                    <th className="text-right p-3 font-semibold">رقم الفاتورة</th>
+                    <th className="text-right p-3 font-semibold">العميل</th>
+                    <th className="text-right p-3 font-semibold">التاريخ</th>
+                    <th className="text-right p-3 font-semibold">المبلغ</th>
+                    <th className="text-right p-3 font-semibold">الحالة</th>
+                    <th className="text-center p-3 font-semibold">العمليات</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredSales.map((sale: any, index: number) => (
+                    <tr key={`sale-${sale.id}-${index}`} className="border-b hover:bg-gray-50 transition-colors">
+                      <td className="p-3">
+                        <div className="font-medium text-blue-600">{sale.invoiceNumber}</div>
+                        <div className="text-xs text-gray-500">#{sale.id}</div>
+                      </td>
+                      <td className="p-3">
+                        <div className="font-medium">{getClientName(sale.clientId)}</div>
+                        <div className="text-xs text-gray-500">عميل رقم: {sale.clientId}</div>
+                      </td>
+                      <td className="p-3">
+                        <div className="font-medium">
+                          {new Date(sale.createdAt || sale.date).toLocaleDateString('ar-SA')}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {new Date(sale.createdAt || sale.date).toLocaleTimeString('ar-SA', { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
+                        </div>
+                      </td>
+                      <td className="p-3">
+                        <div className="font-bold text-green-600">
+                          {formatNumber(sale.total || 0)} ريال
+                        </div>
+                        {sale.discount > 0 && (
+                          <div className="text-xs text-orange-600">
+                            خصم: {formatNumber(sale.discount)} ريال
+                          </div>
+                        )}
+                      </td>
+                      <td className="p-3">
+                        <Badge 
+                          variant={
+                            sale.status === 'completed' ? 'default' :
+                            sale.status === 'pending' ? 'secondary' : 
+                            'destructive'
+                          }
+                          className={
+                            sale.status === 'completed' ? 'bg-green-50 text-green-700 border-green-200' :
+                            sale.status === 'pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                            'bg-red-50 text-red-700 border-red-200'
+                          }
+                        >
+                          {sale.status === 'completed' ? 'مكتملة' :
+                           sale.status === 'pending' ? 'معلقة' :
+                           'ملغية'}
+                        </Badge>
+                      </td>
+                      <td className="p-3">
+                        <div className="flex items-center justify-center gap-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedSale(sale);
+                              setShowViewDialog(true);
+                            }}
+                            className="h-8 w-8 p-0"
+                            title="عرض الفاتورة"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              if (window.confirm('هل تريد حذف هذه الفاتورة؟')) {
+                                deleteSaleMutation.mutate(sale.id);
+                              }
+                            }}
+                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            title="حذف الفاتورة"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* نموذج عرض الفاتورة */}
+      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>عرض فاتورة المبيعات</DialogTitle>
+          </DialogHeader>
+          
+          {selectedSale && (
+            <div className="space-y-6 mt-4">
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="font-semibold text-blue-800 mb-2">معلومات الفاتورة</h3>
+                    <p><strong>رقم الفاتورة:</strong> {selectedSale.invoiceNumber}</p>
+                    <p><strong>التاريخ:</strong> {new Date(selectedSale.createdAt || selectedSale.date).toLocaleDateString('ar-SA')}</p>
+                    <p><strong>الوقت:</strong> {new Date(selectedSale.createdAt || selectedSale.date).toLocaleTimeString('ar-SA')}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-blue-800 mb-2">معلومات العميل</h3>
+                    <p><strong>اسم العميل:</strong> {getClientName(selectedSale.clientId)}</p>
+                    <p><strong>رقم العميل:</strong> {selectedSale.clientId}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-3">تفاصيل المنتجات</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full border border-gray-200 rounded-lg">
+                    <thead>
+                      <tr className="bg-gray-50">
+                        <th className="text-right p-3 border-b">المنتج</th>
+                        <th className="text-right p-3 border-b">الكمية</th>
+                        <th className="text-right p-3 border-b">السعر</th>
+                        <th className="text-right p-3 border-b">الإجمالي</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedSale.items?.map((item: any, index: number) => {
+                        const product = products.find((p: any) => p.id === item.productId);
+                        return (
+                          <tr key={index} className="border-b">
+                            <td className="p-3">{product?.name || `منتج رقم ${item.productId}`}</td>
+                            <td className="p-3">{formatNumber(item.quantity || 0)}</td>
+                            <td className="p-3">{formatNumber(item.price || 0)} ريال</td>
+                            <td className="p-3 font-semibold">{formatNumber((item.quantity || 0) * (item.price || 0))} ريال</td>
+                          </tr>
+                        );
+                      }) || (
+                        <tr>
+                          <td colSpan={4} className="p-3 text-center text-gray-500">لا توجد منتجات مسجلة</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p><strong>المجموع الفرعي:</strong> {formatNumber((selectedSale.total || 0) + (selectedSale.discount || 0))} ريال</p>
+                    <p><strong>الخصم:</strong> {formatNumber(selectedSale.discount || 0)} ريال</p>
+                    <p><strong>الضريبة:</strong> {formatNumber(selectedSale.tax || 0)} ريال</p>
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold text-green-700">
+                      <strong>المجموع النهائي:</strong> {formatNumber(selectedSale.total || 0)} ريال
+                    </p>
+                  </div>
+                </div>
+                {selectedSale.notes && (
+                  <div className="mt-3 pt-3 border-t border-green-200">
+                    <p><strong>ملاحظات:</strong> {selectedSale.notes}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-3">
+                <Button 
+                  onClick={() => setShowViewDialog(false)}
+                  className="flex-1"
+                >
+                  إغلاق
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+                            className="h-8 w-8 p-0 text-red-600 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* نافذة عرض تفاصيل الفاتورة */}
+      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+        <DialogContent className="max-w-2xl" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>تفاصيل الفاتورة {selectedSale?.invoiceNumber}</DialogTitle>
+          </DialogHeader>
+          
+          {selectedSale && (
+            <div className="space-y-4 mt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">رقم الفاتورة</Label>
+                  <p className="text-lg font-bold text-blue-600">{selectedSale.invoiceNumber}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">العميل</Label>
+                  <p className="text-lg">{getClientName(selectedSale.clientId)}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">التاريخ</Label>
+                  <p>{new Date(selectedSale.createdAt || selectedSale.date).toLocaleDateString('ar-SA')}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">الحالة</Label>
+                  <Badge 
+                    variant={selectedSale.status === 'completed' ? 'default' : 'secondary'}
+                    className={selectedSale.status === 'completed' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-700 border-gray-200'}
+                  >
+                    {selectedSale.status === 'completed' ? 'مكتملة' : 
+                     selectedSale.status === 'pending' ? 'معلقة' : 'ملغية'}
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <Label className="text-sm font-medium">تفاصيل الفاتورة</Label>
+                <div className="mt-2 space-y-2">
+                  <div className="flex justify-between">
+                    <span>المبلغ الإجمالي:</span>
+                    <span className="font-bold text-green-600">
+                      {formatNumber(selectedSale.total || 0)} ريال
+                    </span>
+                  </div>
+                  {selectedSale.discount > 0 && (
+                    <div className="flex justify-between">
+                      <span>الخصم:</span>
+                      <span className="text-orange-600">-{formatNumber(selectedSale.discount)} ريال</span>
+                    </div>
+                  )}
+                  {selectedSale.notes && (
+                    <div className="mt-3">
+                      <Label className="text-sm font-medium">ملاحظات</Label>
+                      <p className="text-gray-600 mt-1">{selectedSale.notes}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button 
+                  className="flex-1" 
+                  onClick={() => {
+                    // طباعة الفاتورة
+                    const printWindow = window.open('', '_blank');
+                    printWindow?.document.write(`
+                      <!DOCTYPE html>
+                      <html dir="rtl">
+                      <head>
+                        <title>فاتورة رقم ${selectedSale.invoiceNumber}</title>
+                        <style>
+                          body { font-family: Arial; padding: 20px; }
+                          .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+                          .info { margin: 10px 0; }
+                          .total { font-size: 20px; font-weight: bold; color: green; text-align: center; margin-top: 20px; }
+                        </style>
+                      </head>
+                      <body>
+                        <div class="header">
+                          <h1>فاتورة مبيعات</h1>
+                          <p>رقم الفاتورة: ${selectedSale.invoiceNumber}</p>
+                        </div>
+                        <div class="info">
+                          <p><strong>العميل:</strong> ${getClientName(selectedSale.clientId)}</p>
+                          <p><strong>التاريخ:</strong> ${new Date(selectedSale.createdAt || selectedSale.date).toLocaleDateString('ar-SA')}</p>
+                          <p><strong>الحالة:</strong> ${selectedSale.status === 'completed' ? 'مكتملة' : selectedSale.status === 'pending' ? 'معلقة' : 'ملغية'}</p>
+                          ${selectedSale.notes ? `<p><strong>ملاحظات:</strong> ${selectedSale.notes}</p>` : ''}
+                        </div>
+                        <div class="total">
+                          المبلغ الإجمالي: ${formatNumber(selectedSale.total || 0)} ريال
+                          ${selectedSale.discount > 0 ? `<br>الخصم: ${formatNumber(selectedSale.discount)} ريال` : ''}
+                        </div>
+                      </body>
+                      </html>
+                    `);
+                    printWindow?.print();
+                  }}
+                >
+                  <FileText className="h-4 w-4 ml-2" />
+                  طباعة الفاتورة
+                </Button>
+                <Button variant="outline" onClick={() => setShowViewDialog(false)}>
+                  إغلاق
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
