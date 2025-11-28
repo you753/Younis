@@ -1,0 +1,405 @@
+import { Switch, Route } from "wouter";
+import { queryClient } from "./lib/queryClient";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import Layout from "@/components/layout/Layout";
+import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { useAuth } from "@/hooks/useAuth";
+import Dashboard from "@/pages/Dashboard";
+
+import Suppliers from "@/pages/Suppliers";
+import SupplierAccountsNew from "@/pages/SupplierAccountsNew";
+import Clients from "@/pages/Clients";
+import CashClient from "@/pages/CashClient";
+import ClientGroups from "@/pages/ClientGroups";
+import Products from "@/pages/Products";
+import ProductBarcodes from "@/pages/ProductBarcodes";
+import ProductCategories from "@/pages/ProductCategories";
+import Sales from "@/pages/Sales";
+import SalesReturns from "@/pages/SalesReturns";
+import Quotes from "@/pages/Quotes";
+import InvoicesAndVouchers from "@/pages/InvoicesAndVouchers";
+import SalesInvoices from "@/pages/SalesInvoices";
+import Analytics from "@/pages/Analytics";
+import GoodsIssue from "@/pages/GoodsIssue";
+import Purchases from "@/pages/Purchases";
+import PurchaseReturns from "@/pages/PurchaseReturns";
+import PurchaseOrders from "@/pages/PurchaseOrders";
+
+import SimpleGoodsReceipt from "@/pages/SimpleGoodsReceipt";
+import Inventory from "@/pages/Inventory";
+import InventoryManagement from "@/pages/InventoryManagement";
+import InventoryMovement from "@/pages/InventoryMovement";
+import ComprehensiveInventoryReports from "@/pages/ComprehensiveInventoryReports";
+import InventoryTransfer from "@/pages/InventoryTransfer";
+import Accounts from "@/pages/Accounts";
+import SimpleChartOfAccounts from "@/pages/SimpleChartOfAccounts";
+
+import Reports from "@/pages/Reports";
+import SalesReports from "@/pages/reports/SalesReports";
+import ProfessionalSalesReports from "@/pages/ProfessionalSalesReports";
+import PurchasesReports from "@/pages/reports/PurchasesReports";
+import InventoryReports from "@/pages/reports/InventoryReports";
+import FinancialReports from "@/pages/reports/FinancialReports";
+import SuppliersReports from "@/pages/reports/SuppliersReports";
+import ClientAccounts from "@/pages/ClientAccounts";
+import ClientAccountsNew from "@/pages/ClientAccountsNew";
+import ClientsReports from "@/pages/reports/ClientsReports";
+import Settings from "@/pages/Settings";
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
+import NotFound from "@/pages/not-found";
+import Employees from "@/pages/Employees";
+import Attendance from "@/pages/Attendance";
+import Holidays from "@/pages/Holidays";
+import SimpleHolidays from "@/pages/SimpleHolidays";
+import Allowances from "@/pages/Allowances";
+import Performance from "@/pages/Performance";
+import EmployeeReports from "@/pages/EmployeeReports";
+import Debts from "@/pages/Debts";
+import EmployeeDebts from "@/pages/EmployeeDebtsNew";
+import SimpleEmployeeDebts from "@/pages/SimpleEmployeeDebts";
+import IntegratedSalaryDebt from "@/pages/IntegratedSalaryDebt";
+import Deductions from "@/pages/Deductions";
+import Salaries from "@/pages/Salaries";
+import TaxCalculator from "@/pages/TaxCalculator";
+import Profile from "@/pages/Profile";
+import ClientReceiptVouchers from "@/pages/ClientReceiptVouchers";
+import DailyReports from "@/pages/DailyReports";
+import InventoryOpeningBalances from "@/pages/InventoryOpeningBalances";
+import Branches from "@/pages/Branches";
+import BranchSettings from "@/pages/BranchSettings";
+import InvoicePage from "@/pages/InvoicePage";
+import FinancialHealthScore from "@/pages/FinancialHealthScore";
+import WithdrawalVouchers from "@/pages/WithdrawalVouchers";
+import SupplierAccounts from "@/pages/SupplierAccounts";
+import BranchSystem from "@/pages/BranchSystem";
+import BranchAccounting from "@/pages/BranchAccounting";
+import FinancialHealthDashboard from "@/pages/FinancialHealthDashboard";
+import BranchSuppliersNew from "@/pages/branch/BranchSuppliersNew";
+import BranchProductCategories from "@/pages/branch/BranchProductCategories";
+import BranchProducts from "@/pages/branch/BranchProducts";
+import AddBranchProduct from "@/pages/branch/AddBranchProduct";
+import BranchEmployees from "@/pages/branch/BranchEmployees";
+import BranchSalaries from "@/pages/branch/BranchSalaries";
+import BranchAllowances from "@/pages/branch/BranchAllowances";
+import BranchDeductions from "@/pages/branch/BranchDeductions";
+import BranchAttendance from "@/pages/branch/BranchAttendance";
+import BranchEmployeeReports from "@/pages/branch/BranchEmployeeReports";
+import BranchEmployeeVacations from "@/pages/branch/BranchEmployeeVacations";
+import BranchReportsMain from "@/pages/BranchReportsMain";
+import BranchSettingsMain from "@/pages/BranchSettingsMain";
+import FinancialHealthRadarPage from "@/pages/FinancialHealthRadarPage";
+import POS from "@/pages/POS";
+import POSSystem from "@/pages/POSSystem";
+import POSTerminals from "@/pages/POSTerminals";
+import POSSales from "@/pages/POSSales";
+import POSReports from "@/pages/POSReports";
+import PublicPOS from "@/pages/PublicPOS";
+import POSShareLink from "@/pages/POSShareLink";
+import SharedPOS from "@/pages/SharedPOS";
+import ProfessionalPOS from "@/pages/ProfessionalPOS";
+import ExternalPOS from "@/pages/ExternalPOS";
+
+function Router() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  // عرض شاشة التحميل أثناء التحقق من المصادقة
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl mb-4">
+            <div className="h-8 w-8 animate-spin border-2 border-white border-t-transparent rounded-full" />
+          </div>
+          <h1 className="text-xl font-bold text-gray-900 mb-2">المحاسب الأعظم</h1>
+          <p className="text-gray-600">جاري التحقق من الصلاحيات...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // توجيه للنظام الإداري أو صفحة تسجيل الدخول
+  return (
+    <Switch>
+      {/* الصفحة الرئيسية */}
+      <Route path="/">
+        {isAuthenticated ? <Layout><Dashboard /></Layout> : <Login />}
+      </Route>
+      
+      {/* نقطة البيع الخارجية */}
+      <Route path="/external-pos" component={() => <ExternalPOS />} />
+      <Route path="/external-pos/:branchId" component={ExternalPOS} />
+      <Route path="/public-pos/:branchId" component={PublicPOS} />
+      
+      {/* صفحات المصادقة */}
+      <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} />
+      
+      {/* النظام الإداري - يتطلب تسجيل دخول */}
+      {isAuthenticated && (
+        <>
+          <Route path="/suppliers">
+            <Layout><Suppliers /></Layout>
+          </Route>
+          <Route path="/suppliers/add">
+            <Layout><Suppliers /></Layout>
+          </Route>
+          <Route path="/supplier-categories">
+            <Layout><Suppliers /></Layout>
+          </Route>
+          <Route path="/supplier-evaluation">
+            <Layout><Suppliers /></Layout>
+          </Route>
+          <Route path="/supplier-payment-vouchers">
+            <Layout><Suppliers /></Layout>
+          </Route>
+          <Route path="/clients">
+            <Layout><Clients /></Layout>
+          </Route>
+          <Route path="/cash-clients">
+            <Layout><CashClient /></Layout>
+          </Route>
+          <Route path="/client-accounts">
+            <Layout><ClientAccountsNew /></Layout>
+          </Route>
+          <Route path="/client-groups">
+            <Layout><ClientGroups /></Layout>
+          </Route>
+          <Route path="/products">
+            <Layout><Products /></Layout>
+          </Route>
+          <Route path="/products/add">
+            <Layout><Products /></Layout>
+          </Route>
+          <Route path="/products/edit/:id">
+            <Layout><Products /></Layout>
+          </Route>
+          <Route path="/product-categories">
+            <Layout><ProductCategories /></Layout>
+          </Route>
+          <Route path="/products/barcodes">
+            <Layout><ProductBarcodes /></Layout>
+          </Route>
+          <Route path="/sales">
+            <Layout><Sales /></Layout>
+          </Route>
+          <Route path="/sales-returns">
+            <Layout><SalesReturns /></Layout>
+          </Route>
+          <Route path="/quotes">
+            <Layout><Quotes /></Layout>
+          </Route>
+          <Route path="/professional-sales-reports">
+            <Layout><ProfessionalSalesReports /></Layout>
+          </Route>
+          <Route path="/invoices-vouchers">
+            <Layout><InvoicesAndVouchers /></Layout>
+          </Route>
+          <Route path="/sales-invoices">
+            <Layout><SalesInvoices /></Layout>
+          </Route>
+          <Route path="/analytics">
+            <Layout><Analytics /></Layout>
+          </Route>
+          <Route path="/goods-issue">
+            <Layout><GoodsIssue /></Layout>
+          </Route>
+          <Route path="/purchases">
+            <Layout><Purchases /></Layout>
+          </Route>
+          <Route path="/purchase-returns">
+            <Layout><PurchaseReturns /></Layout>
+          </Route>
+          <Route path="/purchase-orders">
+            <Layout><PurchaseOrders /></Layout>
+          </Route>
+
+          <Route path="/goods-receipt-voucher">
+            <Layout><SimpleGoodsReceipt /></Layout>
+          </Route>
+          <Route path="/inventory">
+            <Layout><Inventory /></Layout>
+          </Route>
+          <Route path="/inventory-count">
+            <Layout><InventoryManagement /></Layout>
+          </Route>
+          <Route path="/inventory-movement">
+            <Layout><InventoryMovement /></Layout>
+          </Route>
+          <Route path="/comprehensive-inventory-reports">
+            <Layout><ComprehensiveInventoryReports /></Layout>
+          </Route>
+          <Route path="/inventory-transfer">
+            <Layout><InventoryTransfer /></Layout>
+          </Route>
+          <Route path="/inventory-opening-balances">
+            <Layout><InventoryOpeningBalances /></Layout>
+          </Route>
+          <Route path="/accounts">
+            <Layout><Accounts /></Layout>
+          </Route>
+          <Route path="/simple-chart-of-accounts">
+            <Layout><SimpleChartOfAccounts /></Layout>
+          </Route>
+
+          <Route path="/reports">
+            <Layout><Reports /></Layout>
+          </Route>
+          <Route path="/reports/suppliers">
+            <Layout><SuppliersReports /></Layout>
+          </Route>
+          <Route path="/reports/sales">
+            <Layout><SalesReports /></Layout>
+          </Route>
+          <Route path="/reports/purchases">
+            <Layout><PurchasesReports /></Layout>
+          </Route>
+          <Route path="/reports/inventory">
+            <Layout><InventoryReports /></Layout>
+          </Route>
+          <Route path="/reports/financial">
+            <Layout><FinancialReports /></Layout>
+          </Route>
+          <Route path="/settings">
+            <Layout><Settings /></Layout>
+          </Route>
+          <Route path="/employees">
+            <Layout><Employees /></Layout>
+          </Route>
+          <Route path="/employee-debts">
+            <Layout><EmployeeDebts /></Layout>
+          </Route>
+          <Route path="/employees/debts-simple">
+            <Layout><SimpleEmployeeDebts /></Layout>
+          </Route>
+          <Route path="/integrated-salary-debt">
+            <Layout><IntegratedSalaryDebt /></Layout>
+          </Route>
+          <Route path="/attendance">
+            <Layout><Attendance /></Layout>
+          </Route>
+          <Route path="/debts">
+            <Layout><Debts /></Layout>
+          </Route>
+          <Route path="/holidays">
+            <Layout><Holidays /></Layout>
+          </Route>
+          <Route path="/simple-holidays">
+            <Layout><SimpleHolidays /></Layout>
+          </Route>
+          <Route path="/allowances">
+            <Layout><Allowances /></Layout>
+          </Route>
+          <Route path="/performance">
+            <Layout><Performance /></Layout>
+          </Route>
+          <Route path="/employee-reports">
+            <Layout><EmployeeReports /></Layout>
+          </Route>
+          <Route path="/deductions">
+            <Layout><Deductions /></Layout>
+          </Route>
+          <Route path="/salaries">
+            <Layout><Salaries /></Layout>
+          </Route>
+          <Route path="/tax-calculator">
+            <Layout><TaxCalculator /></Layout>
+          </Route>
+          <Route path="/profile">
+            <Layout><Profile /></Layout>
+          </Route>
+          <Route path="/client-receipt-vouchers">
+            <Layout><ClientReceiptVouchers /></Layout>
+          </Route>
+          <Route path="/supplier-accounts">
+            <Layout><SupplierAccountsNew /></Layout>
+          </Route>
+          <Route path="/daily-reports">
+            <Layout><DailyReports /></Layout>
+          </Route>
+          <Route path="/branches">
+            <Layout><Branches /></Layout>
+          </Route>
+          <Route path="/branch-settings">
+            <Layout><BranchSettingsMain /></Layout>
+          </Route>
+          <Route path="/branch-reports">
+            <Layout><BranchReportsMain /></Layout>
+          </Route>
+          <Route path="/invoice">
+            <Layout><InvoicePage /></Layout>
+          </Route>
+          <Route path="/financial-health">
+            <Layout><FinancialHealthScore /></Layout>
+          </Route>
+          <Route path="/withdrawal-vouchers">
+            <Layout><WithdrawalVouchers /></Layout>
+          </Route>
+          <Route path="/financial-health-radar">
+            <Layout><FinancialHealthRadarPage /></Layout>
+          </Route>
+          
+          {/* Branch-specific routes */}
+          <Route path="/branch-suppliers/:branchId" component={BranchSuppliersNew} />
+          <Route path="/branch-product-categories/:branchId" component={BranchProductCategories} />
+          <Route path="/branch-products/:branchId" component={BranchProducts} />
+          <Route path="/add-branch-product/:branchId">
+            <Layout><AddBranchProduct /></Layout>
+          </Route>
+          <Route path="/add-branch-product">
+            <Layout><AddBranchProduct /></Layout>
+          </Route>
+          <Route path="/branch-employees/:branchId" component={BranchEmployees} />
+          <Route path="/branch-salaries/:branchId" component={BranchSalaries} />
+          <Route path="/branch-allowances/:branchId" component={BranchAllowances} />
+          <Route path="/branch-deductions/:branchId" component={BranchDeductions} />
+          <Route path="/branch-attendance/:branchId" component={BranchAttendance} />
+          <Route path="/branch-employee-reports/:branchId" component={BranchEmployeeReports} />
+          <Route path="/branch-employee-vacations/:branchId" component={BranchEmployeeVacations} />
+        </>
+      )}
+      
+      {/* نظام نقاط البيع للمستخدمين المسجلين */}
+      {isAuthenticated && (
+        <>
+          <Route path="/pos/:branchId" component={POSSystem} />
+          <Route path="/pos-system/:branchId" component={POSSystem} />
+          <Route path="/pos-terminals/:branchId" component={POSTerminals} />
+          <Route path="/pos-sales/:branchId" component={POSSales} />
+          <Route path="/pos-reports/:branchId" component={POSReports} />
+          <Route path="/pos-share-link" component={POSShareLink} />
+          <Route path="/pos/share/:branchId/:terminalId" component={SharedPOS} />
+          <Route path="/pos/pro/:branchId/:terminalId" component={ProfessionalPOS} />
+          
+          <Route path="/branch/:branchId" component={BranchSystem} />
+          <Route path="/branch-accounting/:branchId" component={BranchAccounting} />
+        </>
+      )}
+      
+      {/* توجيه المسارات غير المعروفة للصفحة الرئيسية */}
+      <Route path="*">
+        {isAuthenticated ? <Layout><Dashboard /></Layout> : <Login />}
+      </Route>
+    </Switch>
+  );
+}
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <TooltipProvider>
+          <OnboardingProvider>
+            <Router />
+            <Toaster />
+          </OnboardingProvider>
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
+}
+
+export default App;
