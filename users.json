@@ -1,0 +1,42 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "BMG1",
+      "email": "admin@bmg.com",
+      "password": "B1M2G3",
+      "fullName": "مدير النظام",
+      "profession": "مدير عام",
+      "phone": "+966500000000",
+      "address": "المملكة العربية السعودية",
+      "bio": "مدير النظام الرئيسي",
+      "avatar": null,
+      "role": "admin",
+      "createdAt": "2025-11-13T00:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "username": "YOUNIS1234",
+      "email": "younis@example.com",
+      "password": "Aa123456",
+      "fullName": "يونس التاجر",
+      "profession": "محاسب",
+      "phone": "+966501234567",
+      "address": "الرياض، المملكة العربية السعودية",
+      "bio": "محاسب خبير في الأنظمة المالية",
+      "avatar": null,
+      "role": "admin",
+      "createdAt": "2025-07-07T11:04:48.949Z"
+    },
+    {
+      "id": 117,
+      "username": "kaled",
+      "email": "byrwl8230@gmail.com",
+      "fullName": "يونس عبد الحمن",
+      "password": "Aa123456",
+      "role": "user",
+      "createdAt": "2025-07-07T11:05:42.527Z"
+    }
+  ],
+  "nextId": 118
+}

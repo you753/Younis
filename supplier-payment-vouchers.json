@@ -1,0 +1,15 @@
+[
+  {
+    "id": 118,
+    "supplierId": 15,
+    "voucherNumber": "SPV-1763753848468-495",
+    "amount": "300",
+    "paymentMethod": "نقدي",
+    "paymentDate": "2025-11-21",
+    "description": "دفعة للمورد",
+    "reference": null,
+    "status": "confirmed",
+    "notes": null,
+    "createdAt": "2025-11-21T19:37:28.468Z"
+  }
+]

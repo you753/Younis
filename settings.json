@@ -1,0 +1,26 @@
+{
+  "الشركة": {
+    "companyInfo": {
+      "nameArabic": "بوابة سوق البدو",
+      "nameEnglish": "Bedouin Market Gateway",
+      "taxNumber": "123456789012345",
+      "commercialRegister": "4030528128",
+      "phone": "0567537599",
+      "fax": "0126789012",
+      "mobile": "0567537599",
+      "email": "byrwl8230@gmail.com",
+      "website": "www.bedouinmarket.com",
+      "address": "جدة البغدادية الشرقية",
+      "district": "البغدادية الشرقية",
+      "postalCode": "222345",
+      "city": "جدة",
+      "region": "منطقة مكة المكرمة",
+      "country": "المملكة العربية السعودية",
+      "vatNumber": "123456789012345",
+      "license": "40305281",
+      "bankAccount": "SA0380000000608010167519",
+      "bankName": "البنك الأهلي السعودي",
+      "iban": "SA0380000000608010167519"
+    }
+  }
+}
